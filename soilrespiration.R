@@ -18,7 +18,7 @@
 
 ### read data for option 2:
 #setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/testing/")
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing")
+setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
 resconallsam <- read.table("Resconallsam.csv", sep=",", header=T)
 resparallsam <- read.table("Resparallsam.csv", sep=",", header=T)
@@ -27,7 +27,8 @@ restotallsam <- read.table("Restotallsam.csv", sep=",", header=T)
 # read correction functions:
 #source("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
 source("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
-
+#!!!! CHANGE DIREECTORY
+source("Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
 
 ## here comes a script to test the inclusion of partitioning option 2:
 
@@ -37,6 +38,7 @@ print("Calculations will be based on p=1013.25 hPa (sea level) and
 pressure <- 1013.25
 plotname = 1.1
 partitioningoption = 2
+elevation = "default"
 
 data.rest <- restotallsam
 data.resc <- resconallsam
@@ -191,7 +193,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     cht <- rm.ch.outlier(ch=cht)
     
     ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr
-    #%chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
+    # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
     RcAt <- fluxcorr(flux=fluxt, temp=tempt, ch=cht, Vd=Vd, A=A, pressure=pressure)
 
 
@@ -214,8 +216,6 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     
     # flux and chamber volume correction, see function fluxcorr
     RcpA <- fluxcorr(flux=fluxp, temp=tempp, ch=chp, Vd=Vd, A=A, pressure=pressure)
-
-
 
 
 ### Calculate respiration values in each year and month for the three different treatments:
@@ -398,7 +398,7 @@ for (j in fir_year:fir_yeare) {
     #  estimation of the relative contributions of (1) surface organic
     #  litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
     # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
-    corrsresA=exp(-0.0695*(1));
+    corrsresA=exp(-0.0695*(1))
 
 
     #% convert from umol m-2 s-1 to MgC ha month
@@ -539,8 +539,8 @@ if (plotit==T) {
   }
 
 # Return either monthly means (ret="monthly.means") as time series or matrix  
-switch(ret,
-       monthly.means.matrix = {return(soilresp.data.monthly.matrix)},
-       monthly.means.ts = {return(soilresp.data.monthly.ts)}
-)
-}
+#switch(ret,
+#       monthly.means.matrix = {return(soilresp.data.monthly.matrix)},
+#       monthly.means.ts = {return(soilresp.data.monthly.ts)}
+#)
+#}
