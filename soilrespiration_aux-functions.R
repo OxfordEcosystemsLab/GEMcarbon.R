@@ -1,4 +1,4 @@
-##### These functions are required for running the soilrespiration-program!
+## These functions are required for running the soilrespiration-program!
 #Sebastian Sippel, 06.12.2013
 
 ## remove flux outliers: CURRENTLY NOT IMPLEMENTED; DUE TO OVERALL FLUX CORRECTION (see below)!
@@ -42,19 +42,19 @@ rm.ch.outlier <- function(ch) {
 
 
 ## Perform chamber and flux correction (Metcalfe 2009) 
-#%chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
+# chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
 ## flux correction function is based on Appendix 2, RAINFOR manual
 # see p. 75, RAINFOR manual
 ## this correction is used for total and partitioning
 fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
-  Va = A*(ch/100)        #;%additional volume m3
+  Va = A*(ch/100)        # additional volume m3
   # initialize Variables for the for-loop: (variables are the flux variables and to specify plotname)
   RucA <- numeric(length=length(temp))
   RcA <- numeric(length=length(temp))
   #%correct for the new tube volume
   for (i in 1:length(temp)) {
     RucA[i]=(flux[i])*(pressure/1000)*(273/(temp[i]+273))*(44.01/22.41)*(Vd/A)/1000*3600;
-    RcA[i]= (RucA[i]*A/Vd*(Va[i]+Vd)/A)*6.312  #;% convert to umol m-2 s-1
+    RcA[i]= (RucA[i]*A/Vd*(Va[i]+Vd)/A)*6.312  # convert to umol m-2 s-1
   }
   return(RcA)
 }
@@ -78,3 +78,5 @@ barometric_equation <- function(elevation) {
   P=1013.25*(1-0.0065*elevation/288.15)^5.255  # in hPa
   return(P)
 }
+
+
