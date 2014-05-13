@@ -18,13 +18,13 @@
   library(sqldf)
 
 # read in data
-  setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing")
+  setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
   raw_totsr         <- read.table("T_S_Resp_Lp1_01.07.2013.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
   raw_parsr         <- read.table("S_P_Resp_Lp1_ExData_01.07.2013.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
   raw_consr         <- read.table("S_P_Resp2_Lp1_Brut_01.07.2013.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
-  wea_tot           <- read.table(".csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, subplot, temp, vwc  
-  wea_con           <- read.table(".csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, disturb, temp, vwc. Note: "measurement" is the measurement number (e.g. 21-35) 
-  wea_par           <- read.table(".csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, temp, vwc
+  wea_tot           <- read.table("4wea_tot_27.08.2013_test.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, subplot, temp, vwc  
+  wea_con           <- read.table("5wea_con_27.08.2013_test.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, disturb, temp, vwc. Note: "measurement" is the measurement number (e.g. 21-35) 
+  wea_par           <- read.table("65wea_par_27.08.2013_test.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, temp, vwc
   
   # once you have added the temperature and vwc datasets here, you can uncomment the code on lines 35-39, 87-90, 150-153 
   # and comment out the code that assings random values (raw_parsr$temp <- 25.8 and raw_parsr$vwc <- 50).
@@ -36,20 +36,22 @@
   colnames(raw_totsr) <- c("measurement", "recno", "day", "month", "hour", "min", "co2ref", "unused1", "unused2", "inputA", "inputB", "inputC", "inputD", "time", "inputF", "inputG", "inputH", "atmp", "probetype")
 
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
-  #wea_tot$codew        <- paste(wea_tot$measurement, wea_tot$day, wea_tot$month, wea_tot$year, sep=".")
-  raw_totsr$year    <- 2013  # we should request year in the raw files.
+  wea_tot$codew     <- paste(wea_tot$measurement, wea_tot$day, wea_tot$month, wea_tot$year, sep=".")
+  raw_totsr$year    <- 2013  # Should we request this from raw files? or just let users change it here?
   raw_totsr$codew   <- paste(raw_totsr$measurement, raw_totsr$day, raw_totsr$month, raw_totsr$year, sep=".")
-  #raw_totsr            <- sqldf("SELECT r.*, w.temp, w.vwc FROM raw_totsr r JOIN wea_tot w  ON w.codew = r.codew") 
+  #raw_totsr         <- sqldf("SELECT r.*, w.temp, w.vwc FROM raw_totsr r JOIN wea_tot w  ON w.codew = r.codew")
+  raw_totsr$temp    <- 25    
+  raw_totsr$vwc     <- 50    
+  raw_totsr$depth   <- 4.5   # !!!!! Attention !!!! this needs to go in sqldf L42
   
-  raw_totsr$temp    <- 25.8  # to delete when the code above is working    
-  raw_totsr$vwc     <- 50    # to delete when the code above is working 
-  raw_totsr$depth   <- 4.5   # still need to sort this out - do we need it? 
+  # ATTENTION: apply missing pressures and temperatures functions from soilrespiration_aux-functions.R to EGM-raw-to-db.R
         
-## estimate flux for each measurement  
+## estimate flux for each measurement
+  
+  # Add SANITY CHECKS: plot each flux batch, data sanity checks. Linear fit, estimate r2 quality check. see Chris code.
+  
 # get unique identifyer for each measurement
   raw_totsr$id <- as.factor(paste(raw_totsr$measurement, raw_totsr$day, raw_totsr$month, sep="."))
-
-
   uid <- unique(raw_totsr$id)
   Res <- data.frame()
   
@@ -71,6 +73,8 @@
     Res      <- rbind(Res, new)
   }
   colnames(Res) <- c("uid", "flux")
+  #TO DO: figure out how fluxcorr fits into this.
+
 
 # build the new data frame
   Res$year             <- 2013
@@ -126,6 +130,7 @@
     Res      <- rbind(Res, new)
   }
   colnames(Res) <- c("uid", "flux")
+  #
   
 # build the new data frame
   Res$year             <- 2013
@@ -150,7 +155,9 @@
   # I replaced "point" by "measurement"
   
 
-## Soil respiration partitionning !! for Gabon, select Option 1 for partitionning option
+## Soil respiration partitionning 
+  # Comment from the team: there are different ways of doing this. This is a simple approach, we should explore other approaches.
+  
   colnames(raw_parsr) <- c("measurement", "recno", "day", "month", "hour", "min", "co2ref", "unused1", "unused2", "inputA", "inputB", "inputC", "inputD", "time", "inputF", "inputG", "inputH", "atmp", "probetype")
 
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw partitioning data (raw_parsr)

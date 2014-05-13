@@ -8,18 +8,25 @@
 #  flux[which(flux > outliers)] <- NA
 #  return(flux)
 #}
+
+# Add a SPIKE DETECTION FUNCTION
+# Get the SD of mean of 2 points before and 2 points after, to detect spikes in data.
+# Add SD per subplot / measurement
+
 ## new flux correction based on overall fluxes:
 rm.flux.outlier <- function(flux_overall, sd_interval=3) {
-  outliers = mean(flux_overall,na.rm=T)+3*sd(flux_overall,na.rm=T);
-  flux_overall[which(flux_overall < 0)] <- 0;
+  outliers = mean(flux_overall,na.rm=T) + 3*sd(flux_overall,na.rm=T)
+  flux_overall[which(flux_overall < 0)] <- 0
   flux_overall[which(flux_overall > outliers)] <- NA
   return(flux_overall)
 }
 
+# Add a spike detection function
+
 ## remove temperature outlier:
 rm.temp.outlier <- function(temp, month) {
-  temp[which(temp<15)]=NA;
-  temp[which(temp>35)]=NA;
+  temp[which(temp<15)]=NA   # DEFINABLE VARIABLE
+  temp[which(temp>35)]=NA   # DEFINABLE VARIABLE
   
   xtemp <- NULL
   ## run through 12 months to find xtemp:
@@ -35,17 +42,21 @@ rm.temp.outlier <- function(temp, month) {
 
 ## remove ch outlier:
 rm.ch.outlier <- function(ch) {
-  xch=mean(ch,na.rm=T);  ## mean of ch over all plots!
+  xch=mean(ch,na.rm=T)  ## mean of ch over all plots!
   ch[which(is.na(ch))] <- xch
   return(ch)
 }
 
+# ch=ch-1 in cm. This eliminates the overlap between the collar and the adaptor.
 
 ## Perform chamber and flux correction (Metcalfe 2009) 
 # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
 ## flux correction function is based on Appendix 2, RAINFOR manual
 # see p. 75, RAINFOR manual
 ## this correction is used for total and partitioning
+
+# Add chamber volume correction to EGM_raw_to_db.
+
 fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
   Va = A*(ch/100)        # additional volume m3
   # initialize Variables for the for-loop: (variables are the flux variables and to specify plotname)
@@ -75,7 +86,7 @@ barometric_equation_T <- function(elevation, temp) {
 
 ## Temperature-independent version of the barometric equation (see e.g. Wikipedia):
 barometric_equation <- function(elevation) {
-  P=1013.25*(1-0.0065*elevation/288.15)^5.255  # in hPa
+  P=1013.25*(1-0.0065*elevation/288.15)^5.255  # in hPa Adapt lapse rate to your region.
   return(P)
 }
 

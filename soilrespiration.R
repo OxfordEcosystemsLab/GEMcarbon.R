@@ -3,9 +3,9 @@
 # RAINFOR-GEM manual.
 
 ### Required Data:
-# data.frame of total soil respiration (specified below)
-# data.frame of partition respiration (specified below)
-# data.frame of control respiration (specified below)
+# data.frame of total soil respiration
+# data.frame of partition respiration 
+# data.frame of control respiration 
 # plotname: specify plotname of which plot should be calculated (eg. 1,2,etc)
 # ret: data-format of return values: "monthly.means.ts" or "monthly.means.matrix"
 # plotit: logical, plot a quick graphical summary of the data?
@@ -14,21 +14,18 @@
 ## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the
 ## overall data), in order to find start and end years
 
-## This function will also include option 1 or 2 of the manual!
 
 ### read data for option 2:
 #setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/testing/")
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
-resconallsam <- read.table("Resconallsam.csv", sep=",", header=T)
-resparallsam <- read.table("Resparallsam.csv", sep=",", header=T)
-restotallsam <- read.table("Restotallsam.csv", sep=",", header=T)
+data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
+data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
+data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
 
 # read correction functions:
 #source("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
 source("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
-#!!!! CHANGE DIREECTORY
-source("Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
 
 ## here comes a script to test the inclusion of partitioning option 2:
 
@@ -39,10 +36,6 @@ pressure <- 1013.25
 plotname = 1.1
 partitioningoption = 2
 elevation = "default"
-
-data.rest <- restotallsam
-data.resc <- resconallsam
-data.resp <- resparallsam
 
 
 ### data for option 1:
@@ -64,7 +57,7 @@ data.resp <- resparallsam
 #colnames(data.resc) <- c("year", "month", "plot", "area", "disturbance", "co2", "temperature", "water_content", "depth", "flux")
 #colnames(data.resp) <- c("year", "month", "plot", "area", "co2", "temperature", "water_content", "depth", "flux")
 
-
+#Activate this code to use as a function:
 #soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthly.means.ts", 
 #                            partitioningoption="Default",
 #                            pressure="Default", elevation="Default", T_ambient="Default",
@@ -130,29 +123,26 @@ montht = data.rest$month[which(plott==plotname)]
 tempt = data.rest$temperature[which(plott==plotname)]
 cht = data.rest$depth[which(plott==plotname)]     ## depth (cm)
 fluxt = data.rest$flux[which(plott==plotname)]    ## This is to determine overall outliers
-##______________________________________________________
 
 # Control
 
 # insert 5 40cm tubes in the soil, excavate soil cores
 # 13cm diameter by 35cm depth, mix soil but don't remove roots
 
-#  plot (1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB)  
+#  plot 
 #  year  
 #  month  
 #  temperature : temperature in C
 #  depth
-#  flux
+#  flux                  
 
-plotc = data.resc$plot   #%A=1 B=2
+plotc = data.resc$plot   
 yearc = data.resc$year[which(plotc==plotname)]
 monthc = data.resc$month[which(plotc==plotname)]
 tempc = data.resc$temperature[which(plotc==plotname)]
 chc = data.resc$depth[which(plotc==plotname)]
 fluxc = data.resc$flux[which(plotc==plotname)]
 distc = data.resc$disturbance[which(plotc==plotname)]
-##__________________________________________________
-
 
 #  Partitioning components of soil respiration
 #  4 groups of 9 tubes per plot (36 tubes in total per plot).
@@ -166,14 +156,13 @@ distc = data.resc$disturbance[which(plotc==plotname)]
 #  depth: chamber_height
 #  fluxp
 
-plotp = data.resp$plot #A=1 B=2
+plotp = data.resp$plot 
 yearp = data.resp$year[which(plotp==plotname)]
 monthp = data.resp$month[which(plotp==plotname)]
 treatmentp = data.resp$area[which(plotp==plotname)]#A=1 B=2
 tempp = data.resp$temperature[which(plotp==plotname)]
 chp = data.resp$depth[which(plotp==plotname)]  # ch is height of the collar - rename?
 fluxp = data.resp$flux[which(plotp==plotname)] # overall fluxes
-##____________________________________________________
 
 ### Defaults for chamber volume and tube area:
 # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
@@ -188,7 +177,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
     # the choice of the sd_interval changes things!    
 
-    fluxt <- rm.flux.outlier(fluxt, sd_interval=2)
+    fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
     tempt <- rm.temp.outlier(temp=tempt, month=montht)
     cht <- rm.ch.outlier(ch=cht)
     
@@ -198,7 +187,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 
 
 ### Control Measurements (data which has beean assigned above!)
-    #
+
     # remove outliers (> 3 SD) and NAs:
     fluxc <- rm.flux.outlier(fluxc, sd_interval=2) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3sd.
     tempc <- rm.temp.outlier(temp = tempc, month=monthc)
@@ -272,15 +261,15 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 
 
 # average fluxes by month for total soil respiration
-n=1;
+n=1
 for (j in fir_year:fir_yeare) {
-  m=1;
+  m=1
   for (i in 1:12) {
     
     # calculate for total soil respiration:
-      ind = which(montht==i & yeart==j);  
-      resAt[m,n] = mean(RcAt[ind],na.rm=T); # averages the 25 vales for that month and that year.
-      resAtstd[m,n] = sd(RcAt[ind],na.rm=T);
+      ind = which(montht==i & yeart==j)  
+      resAt[m,n] = mean(RcAt[ind],na.rm=T) # averages the 25 vales for that month and that year.
+      resAtstd[m,n] = sd(RcAt[ind],na.rm=T)
 
     # calculate for control soil respiration: (for disturbed and non-disturbed plots)
        im = which(monthc==i & yearc==j);
@@ -378,21 +367,19 @@ for (j in fir_year:fir_yeare) {
             }
       }
     
-    m=m+1;
+    m=m+1
   }
-  n=n+1;
+  n=n+1
 }
 
 
-
-
 ### Unit conversions:
-    #% convert from umol m-2 s-1 to MgC ha month
-    #%convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
-    #%1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
+    # convert from umol m-2 s-1 to MgC ha month
+    # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
+    # 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
     convert = (2592000*10000*12)/(1000000*1000000);
-    DCdA = (rcaper)*convert    #;% average disturbed soil cores
-    DCudA = (rcanotper)*convert #;% average undisturbed soil cores
+    DCdA = (rcaper)*convert     # average disturbed soil cores
+    DCudA = (rcanotper)*convert # average undisturbed soil cores
 
 
     #  estimation of the relative contributions of (1) surface organic
@@ -401,9 +388,9 @@ for (j in fir_year:fir_yeare) {
     corrsresA=exp(-0.0695*(1))
 
 
-    #% convert from umol m-2 s-1 to MgC ha month
-    #%convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
-    #%1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
+    # convert from umol m-2 s-1 to MgC ha month
+    # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
+    # 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
     convert = (2592000*10000*12)/(1000000*1000000);
     totresAc = resAt*convert*corrsresA;
     totresAcstd = resAtstd*convert*corrsresA;
@@ -449,12 +436,12 @@ if (partitioningoption==1) {
 
 
 ## autotrophic root respiration:
-rrtotresAc = totresAc*rrA;
-rrtotresAcstd = (totresAcstd*rrA)/sqrt(25);
+rrtotresAc = totresAc*rrA
+rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should this be more generic? length(subplot)
 
 ## heterotrophic respiration:
-hrtotresAc = totresAc*(1-rrA);
-hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25);
+hrtotresAc = totresAc*(1-rrA)
+hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
 
 # fill gaps
 rrAfg = colMeans(t(rrA),na.rm=T)
@@ -515,7 +502,7 @@ for (i in 1:12) {
                                      "rrtotresAc","rrtotresAcstd",
                                      "hrtotresAc","hrtotresAcstd")
 }
-
+ 
 
 ## Plotroutine, triggered by argument 'plotit=T'
 if (plotit==T) {
