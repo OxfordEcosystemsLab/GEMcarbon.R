@@ -77,7 +77,7 @@ elevation = "default"
   }
   
   if (partitioningoption==1) {
-    print("Code is running on partitioning option 1 (see RAINFOR manual, p. 56)")
+    print("Code is running on partitioning option 1 (see RAINFOR manual, p. 56")
   }
   
   if (pressure=="Default" & elevation=="Default" & T_ambient=="Default") {
@@ -177,16 +177,14 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
     # the choice of the sd_interval changes things!    
 
-    fluxt <- rm.flux.outlier(fluxt, sd_interval=3) # you can define the SD interval here
-    tempt <- rm.temp.outlier(temp=tempt, month=montht, min=15, max=35)
+    fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
+    tempt <- rm.temp.outlier(temp=tempt, month=montht)
     cht <- rm.ch.outlier(ch=cht)
-    flag <- flag.flux.outlier(fluxt, sd_interval=2)
     
     ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr
     # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
     RcAt <- fluxcorr(flux=fluxt, temp=tempt, ch=cht, Vd=Vd, A=A, pressure=pressure)
-# define RcAt     
-RcAt
+
 
 ### Control Measurements (data which has beean assigned above!)
 

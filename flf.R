@@ -17,13 +17,13 @@
 
 ## Read-In of Chris' data:
 library(R.matlab)
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
+#setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
+setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
 dir()
 Dataall <- readMat(con="Dataall.mat")
 
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/R-functions(v3)")
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/R-functions(v3)")
+#setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/R-functions(v3)")
+setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/R-functions(v3)")
 # fine litterfall data:
 data.flf <- data.frame(Dataall$FLFall)
 
@@ -46,7 +46,7 @@ str(data.flf)
 plotname = 1
 
 
-flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plotsize=1                                                                                     
+# flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plotsize=1                                                                                     
   
   plotfA = data.flf$plot #%(1=esp, 2=way, 3=sp1, 4=sp2)  
   yearfA = data.flf$year[which(plotname==plotfA)]

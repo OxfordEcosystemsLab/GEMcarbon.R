@@ -4,13 +4,12 @@
 
 
 # test-functions for large tree dendrometer and census measurements are in thee Dropbox ("Carbon_Use_Efficiency/in-progress"):
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/in-progress/")
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/in-progress/")
+setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/in-progress/")
 source("largeTreeNPP_v1_dendrometer_function.R")
 source("largeTreeNPP_census_v1_function.R")
 
 ## get allometric equation file:
-#source("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/in-progress/allometricEquations.R")
+source("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/in-progress/allometricEquations.R")
 source("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/in-progress/allometricEquations.R")
 
 
@@ -18,7 +17,7 @@ source("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/in-progress/allometricEqu
 ## Estimate largeTreeNPP based on Census data:
 ## open Data:
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/census_restructured")
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/census_restructured/")
+setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/census_restructured/")
 start_census <- read.table("census_start.csv", header=T,sep=";")
 census_running <- read.table("census_running.csv", header=T, sep=";")
 
@@ -28,7 +27,7 @@ NPP_census <- largeTreeNPP_census(start_cencus = start_census, running_measureme
 
 ### Estimate dendrometer NPP (takes > 5 min)
 ## open Data:
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/")
+setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/")
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/largeTree_data/")
 
 census <- read.table("census.csv", header=T, sep=";")
