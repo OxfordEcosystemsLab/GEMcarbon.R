@@ -6,13 +6,9 @@
 largeTreeNPP_census <- function(start_census, census_running, plotname, 
                          allometric_option="Default") {
 
-##### different equations: moist / dry / wet (Chave et al., 2005)
-  # These are the equations recommended in (Marthews et al. in review, 5 C Pools paper). 
-  #     moist_ped = 1 (Default)
-  #     2=dry:  0.4730*0.001*0.112*(densitysA[tree_ind]*((diaxs)^2)*heightsa)^0.916 
-  #     3=moist:  0.4730*0.001*0.0509*densitysA[tree_ind]*((diaxs)^2)*heightsa
-  #     4=wet:   0.4730*0.001*0.0776*(densitysA[tree_ind]*((diaxs)^2))*heightsa)^0.940
-  
+## different equations: moist / dry / wet (Chave et al., 2005)
+#  moist_ped = 1 (Default)
+    
   ## Set of allometric equations after Chave et al 2005 are defined here:
   # this set of equations could also be made externally later, e.g. if needed also for large trees, etc...
   if (allometric_option == 2 | allometric_option == "dry") {
@@ -91,7 +87,7 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   NPPbiosA <- list()
   NPPbiosAer <- list()
   
-  ## this loop for each tree has two advantages compared to the previous code:
+  ## this loop for each tree has two advantages compared to Chris's code:
   # 1) it allows for different measurement dates for particular trees
   # 2) allows for different lengths of measurement time series
   
@@ -103,7 +99,7 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
     dendroallA[[tree_ind]] <- diameters_running[temp_ind]
     dates[[tree_ind]] <- strptime(paste(year_running[temp_ind], month_running[temp_ind], day_running[temp_ind], sep="-"), format="%Y-%m-%d")
 
-    diaxs = dendroallA[[tree_ind]] #  cm
+    diaxs = dendroallA[[tree_ind]] #  cm !!! IS THIS THE ERROR? WE SHOULD HAVE diameters[temp_ind] + (diameters_running[temp_ind])*0.1
     diaxser = er+dendroallA[[tree_ind]] 
     
     ##new calculation using allometric equations in external file:
@@ -115,8 +111,10 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
       nor <- Chave2005_wet(diax=diaxs, density=densitys[tree_ind], height=heights[tree_ind])
     }
     
+    ##### TO DO #####
     ## error treatment remains to be done!
-    norer = 0.0509*(diaxser)^2*densitys[tree_ind]*heights[tree_ind] # replace with heightsa -> DONE
+    norer = 0.0509*(diaxser)^2*densitys[tree_ind]*heights[tree_ind] 
+    # this is what I think Toby means: norer = abs(0.0509)*2*abs(diaxs)*diaxser # but check that diaxser = er+dendroallA[[tree_ind]] ??
     
     #Toby:
     #If error on diaxs is er then error on (diaxs^2) is 2diaxs*er (rule of quadrature). Equation on
@@ -124,8 +122,9 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
     #on k=0.0509*densitysA[tree_ind]*heights ) so error on nor should be
     #norer=abs(k)*2*abs(diaxs)*er 
     
+    
     # unit conversion must be done here; is not included in the allometric equation file
-    NPPbiosA[[tree_ind]] = (nor)*(1/(2.1097*1000))    #convert kgto Mg=1/1000=10 and convert to carbon = 50% This is still biomass at this stage, not NPP.
+    NPPbiosA[[tree_ind]] = (nor)*(1/(2.1097*1000))    #convert kgto Mg=1/1000=10 and convert to carbon = 50% This is still biomass at this stage, not NPP. Change name.
     NPPbiosAer[[tree_ind]] = (norer*(1/(2.1097*1000)))#convert kgto Mg=1/1000=10 and convert to carbon = 50%                       
   }
   
@@ -145,7 +144,8 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   ## Build NPP matrix for all trees (denNPPbiosA):
   # number of columns (i.e. years:)
   denNPPbiosA <- array(data=NA, dim=c(length(Tnumcen),(last_year-fir_year+1)*12))
-  #denNPPbiosAer <- array(data=NA, dim=c(length(TnumcenA),(last_year-fir_year+1)*12))  # this is not the error. it is the same value as above.
+  #denNPPbiosAer <- array(data=NA, dim=c(length(TnumcenA),(last_year-fir_year+1)*12))  # TO DO: ERROR! this is not the error. it is the same value as above.
+  
   dates_monthly <- seq.Date(from=as.Date(paste(fir_year,"-01-01", sep=""), format="%Y-%m-%d"),
                             to=as.Date(paste(last_year,"-12-01", sep=""), format="%Y-%m-%d"), by="1 months")
   
@@ -199,38 +199,17 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   names(NPPwoodsA) <- dates_monthly
   #names(NPPwoodsAstd) <- dates_monthly
 
-
-###########################################################################
-## Build list with matrices that contain monthly values:
-
-#{
-#  NPPwoodsA.monthly.matrix <- list(NPPwoodsA, dates_monthly) # ,NPPwoodsAstd
-#  names(NPPwoodsA.monthly.matrix) <- c("NPPwoodsA") # ,"NPPwoodsAstd"
-#}
-
-##  Build data frame with time series structure
-#{
-  ##Restructure the data (according to time series structure):
-#  Year <- NULL
-#  Month <- NULL
-#  Day <- NULL
-  
-#  for (i in 1:dim(NPPwoodsA)[2]) {   #################################### This doesn't work - we need a list of NPPwoodsA[1] = NPPwoodsA & NPPwoodsA[2] = dates
-#    Year[((i-1)*12+1):((i-1)*12+12)] <- (rep(c(fir_year:last_year)[i],12))
-#    Month[((i-1)*12+1):((i-1)*12+12)] <- (1:12)
-#    Day[((i-1)*12+1):((i-1)*12+12)] <- rep(NA,12)
-#  }
-  
-#  NPPwoodsA.monthly.ts <- data.frame(Year,Month,Day,
-#                                     c(NPPwoodsA)) # ,c(NPPwoodsAstd)
-  
-#  colnames(NPPwoodsA.monthly.ts) <- c("Year","Month","Day",  
-#                                      "NPPwoodsA") # ,"NPPwoodsAstd"
-#}
-############################################################################
-
 return(NPPwoodsA)
 }
+
+# Add code for mortality and recruitment NPP = NPP + 
+
+# w=which(!is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id surviving trees to estimate biomass growth
+# w2=which(!is.na(data$biomass.2003) & is.na(data$biomass.2007)) # id dying trees
+# w3=which(is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id recruiting trees
+# NPP = bm surviving trees 2007 - bm surviving trees 2003 + bm recruited trees 2007
+# bm.mort= sum bm dying trees
+# bm.rec= sum bm recruited trees
 
 # Get annual values: NPPwoodsA[13:24] & sum(NPPwoodsA[13:24])
   

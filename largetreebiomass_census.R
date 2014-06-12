@@ -33,6 +33,8 @@ treebm_census <- function(start_census, census_running, plotname, year, # add pl
 
 ## Set of allometric equations after Chave et al 2005 are defined here:
 # this set of equations could also be made externally later, e.g. if needed also for large trees, etc...
+# TO DO: add Chave 2014.
+  
 if (allometric_option == 2 | allometric_option == "dry") {
   allometrix <- 2
   print("dry equation  is used for estimating AGB, model I.3 (see Chave et al., 2005)")
@@ -63,8 +65,7 @@ month_running     = census_running$month[which(par_running==plotname & yr_runnin
 day_running       = census_running$day[which(par_running==plotname & yr_running==year)]
 
 ## This is the correction procedure for heights, diameters and densitys:
-# copied from Chris' original code:
-# if no tree height, use the Feldpautch equations to get tree height
+# This comes from Chris' original code - if no tree height, use the Feldpautch equations to get tree height.
 
 Bo    = 0.6373
 B1    = 0.4647  # E.C. Amazonia
@@ -104,8 +105,8 @@ dates <- list()
 er=0.1 # .1cm
 #(AGB, D in cm, q g/cm3, H in m)
 
-NPPbiosA <- list()
-NPPbiosAer <- list()
+biosA <- list()
+biosAer <- list()
 
 # loop runs through all trees with plotname==plotname
 for (tree_ind in 1:length(Tnumcen)) {
@@ -116,7 +117,7 @@ for (tree_ind in 1:length(Tnumcen)) {
   dates[[tree_ind]] <- strptime(paste(year_running[temp_ind], month_running[temp_ind], day_running[temp_ind], sep="-"), format="%Y-%m-%d")
   
   diaxs = dendroallA[[tree_ind]] #  cm
-  diaxser = er+dendroallA[[tree_ind]] 
+  diaxser = er+dendroallA[[tree_ind]] ### CHECK THIS!!!
   
   ##new calculation using allometric equations in external file:
   if (allometrix == 2) {
@@ -128,22 +129,31 @@ for (tree_ind in 1:length(Tnumcen)) {
   }
 
 
-  ## error treatment remains to be done! See largeTreeNPP_census function for details
-  norer = 0.0509*(diaxser)^2*densitys[tree_ind]*heights[tree_ind] # replace with heightsa -> DONE
+  ##### TO DO #####
+  ## error treatment remains to be done!
+  norer = 0.0509*(diaxser)^2*densitys[tree_ind]*heights[tree_ind] 
+  # this is what I think Toby means: norer = abs(0.0509)*2*abs(diaxs)*diaxser # but check that diaxser = er+dendroallA[[tree_ind]] ??
   
-  # unit conversion must be done here; is not included in the allometric equation file
-  NPPbiosA[[tree_ind]] = (nor)*(1/(2.1097*1000))    #convert kgto Mg=1/1000=10 and convert to carbon = 50% This is still biomass at this stage, not NPP.
-  NPPbiosAer[[tree_ind]] = (norer*(1/(2.1097*1000)))#convert kgto Mg=1/1000=10 and convert to carbon = 50%  
+  #Toby:
+  #If error on diaxs is er then error on (diaxs^2) is 2diaxs*er (rule of quadrature). Equation on
+  #line 90 is basically nor=k*(diaxs^2) where k is constant (assuming no error
+  #on k=0.0509*densitysA[tree_ind]*heights ) so error on nor should be
+  #norer=abs(k)*2*abs(diaxs)*er 
+  
+  
+  # unit conversion must be done here, it is not included in the allometric equation file.
+  biosA[[tree_ind]] = (nor)*(1/(2.1097*1000))     #convert kgto Mg=1/1000=10 and convert to carbon = 47.8% This is still biomass at this stage, not NPP.
+  biosAer[[tree_ind]] = (norer*(1/(2.1097*1000))) #convert kgto Mg=1/1000=10 and convert to carbon = 47.8%  
 }
 
 # extract tree biomass for each year from list
 trbm <- NULL
 for (tree_ind in 1:length(Tnumcen)) {
-  trbm <- c(trbm, NPPbiosA[[tree_ind]][1])
+  trbm <- c(trbm, biosA[[tree_ind]][1])
 }
 
 # sum of tree biomass to get plot level biomass
-bm <- sum(trbm, na.rm=T) # *plotsize
+bm <- sum(trbm, na.rm=T) # CONFIRM: bm*plotsize?
 
 #Return biomass values  
 return(bm)
