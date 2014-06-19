@@ -23,9 +23,10 @@ Chave2005_wet <- function(diax, density, height) {
   return(AGB_est)
 }
 
-#2=dry:  0.4730*0.001*0.112*(densitysA[tree_ind]*((diaxs)^2)*heightsa)^0.916 , 
-#3=moist:  0.4730*0.001*0.0509*densitysA[tree_ind]*((diaxs)^2)*heightsa,
-#4=wet:  0.4730*0.001*0.0776*(densitysA[tree_ind]*((diaxs)^2))*heightsa)^0.940
+Chave2014 <- function(diax, density, height) {
+  AGB_est <- 0.0673*(density*((diax)^2)*height)^0.976 
+  return(AGB_est)
+}
 
 
 ## Chambers et al, 2004: estimate surface area of a tree:

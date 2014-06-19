@@ -5,6 +5,7 @@
 
 # test-functions for large tree dendrometer and census measurements are in thee Dropbox ("Carbon_Use_Efficiency/in-progress"):
 setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/in-progress/")
+setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/in-progress/")
 source("largeTreeNPP_v1_dendrometer_function.R")
 source("largeTreeNPP_census_v1_function.R")
 
@@ -35,13 +36,10 @@ dendrometer_db <- read.table("dendrometer_db.csv", header=T, sep=";", colClasses
 
 NPP_dendrometer <- largeTreeNPP_v1_dendrometer(census=census, dendrometer_db=dendrometer_db, plotname=1, allometric_option="moist")
 
+### TO DO ## add scaling and plotsize!!
 
-
-
-### add scaling and plotsize!!
-
-plotsize <- 2 # plotsize in ha
-# scale NPP_census by plotsize (add plotsize in ha!):
+plotsize <- 1 # plotsize in ha
+# scale NPP_census by plotsize (add plotsize in ha):
 NPP_census_ha = NPP_census / plotsize   # "plotsize" could be added as a variable to the function NPP_census()
 
 # scale NPP_dendrometer by plotsize:
@@ -91,5 +89,5 @@ scaling_factor_avg <- mean(scaling_factor, na.rm=T)
 NPP_dendrometer_scaled <- NPP_dendrometer/scaling_factor_avg
 
 ### the scaling by plotsize should be included into the functions.
-### please discuss how to deal with the scaling NPP_dendrometer/NPP_census...
-### I would recommend to do this mannually after running the functions (similar to this script...)
+### we need to discuss how to deal with the scaling NPP_dendrometer/NPP_census. Do we keep this as a separate R script?
+

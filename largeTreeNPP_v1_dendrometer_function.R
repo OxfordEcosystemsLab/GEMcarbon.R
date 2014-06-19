@@ -98,7 +98,7 @@ for (tree_ind in 1:length(TnumcenA)) {
   ## calculate AGB for all trees:
   # (AGB, D in cm, q g/cm3, H in m)
   diax1 <- (diameterlA[tree_ind]*pi + dendroallA[[tree_ind]]/10)/pi # convert mm to cm; convert circum to diameter
-  diax1er <- (diax1*pi + er)/pi 
+  #diax1er <- (diax1*pi + er)/pi 
   
   ##new calculation using allometric equations in external file:
   if (allometrix == 2) {
