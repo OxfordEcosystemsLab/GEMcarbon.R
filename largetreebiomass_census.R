@@ -80,16 +80,16 @@ densitys[which(is.na(densitys))] <- xdensityl
 ## Height correction options
 if (height_correction_option == 1 | height_correction_option == "Default" ) {
   predheight <- 1
-  print("height correction estimated from a local local diameter-height relationship (lm)")
+  print("If you have height for more than 50 trees in your plot, estimate local diameter-height relationship. If not, choose height correction option 2.")
 } else if (height_correction_option == 2) {
   predheight <- 2
   print("height correction estimated as described by Feldpauch et al. (2012). Please check Feldpauch regional parameters in the code. Default is Brazilian shield.")
 } else {
-  print("Please specify a valid height_correction_option!")
+  print("Please specify a valid height_correction_option.")
   return()
 }
 
-# Option 1: you have height for more than 50 trees in your plot. Estimate local diameter-height relationship
+# Option 1: If you have height for more than 50 trees in your plot. Estimate local diameter-height relationship
 
 h.est=function(dbh, h){
   l=lm(h~dbh)
@@ -133,7 +133,6 @@ censusallA <- list()  # we use lists so that we don't need to specify how long t
 dates <- list()
 
 er=0.1 # .1cm
-#(AGB, D in cm, q g/cm3, H in m)
 
 NPPbiosA <- list()
 NPPbiosAer <- list()
@@ -147,7 +146,7 @@ for (tree_ind in 1:length(Tnumcen)) {
   dates[[tree_ind]] <- strptime(paste(year_running[temp_ind], month_running[temp_ind], day_running[temp_ind], sep="-"), format="%Y-%m-%d")
   
   diaxs = censusallA[[tree_ind]] #  cm
-  diaxser = er+censusallA[[tree_ind]] 
+  diaxser = er+censusallA[[tree_ind]] ########################### ATTENTION!!!!! ############# Shouldn't this be er*censusallA?
   
   #new calculation using allometric equations in external file:
   if (allometrix == 2) {

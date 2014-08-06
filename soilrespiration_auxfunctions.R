@@ -1,5 +1,6 @@
 ## These functions are required for running the soilrespiration-program!
-#Sebastian Sippel, 06.12.2013
+# Sebastian Sippel, 06.12.2013
+# Last edited: Cécile Girardin, 01.07.2014 
 
 ## remove flux outliers: CURRENTLY NOT IMPLEMENTED; DUE TO OVERALL FLUX CORRECTION (see below)!
 #rm.flux.outlier <- function(flux, sd_interval=3) {
@@ -55,7 +56,7 @@ rm.ch.outlier <- function(ch) {
 # see p. 75, RAINFOR manual
 ## this correction is used for total and partitioning
 
-# Add chamber volume correction to EGM_raw_to_db.
+# Chamber volume correction.
 
 fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
   Va = A*(ch/100)        # additional volume m3
@@ -76,9 +77,9 @@ fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
 barometric_equation_T <- function(elevation, temp) {
   ## temp in °C
   xtemp = temp+273.13
-  Ru=8.31432                    #Universal gas constant in J/molK
-  molarMd=28.9644                #Molar mass (molecular weight/mass) of dry air in g/mol
-  Rd=1000*Ru/molarMd            #Specific gas constant for dry air in J/kgK (approx. 287.04 J/kgK)
+  Ru=8.31432                    # Universal gas constant in J/molK
+  molarMd=28.9644               # Molar mass (molecular weight/mass) of dry air in g/mol
+  Rd=1000*Ru/molarMd            # Specific gas constant for dry air in J/kgK (approx. 287.04 J/kgK)
   P=1013.25*exp(-9.81*(elevation)/(Rd*(xtemp)))
   return(P)
 }

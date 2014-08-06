@@ -1,6 +1,14 @@
+# Written: Sebastian Sippel & Cécile Girardin May 2014
+# Update: Cécile Girardin July 2014
+
 ### Here comes a function that estimates annual NPP values based on census data
 
 ## This script estimates largeTreeNPP
+# The monthly values you get from this code are plot-level values, as all the trees in the plot are censused. 
+# Once you sum all monthly values from this, you get the annual value for the plot. 
+# That is the most reliable annual value. 
+# We then use this to estimate a scaling factor for the monthly dendrometer data (NPPcensus ha-1 yr-1 / NPPdend ha-1 yr-1).
+
 # requires two .csv files: 
 #start_census   <- read.table() 
 #census_running <- read.table()
@@ -28,9 +36,8 @@
 #date
 
 # TO DO: add an option to plot raw data = T/F
-largeTreeNPP_census <- function(start_census, census_running, plotname, 
+largeTreeNPP_census <- function(start_census, census_running, plotname, # census_1_year="Default", census_2_year="Default"
                          allometric_option="Default", height_correction_option="Default") {
-
   
   ## Set of allometric equations after Chave et al. 2005 and Chave et al. 2014 are defined in allometricEquations.R. Options defined here:
   if (allometric_option == 2 | allometric_option == "dry") {
@@ -54,12 +61,12 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   par = start_census$plot
   Tnumcen = as.numeric(start_census$tag)[which(par==plotname)]
   densitys = as.numeric(start_census$Densidade_de_madeira_g_cm3)[which(par==plotname)]
-  diameters = as.numeric(start_census$DAP_cm_start)[which(par==plotname)] #in cm
+  diameters = as.numeric(start_census$DAP_cm_start)[which(par==plotname)] # in cm
   heights = as.numeric(start_census$altura_tot_est)[which(par==plotname)]
   
   par_running = census_running$plot
   Tnumcen_running = as.numeric(census_running$tag)[which(par_running==plotname)]
-  diameters_running = as.numeric(census_running$DAP)[which(par_running==plotname)] # in mm? NO! in cm.
+  diameters_running = as.numeric(census_running$DAP)[which(par_running==plotname)] # in cm.
   year_running = census_running$year[which(par_running==plotname)]
   month_running = census_running$month[which(par_running==plotname)]
   day_running = census_running$day[which(par_running==plotname)]
@@ -73,12 +80,13 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   densitys[which(densitys==0)] <- xdensityl
   densitys[which(is.na(densitys))] <- xdensityl
   
+  
   ## Correct for missing tree heights
   
   ## Height correction options
   if (height_correction_option == 1 | height_correction_option == "Default" ) {
     predheight <- 1
-    print("height correction estimated from a local local diameter-height relationship (lm)")
+    print("If you have height for more than 50 trees in your plot, estimate local diameter-height relationship. If not, choose height correction option 2.")
   } else if (height_correction_option == 2) {
     predheight <- 2
     print("height correction estimated as described by Feldpauch et al. (2012). Please check Feldpauch regional parameters in the code. Default is Brazilian shield.")
@@ -128,7 +136,7 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
     
   # Define height options
   if (predheight == 1) {
-    pred.h <- h.est(diameters, heights)
+    #pred.h <- h.est(diameters, heights)
     heights[which(is.na(heights))] <- h.est(diameters, heights)
   } else if (predheight == 2) {
     heights[which(is.na(heights))] <- 10^(Bo + B1*log10(diameters[which(is.na(heights))]/10) + Abar*So1 + n01*Pvbar + n02*Sdbar + n03*Tabar)
@@ -141,7 +149,7 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   censusallA <- list()  # we use lists so that we don't need to specify how long they are.
   dates <- list()
 
-  # er=0.1 # .1cm sampling error is trivial compared to systematic error of allometric equation.
+  er=0.1 # .1cm sampling error is trivial compared to systematic error of allometric equation.
   # CHANGE THIS see Chave et al. 2005
   # AGB, D in cm, q g/cm3, H in m
   
@@ -161,7 +169,7 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
     dates[[tree_ind]] <- strptime(paste(year_running[temp_ind], month_running[temp_ind], day_running[temp_ind], sep="-"), format="%Y-%m-%d")
 
     diaxs = censusallA[[tree_ind]] #  cm
-    #diaxser = er+censusallA[[tree_ind]] 
+    diaxser = er+censusallA[[tree_ind]] 
     
     ##new calculation using allometric equations in external file:
     if (allometrix == 2) {
@@ -177,9 +185,9 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
     ## TO DO ## error treatment remains to be done!
     #norer = 0.0509*(diaxser)^2*densitys[tree_ind]*heights[tree_ind] 
     
-    # unit conversion must be done here; is not included in the allometric equation file
-    NPPbiosA[[tree_ind]] = (nor)*(1/(2.1097*1000))    #convert kgto Mg=1/1000=10 and convert to carbon = 50% This is still biomass at this stage, not NPP.
-    #NPPbiosAer[[tree_ind]] = (norer*(1/(2.1097*1000)))#convert kgto Mg=1/1000=10 and convert to carbon = 50%                       
+    # unit conversion is done here as it is not included in the allometric equation file
+    NPPbiosA[[tree_ind]] = (nor)*(1/(2.1097*1000))      # convert kg to Mg=1/1000=10 and convert to carbon = 47.8% # This is tree biomass, not NPP.
+    #NPPbiosAer[[tree_ind]] = (norer*(1/(2.1097*1000))) # convert kg to Mg=1/1000=10 and convert to carbon = 47.8%                       
   }
   
   # ADD TERHI's HEIGHT PROPAGATION CORRECTION
@@ -189,11 +197,12 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   max_date <- NULL
   
   for (i in 1:length(Tnumcen)) {
-    min_date[i] <- as.character(min(dates[[i]]))
-    max_date[i] <- as.character(max(dates[[i]]))
+    min_date[i] <- as.character(min(dates[[i]])) # if year = census_1_year {as.character(min(dates[[i]]))}
+    max_date[i] <- as.character(max(dates[[i]])) # if year = census_2_year {as.character(max(dates[[i]]))} change to the date you want max data for year = 200X
   }
   
-  fir_year <- as.numeric(format(min(strptime(min_date, format="%Y-%m-%d")), format="%Y"))
+      
+  fir_year  <- as.numeric(format(min(strptime(min_date, format="%Y-%m-%d")), format="%Y"))
   last_year <- as.numeric(format(max(strptime(max_date, format="%Y-%m-%d")), format="%Y"))
   
   ## Build NPP matrix for all trees (cenNPPbiosA):
@@ -207,13 +216,16 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
   dates_daily <- seq.Date(from=as.Date(paste(fir_year,"-01-01", sep=""), format="%Y-%m-%d"),
                           to=as.Date(paste(last_year,"-12-31", sep=""), format="%Y-%m-%d"), by=1)
   
+  # Talbot census correction function
+  
+  # AGWPcorr = AGWPobs + 0:0091AGWPobs *  t
   
   ## loop runs through each tree:
   for (tree_ind in 1:length(Tnumcen)) {
     npp_daily <- rep(NA,length(dates_daily))
     npp_daily_er <- rep(NA, length(dates_daily))
     
-    ## interpolation is based on the temporary index: (removes NAs to perform interepolation!)
+    ## interpolation is based on the temporary index: (removes NAs to perform interepolation)
     temp_index <-  which(!is.na(NPPbiosA[[tree_ind]])) 
     
     # calculate daily NPP interpolations (i.e. remove NAs):
@@ -234,13 +246,12 @@ largeTreeNPP_census <- function(start_census, census_running, plotname,
       # index of all days in a particular months (to be used with npp_daily):
       npp_month_ind <- which(format(dates_daily, format="%Y-%m") == format(dates_monthly[m], format="%Y-%m"))
       cenNPPbiosA[tree_ind, m] <- mean(npp_daily[npp_month_ind], na.rm=T)*length(npp_month_ind)
-      #for error calculate NPP for tree with 1mm bigger diameter and
-      #diff is the error
+      #for error calculate NPP for tree with 1mm bigger diameter and diff is the error
       #cenNPPbiosAer[tree_ind, m] <- mean(npp_daily_er[npp_month_ind], na.rm=T)*length(npp_month_ind)
     }
   }
   
-  #convert to MgC ha month 
+  # convert to MgC ha month  # THIS IS THE LOOP THAT TAKES AAAGES!
   NPPwoodsA = colSums(cenNPPbiosA, na.rm=T)
   #NPPwoodsAstd = colSums(cenNPPbiosAer, na.rm=T)
   # set NAs (i.e. columns that are entirely NA!):
@@ -261,18 +272,4 @@ return(NPPwoodsA)
 # w=which(!is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id surviving trees to estimate biomass growth
 # w2=which(!is.na(data$biomass.2003) & is.na(data$biomass.2007)) # id dying trees
 # w3=which(is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id recruiting trees
-
-# NPP = (((survivors_t2 - survivors_t1) + recruits_t2) / time interval (t2-t1)) * census interval correction
-# see J. Talbot et al.- get mean slope of all the corrections - the equation is under Fig 4.
-# & see YM's census interval correction
-
-# NPPwood_survivors = ((survivors_t2 - survivors_t1) / time interval (t2-t1)) + (...) * census interval
-# NPPwood_recruits = sum(data$biomass.2003[w3], na.rm=T)
-# bm.mort = sum(data$biomass.2003[w2], na.rm=T) + correction based on census interval (Talbot et al. or Lewis et al.)
-
-# Get annual values: NPPwoodsA[13:24] & sum(NPPwoodsA[13:24])
   
-# The monthly values you get from this code are plot-level values, as all the trees in the plot are censused. 
-# Once you sum all monthly values from this, you get the annual value for the plot. 
-# That is the most reliable annual value. 
-# We then use this to estimate a scaling factor for the monthly dendrometer data (NPPcensus ha-1 yr-1 / NPPdend ha-1 yr-1).
