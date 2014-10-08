@@ -27,17 +27,17 @@ if (allometric_option == 2 | allometric_option == "dry") {
 
 
 # from census_start
-par = census$plot
+par = census$plot_code # was plot
 pointlA = census$subplot[which(par==plotname)]
-TnumcenA = census$tag[which(par==plotname)]
+TnumcenA = census$tree_tag[which(par==plotname)] # was tag
 PalmlA = census$palm[which(par==plotname)]
-heightlA = census$Altura_tot_est[which(par==plotname)]
-densitylA = census$Densidade_de_madeira_g_cm3[which(par==plotname)]
-diameterlA = census$DAP_cm_start[which(par==plotname)]   # Diameter at breast height at first census!
+heightlA = census$height_m[which(par==plotname)] # was Altura_tot_est
+densitylA = census$density[which(par==plotname)] # was Densidade_de_madeira_g_cm3
+diameterlA = census$dbh[which(par==plotname)]   # was DAP_cm_start Diameter at breast height at first census!
 #diameterlA_census = as.matrix(census[,10:14])  # matrix with diameter values over the years:
 
 # from dendrometer_db:
-dendro <- as.numeric(dendrometer_db$DAP_mm)
+dendro <- as.numeric(dendrometer_db$dendrometer_reading_mm) # was DAP_mm
 
 dendro[which(dendro < -1000)] <- NaN
 
@@ -90,7 +90,7 @@ NPPbioAer <- list()
 # loop runs through all trees with plotname==plotname
 for (tree_ind in 1:length(TnumcenA)) {
   ## calculates temporary index which indexes all measurements of a particular tree:
-  temp_ind <- which(dendrometer_db$plot == plotname & dendrometer_db$tag == TnumcenA[tree_ind])
+  temp_ind <- which(dendrometer_db$plot_code == plotname & dendrometer_db$tag == TnumcenA[tree_ind])
   
   dendroallA[[tree_ind]] <- dendro[temp_ind]
   dates[[tree_ind]] <- strptime(paste(dendrometer_db$year[temp_ind], dendrometer_db$month[temp_ind], dendrometer_db$day[temp_ind], sep="-"), format="%Y-%m-%d")
@@ -98,7 +98,7 @@ for (tree_ind in 1:length(TnumcenA)) {
   ## calculate AGB for all trees:
   # (AGB, D in cm, q g/cm3, H in m)
   diax1 <- (diameterlA[tree_ind]*pi + dendroallA[[tree_ind]]/10)/pi # convert mm to cm; convert circum to diameter
-  #diax1er <- (diax1*pi + er)/pi 
+  diax1er <- (diax1*pi + er)/pi 
   
   ##new calculation using allometric equations in external file:
   if (allometrix == 2) {

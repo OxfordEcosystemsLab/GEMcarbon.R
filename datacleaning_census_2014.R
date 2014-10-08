@@ -9,16 +9,16 @@ setwd("C:/Users/Cecile/Dropbox/GEMcarbondb/db_csv/db_csv_eltr/forestplots_census
 data  <- read.table("eltr_census_2011.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
 # choose a plot
-data <- subset(data, plot=="SPD-02")
+data <- subset(data, plot=="WAY-01")
 
 # rename columnd 
 data$DBH.1 <- data$DAP_cm_start
 #colnames(data) <- c("plot", "subplot", "tag", "DBH.1", "DBH.2", "height", "density")
 
 # define start and end date:
-date_1 <- as.character("2006/9/20") 
-date_2 <- as.character("2008/9/12")
-date_3 <- as.character("2011/10/18")
+date_1 <- as.character("2003/9/24") # Change date
+date_2 <- as.character("2007/7/6")
+date_3 <- as.character("2011/11/24")
 date_1 <- as.Date(format(strptime(date_1, format="%Y/%m/%d")))
 date_2 <- as.Date(format(strptime(date_2, format="%Y/%m/%d")))
 date_3 <- as.Date(format(strptime(date_3, format="%Y/%m/%d")))
@@ -57,7 +57,7 @@ for (i in 1:length(aa$plot)){
 
 # should we correct for changing POM?
 
-# do not allow recruits - QUESTION: should we have a max size for recruits, beyond which they are assumed to be missing data?
+# do not allow recruits 
 w = which(is.na(data$DBH.1) & !is.na(data$DBH.2))
 data$DBH.2[w] = 0/0 
 data$recruits <- "ok"
@@ -85,8 +85,8 @@ data$missing[w] <- "missing"
 
 
 # Define the maximum interval you would like to allow per year (e.g. 5 cm), or use the default 3SD.
-maxincrement_1 <- 2 * census_interval_yrs_1 #(3*gr_sd)
-maxincrement_2 <- 2 * census_interval_yrs_2 #(3*gr_sd)
+maxincrement_1 <- 2.5 * census_interval_yrs_1 #(3*gr_sd)
+maxincrement_2 <- 2.5 * census_interval_yrs_2 #(3*gr_sd)
 
 w = which((data$DBH.2 - data$DBH.1) >= maxincrement_1)      
 data$overgrown <- "ok"
@@ -105,21 +105,19 @@ n_occur <- data.frame(table(data$tag))
 n_occur[n_occur$Freq > 1,]
 data[data$tag %in% n_occur$Var1[n_occur$Freq > 1],]
 # Get rid of duplicate trees
-data[data$tag!=210.2 & data$height!=3.77, ]
+# data[data$tag!=210.2 & data$height!=3.77, ]
 
 data[is.na(data)] <- NA
 
 
-
-write.csv(ton01, file="tono_2007_clean_16July.csv") 
-write.csv(eltrcensus, file="eltr_census_clean_16July14.csv") 
-write.csv(spd01, file="spd01_clean_test.csv") 
-
-eltrcensus   <- read.table("eltr_census_2011_clean_7July.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+#save clean data files. This file will be saved in the directory you specified above.
+#write.csv(ton01, file="tono_2007_clean_16July.csv") 
+#write.csv(eltrcensus, file="eltr_census_clean_16July14.csv") 
+#eltrcensus   <- read.table("eltr_census_clean_16July14.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
 
-
-# Flag fast growing trees !!!! NOT WORKING YET  !!!!
+# Don't worry about this...
+# Flag fast growing trees - NOT WORKING YET 
 data$DBH.3 <- NA
 aa <- subset(data, ((data$DBH.2 - data$DBH.1) >= maxincrement | (data$DBH.3 - data$DBH.2) >= maxincrement), select = c(plot, tag, DBH.1, DBH.2, DBH.3))
 

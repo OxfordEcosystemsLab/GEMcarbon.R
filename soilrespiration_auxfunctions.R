@@ -63,9 +63,9 @@ fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
   # initialize Variables for the for-loop: (variables are the flux variables and to specify plotname)
   RucA <- numeric(length=length(temp))
   RcA <- numeric(length=length(temp))
-  #%correct for the new tube volume
+  # correct for the new tube volume
   for (i in 1:length(temp)) {
-    RucA[i]=(flux[i])*(pressure/1000)*(273/(temp[i]+273))*(44.01/22.41)*(Vd/A)/1000*3600;
+    RucA[i]=(flux[i])*(pressure/1000)*(273/(temp[i]+273))*(44.01/22.41)*(Vd/A)/1000*3600
     RcA[i]= (RucA[i]*A/Vd*(Va[i]+Vd)/A)*6.312  # convert to umol m-2 s-1
   }
   return(RcA)

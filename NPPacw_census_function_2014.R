@@ -1,4 +1,4 @@
-# Written: Cécile Girardin July 2014
+# Written by: Cécile Girardin July 2014
 
 ## This script estimates largeTreeNPP annual NPP values based on census data
 # The monthly values you get from this code are plot-level values, as all the trees in the plot are censused. 

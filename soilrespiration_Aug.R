@@ -16,48 +16,21 @@
 
 
 ### read data for option 2:
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/testing/")
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
 data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
 data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
 data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
-
-# read correction functions:
-#source("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
-source("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/R-testscripts(v4)/soilrespiration_aux-functions.R")
-
-## here comes a script to test the inclusion of partitioning option 2:
-
-print("WARNING! Neither ambient pressure nor site elevation was specified")
-print("Calculations will be based on p=1013.25 hPa (sea level) and
-        temperature-independent barometric equation!")
-pressure <- 1013.25
+pressure = 1013.25
 plotname = 1.1
 partitioningoption = 2
 elevation = "default"
 
 
-### data for option 1:
-library(R.matlab)
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang")
-dir()
-Dataall <- readMat(con="Dataall.mat")
-pressure <- 1013.25
-plotname = 1
-partitioningoption = 1
+# read correction functions:
+source("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
 
-## required data:
-data.rest = data.frame(Dataall$Restotall)   # total respiration
-data.resp = data.frame(Dataall$Resparall)   # partion respiration 
-data.resc = data.frame(Dataall$Resconall)   # control respiration
-## adjust colnames for Chris' matlab data:
-colnames(data.rest) <- c("year", "month", "plot", "area","co2","temperature","water_content","depth","flux")
-colnames(data.resc) <- c("year", "month", "plot", "area", "disturbance", "co2", "temperature", "water_content", "depth", "flux")
-colnames(data.resp) <- c("year", "month", "plot", "area", "co2", "temperature", "water_content", "depth", "flux")
 
-#Activate this code to use as a function:
 soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
                             partitioningoption="Default",
                             pressure="Default", elevation="Default", T_ambient="Default",
@@ -66,28 +39,27 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
 
 ### CONTROL FLAGS
   if (partitioningoption=="Default") {
-    print("Warning! No partitioning option (see RAINFOR manual, p. 56) was specified!")
-    print("Please specify the variable 'partitioningoption' in the function call!")
+    print("Warning! No partitioning option (see RAINFOR manual, p. 56) was specified.")
+    print("Please specify the variable 'partitioningoption' in the function call.")
     partitioningoption=1
   }
   
   if (partitioningoption==2) {
-    print("Code is running on partitioning option 2!")
+    print("Code is running on partitioning option 2 (RAINFOR-GEM manual, p. 56).")
   }
   
   if (partitioningoption==1) {
-    print("Code is running on partitioning option 1 (see RAINFOR manual, p. 56")
+    print("Code is running on partitioning option 1 (RAINFOR-GEM manual, p. 56).")
   }
   
   if (pressure=="Default" & elevation=="Default" & T_ambient=="Default") {
     print("WARNING! Neither ambient pressure nor site elevation was specified")
-    print("Calculations will be based on p=1013.25 hPa (sea level) and
-          temperature-independent barometric equation!")
+    print("Calculations will be based on p=1013.25 hPa (sea level) and temperature-independent barometric equation.")
     pressure <- 1013.25
   }
   
   if (pressure!="Default") {
-    print("Ambient pressure was specified and will be used for flux correction")
+    print("Ambient pressure was specified and will be used for flux correction.")
   }
   
   if (pressure=="Default" & elevation!="Default" & T_ambient=="Default") {
@@ -98,24 +70,23 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   
   if (pressure=="Default" & elevation!="Default" & T_ambient!="Default") {
     print("Ambient pressure was not specified. Ambient pressure for flux correction is calculated from elevation
-           and ambient temperature (in °C!) using the temperature-dependent barometric equation.")
+           and ambient temperature (in °C) using the temperature-dependent barometric equation.")
     pressure <- barometric_equation_T(elevation, T_ambient)
   }
   
   
-  #### Data READ-IN: line 20 - line 98; and fix constants (first and last year; Vd And A)
 {
+  
 ### Total soil respiration
 ### 25 tubes measured every month, record soil moisture and temp in every tube
-## Column names are the following:
-  
+## Column names:
   #  plot (1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB)  
   #  year  
   #  month  
   #  temperature : temperature in C	
   #  depth: chamber height	
-  #  fluxt #  data.rest should be a dataframe
-
+  #  fluxt 
+  
 plott = data.rest$plot   # 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB  
 yeart = data.rest$year[which(plott==plotname)]
 montht = data.rest$month[which(plott==plotname)]
@@ -171,21 +142,21 @@ fir_year = min(c(yeart,yearp,yearc),na.rm=T)  # to know from when to when the da
 fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 }
 
+########################################## Should we have this in EGM_to_db code rather than here?
 
-## Total Soil respiration Calculation:
+## Total Soil respiration Calculation: 
     # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
     # the choice of the sd_interval changes things!    
 
     fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
     tempt <- rm.temp.outlier(temp=tempt, month=montht)
-    cht   <- rm.ch.outlier(ch=cht)
+    cht   <- rm.ch.outlier(ch=cht) # this doesn't remove outlyers, it replaces missing data with the average of chamber deapth measurements for the whole plot.
     
-    ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr
-    # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
+    ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. 
+    # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75. 
     RcAt <- fluxcorr(flux=fluxt, temp=tempt, ch=cht, Vd=Vd, A=A, pressure=pressure)
 
-
-### Control Measurements (data which has been assigned above!)
+### Control Measurements 
 
     # remove outliers (> 3 SD) and NAs:
     fluxc <- rm.flux.outlier(fluxc, sd_interval=2) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3sd.
@@ -196,7 +167,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     RccA <- fluxcorr(flux=fluxc, temp=tempc, ch=chc, Vd=Vd, A=A, pressure=pressure)
 
 
-#### Partitioning Soil Repiration calculation (data was assigned to vectors above)
+#### Partitioning Soil Repiration calculation 
     # remove outliers and NAs: Flux (sd > 3), Temperature and Chamber height (see soilrespiration_aux-functions.R)
     fluxp <- rm.flux.outlier(fluxp, sd_interval=2)
     tempp <- rm.temp.outlier(temp=tempp, month=monthp)
@@ -220,15 +191,15 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
   if (partitioningoption==1) {
 #### Partitioning: Initialize matrices: (option 1)
 ### This section is to differentiate between different forms of partitioning experiments:
-#  Controle-normal liteira
-#  Controle-sem liteira
-#  Controle-duplo liteira
-#  Mycorrhizae-normal liteira
-#  Mycorrhizae-sem liteira
-#  Mycorrhizae-duplo liteira
-#  Solo-normal liteira
-#  Solo-sem liteira
-#  Solo-duplo liteira
+#  Control - normal litterfall
+#  Control - no litterfall
+#  Control - double litterfall
+#  Mycorrhizae - normal litterfall
+#  Mycorrhizae - no litterfall
+#  Mycorrhizae - double litterfall
+#  Soil - normal litterfall
+#  Soil - no litterfall
+#  Soil - double litterfall
 
     con_nor_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     con_no_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
@@ -255,10 +226,10 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     S1  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     S2  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     S3  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S1std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare)) 
+    S2std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S3std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     
-    ############################################################
-    ############ TO DO: Add sd for these too.###################
-    ############################################################
 }
 
 
@@ -388,8 +359,7 @@ for (j in fir_year:fir_yeare) {
     DCudA = (rcanotper)*convert # average undisturbed soil cores
 
 
-    #  estimation of the relative contributions of (1) surface organic
-    #  litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
+    #  estimation of the relative contributions of (1) surface organic litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
     # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
     corrsresA=exp(-0.0695*(1))
 
