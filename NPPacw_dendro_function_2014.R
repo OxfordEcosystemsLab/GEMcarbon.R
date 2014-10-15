@@ -10,26 +10,7 @@
 # dendrometer <- read.csv() 
 
 
-##################### Temporary lines to test the code #################
-setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files")
-dendrometer <- read.table("DendEsp_2012.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-
-setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files")
-census <- read.table("CensusEsp_clean.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-  
-plotname = "ESP-01"
-allometric_option = "Default"
-height_correction_option = "Default"
-
-setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R") 
-dir()
-source("allometric_equations_2014.R")
-source("NPPacw_census_function_2014.R")
-source("largetreebiomass_census.R")
-
-########################################################################
-
-#NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Default", height_correction_option="Default") {
+NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Default", height_correction_option="Default", census_year) {
 
 
   # load libraries
@@ -37,7 +18,7 @@ source("largetreebiomass_census.R")
 
 ## get data for all trees that are in the plot selected from census & dendrometer files
 cen1  <- subset(census, plot_code==plotname)
-cen   <- subset(cen1, year==2006)  ### MAKE THIS INTO AN OPTION
+cen   <- subset(cen1, year==census_year)  
 dend1 <- subset(dendrometer, plot_code==plotname)
 
 # re-name year, month, day in cen
@@ -199,24 +180,28 @@ colnames(npp_tree) <- c("plot_code", "tag", "year", "month", "agC", "agCdiff", "
   www                        <- sqldf("SELECT plot_code, year, month, AVG(nppacw_tree_day) FROM npp_tree GROUP BY year, month")
   colnames (www)             <- c("plot_code", "year", "month","npp_avgtrees_day_dend")
   www$npp_avgtrees_day_dend  <- as.numeric(www$npp_avgtrees_day_dend)
-  www$npp_avgtrees_yr_dend   <- www$npp_avgtrees_day_dend*365
-  www$npp_avgplot_month_dend <- (www$npp_avgtrees_yr_dend/12)*878
+  www$npp_avgtrees_month_dend <- www$npp_avgtrees_day_dend*29.6 
+  www$npp_avgtrees_yr_dend <- www$npp_avgtrees_month_dend*12
 
   # scale dendrometer band data to the whole plot by applying a scaling factor 
-  # scaling factor = annual NPPacw from dendrometers (~200 trees) / annual NPPacw from census (all trees)
-  nppacw_dend    <- mean(www$npp_avgplot_yr_dend, na.rm=T)
-  #nppacw_census  <- NPPacw_census(census, plotname="ESP-01", allometric_option="Default", height_correction_option="Default", census1_year=2010, census2_year=2011) 
-  scaling_factor <-  nppacw_dend / 1.67#nppacw_census
-  www$npp_month_dend <- ((www$npp_avgtrees_day_dend*29.6)*length(unique(dend$tree_tag)))/scaling_factor
-  
-  monthlynppacw             <- data.frame(cbind(nppacw1$plot_code, nppacw1$year, nppacw1$month, nppacw1$npp_avgplot_month))
-  colnames(monthlynppacw)   <- c("plot_code", "year", "month", "npp_MgC_month") 
-  
+  # scaling factor (sf) = annual NPPacw from dendrometers (~200 trees) / annual NPPacw from census (all trees)
+  # get nppacw_census value for this plot
+  nppacw_cen  <- NPPacw_census(census, plotname="SPD-02", allometric_option="Default", height_correction_option="Default", census1_year=2006, census2_year=2008)
+
+  xxx <- sqldf("SELECT plot_code, AVG(npp_avgtrees_yr_dend) from www")
+  colnames(xxx) <- c("plot_code", "nppacw_dend")
+  sf  <- (xxx$nppacw_dend*length(unique(dend$tree_tag))) / nppacw_cen
+  www$nppacw_month <- (www$npp_avgtrees_month_dend*length(unique(dend$tree_tag)))/sf
+
+  # test that result is correct: the annual value should be the same as the annual value obtained from NPPacw_census_function_2014
+  yy <- (mean(www$nppacw_month, na.rm=T))*12
+  yy
+  nppacw_cen
+
+  monthlynppacw             <- data.frame(cbind(www$plot_code, www$year, www$month, www$nppacw_month))
+  colnames(monthlynppacw)   <- c("plot_code", "year", "month", "nppacw_MgC_month") 
+  plot(www$month, www$nppacw_month)
   return(monthlynppacw)
 }
 
-# SUM OF TREES EACH MONTH
-xxx <- sqldf("SELECT plot_code, year, month, SUM(nppacw_tree_day) FROM npp_tree GROUP BY year, month")
-colnames(xxx) <- c("plot_code", "year", "month", "npp_tree_day")
-xxx$npp_plot_month <- as.numeric(xxx$npp_tree_day)*29.6 
 

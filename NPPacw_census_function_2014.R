@@ -9,16 +9,15 @@
 # requires one .csv file: 
 # census   <- read.csv() 
 
-## column names:
-#plot
-#subplot
-#tag
-#DAP
-#palm
-#altura_tot_est
-#DAPaltura_m
+## column names required for this function:
+#plot_code
+#tree_tag
+#dbh
+#height_m
 #density
-#Dendrometer_altura_m
+#year
+#month
+#day
 
 NPPacw_census <- function(census, plotname, census1_year="Default", census2_year="Default", allometric_option="Default", height_correction_option="Default") {
   
@@ -44,15 +43,13 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   }
   
   ## get data for all trees that are in the plot selected
-  cen <- subset(census, plot==plotname)
-  # column names should be
-  # colnames(cen) <- c("plot", "sp", "tag", "dbh", "height", "density", "year", "month", "day", "plot_code")
+  cen <- subset(census, plot_code==plotname)
     
   # Density: look up density at spp / genus level from global density db Zanne
   
   ## fill implausible values: this should go in data cleaning code!
-  cen$height[which(cen$height>120)] <- 120 
-  cen$height[which(cen$height<2)]   <- 2 
+  cen$height_m[which(cen$height_m>120)] <- 120 
+  cen$height_m[which(cen$height_m<2)]   <- 2 
   xdensity <- mean(cen$density, na.rm=T) 
   cen$density[which(is.na(cen$density)) | which(cen$density==0)] <- xdensity 
   
@@ -113,22 +110,22 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
     
   # Define height options
   if (predheight == 1) {
-    w <- which(is.na(cen$height))
-    h.pred <- h.est(cen$dbh, cen$height)
-    cen$height[w] <- h.pred[w]
+    w <- which(is.na(cen$height_m))
+    h.pred <- h.est(cen$dbh, cen$height_m)
+    cen$height_m[w] <- h.pred[w]
   } else if (predheight == 2) {
-    w <- which(is.na(cen$height))
-    cen$height[w] <- 10^(Bo + B1*log10(cen$dbh[w]/10) + Abar*So1 + n01*Pvbar + n02*Sdbar + n03*Tabar)
+    w <- which(is.na(cen$height_m))
+    cen$height_m[w] <- 10^(Bo + B1*log10(cen$dbh[w]/10) + Abar*So1 + n01*Pvbar + n02*Sdbar + n03*Tabar)
   } 
   
   er = 0.1 # .1cm sampling error is trivial compared to systematic error of allometric equation. Change this see Chave et al. 2005.
   
   ## loop through each tree to estimate biomass (bm) and convert to above ground carbon (agC)
-   for (ii in 1:length(cen$tag)) { 
-    thistree <- which(cen$tag == cen$tag[ii] & cen$year == cen$year[ii])     
+   for (ii in 1:length(cen$tree_tag)) { 
+    thistree <- which(cen$tree_tag == cen$tree_tag[ii] & cen$year == cen$year[ii])     
     dbh_tree <- cen$dbh[thistree]
     den_tree <- cen$density[thistree]
-    h_tree   <- cen$height[thistree]
+    h_tree   <- cen$height_m[thistree]
     
     # this uses allometric equations from allometricEquations.R
     if (allometrix == 2) {
@@ -156,9 +153,9 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   cen$date     <- as.Date(paste(cen$year, cen$month, cen$day, sep="."), format="%Y.%m.%d") 
   
   # temp <- subset(cen, cen$year == census1_year & cen$year == census2_year) # 
-  agC_mydates     <- subset(cen, cen$year == census1_year | cen$year == census2_year, select = c(plot, tag, year, month, day, date, agC))
+  agC_mydates     <- subset(cen, cen$year == census1_year | cen$year == census2_year, select = c(plot_code, tree_tag, year, month, day, date, agC))
   
-  for (i in 1:length(agC_mydates$tag)) {
+  for (i in 1:length(agC_mydates$tree_tag)) {
     min_date <- as.character(min(agC_mydates$date)) 
     max_date <- as.character(max(agC_mydates$date)) 
   }
@@ -168,12 +165,12 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   census_interval <- as.numeric(difftime(end_date, start_date, units="days"))
   
   # (AG carbon.2 - AG carbon.1) / census_interval
-  agC_1         <- subset(cen, cen$year == census1_year, select = c(plot, tag, year, month, day, agC))
-  agC_2         <- subset(cen, cen$year == census2_year, select = c(plot, tag, year, month, day, agC))
-  #agC_1$uid     <- paste(agC_1$tag, agC_1$year, agC_1$month, agC_1$day, sep=".") 
-  #agC_2$uid     <- paste(agC_2$tag, agC_2$year, agC_2$month, agC_2$day, sep=".")
-  npp           <- sqldf("SELECT agC_1.plot, agC_1.tag, agC_1.year, agC_1.month, agC_1.agC , agC_2.agC FROM agC_1 JOIN agC_2 ON agC_1.tag = agC_2.tag")
-  colnames(npp) <- c("plot", "tag", "year", "month", "agC.1", "agC.2")
+  agC_1         <- subset(cen, cen$year == census1_year, select = c(plot_code, tree_tag, year, month, day, agC))
+  agC_2         <- subset(cen, cen$year == census2_year, select = c(plot_code, tree_tag, year, month, day, agC))
+  #agC_1$uid     <- paste(agC_1$tree_tag, agC_1$year, agC_1$month, agC_1$day, sep=".") 
+  #agC_2$uid     <- paste(agC_2$tree_tag, agC_2$year, agC_2$month, agC_2$day, sep=".")
+  npp           <- sqldf("SELECT agC_1.plot_code, agC_1.tree_tag, agC_1.year, agC_1.month, agC_1.agC , agC_2.agC FROM agC_1 JOIN agC_2 ON agC_1.tree_tag = agC_2.tree_tag")
+  colnames(npp) <- c("plot_code", "tree_tag", "year", "month", "agC.1", "agC.2")
   npp_day       <- (npp$agC.2-npp$agC.1) / census_interval
   NPPacw_MgC_ha_yr <- (sum(npp_day, na.rm=T))*365 
  
