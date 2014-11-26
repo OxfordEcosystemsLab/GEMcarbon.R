@@ -1,6 +1,6 @@
 ### Function Soil respiration:
 # This function calculates soil respiration and uses input data specified in the RAINFOR-GEM manual.
-# Last edited: Cécile Girardin, 01.07.2014 
+# Last edited: Cecile Girardin, 01.07.2014 
 
 ### Required Data:
 # data.frame of total soil respiration
@@ -14,6 +14,16 @@
 ## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the
 ## overall data), in order to find start and end years
 
+### read data for option 1:
+setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files/outputs")
+data.resc <- read.table("Res_control_test1.csv", sep=",", header=T)
+data.resp <- read.table("Res_partitionning_test1.csv", sep=",", header=T)
+data.rest <- read.table("Res_total_test1.csv", sep=",", header=T)
+pressure = 1013.25
+plotname = "ACJ"
+partitioningoption = 1
+elevation = "default"
+T_ambient="Default"
 
 ### read data for option 2:
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
@@ -24,8 +34,9 @@ data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
 pressure = 1013.25
 plotname = 1.1
 partitioningoption = 2
-elevation = "default"
-
+elevation = "Default"
+pressure="Default"
+T_ambient="Default"
 
 # read correction functions:
 source("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
@@ -36,7 +47,6 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
                             pressure="Default", elevation="Default", T_ambient="Default",
                                                         plotit=F) {
 # User has to specify either elevation or pressure. 
-
 ### CONTROL FLAGS
   if (partitioningoption=="Default") {
     print("Warning! No partitioning option (see RAINFOR manual, p. 56) was specified.")
@@ -70,7 +80,7 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   
   if (pressure=="Default" & elevation!="Default" & T_ambient!="Default") {
     print("Ambient pressure was not specified. Ambient pressure for flux correction is calculated from elevation
-           and ambient temperature (in °C) using the temperature-dependent barometric equation.")
+           and ambient temperature (in 0C) using the temperature-dependent barometric equation.")
     pressure <- barometric_equation_T(elevation, T_ambient)
   }
   
@@ -87,12 +97,12 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   #  depth: chamber height	
   #  fluxt 
   
-plott = data.rest$plot   # 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB  
+plott = data.rest$plot_code   # 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB  
 yeart = data.rest$year[which(plott==plotname)]
 montht = data.rest$month[which(plott==plotname)]
-tempt = data.rest$temperature[which(plott==plotname)]
-cht = data.rest$depth[which(plott==plotname)]     ## depth (cm)
-fluxt = data.rest$flux[which(plott==plotname)]    ## This is to determine overall outliers
+tempt = data.rest$soil_temp_degC[which(plott==plotname)]
+cht = data.rest$collar_depth_cm[which(plott==plotname)]     ## depth (cm)
+fluxt = data.rest$flux_umolco2_m2_s[which(plott==plotname)]    ## This is to determine overall outliers
 
 # Control
 
@@ -106,17 +116,16 @@ fluxt = data.rest$flux[which(plott==plotname)]    ## This is to determine overal
 #  depth
 #  flux                  
 
-plotc = data.resc$plot   
+plotc = data.resc$plot_code   
 yearc = data.resc$year[which(plotc==plotname)]
 monthc = data.resc$month[which(plotc==plotname)]
-tempc = data.resc$temperature[which(plotc==plotname)]
-chc = data.resc$depth[which(plotc==plotname)] ############# WHAT is chc??? depth??? check this!!!!
-fluxc = data.resc$flux[which(plotc==plotname)]
-distc = data.resc$disturbance[which(plotc==plotname)]
+tempc = data.resc$soil_temp_degC[which(plotc==plotname)]
+chc = data.resc$collar_depth_cm[which(plotc==plotname)] 
+fluxc = data.resc$flux_umolco2_m2_s[which(plotc==plotname)]
+distc = data.resc$disturbance_code[which(plotc==plotname)]
 
 #  Partitioning components of soil respiration
 #  4 groups of 9 tubes per plot (36 tubes in total per plot).
-#  
 #  plot
 #  year
 #  month	
@@ -126,13 +135,13 @@ distc = data.resc$disturbance[which(plotc==plotname)]
 #  depth: chamber_height
 #  fluxp
 
-plotp = data.resp$plot 
+plotp = data.resp$plot_code 
 yearp = data.resp$year[which(plotp==plotname)]
 monthp = data.resp$month[which(plotp==plotname)]
-treatmentp = data.resp$area[which(plotp==plotname)]#A=1 B=2
-tempp = data.resp$temperature[which(plotp==plotname)]
-chp = data.resp$depth[which(plotp==plotname)]  # ch is height of the collar - rename?
-fluxp = data.resp$flux[which(plotp==plotname)] # overall fluxes
+treatmentp = data.resp$treatment_code[which(plotp==plotname)] # CHECK THIS IS RIGHT?
+tempp = data.resp$soil_temp_degC[which(plotp==plotname)]
+chp = data.resp$collar_depth_cm[which(plotp==plotname)]  
+fluxp = data.resp$flux_umolco2_m2_s[which(plotp==plotname)] 
 
 ### Defaults for chamber volume and tube area:
 # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
@@ -149,7 +158,9 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     # the choice of the sd_interval changes things!    
 
     fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
-    tempt <- rm.temp.outlier(temp=tempt, month=montht)
+##########################################
+##########################################  PROBLEM HERE !!!              tempt <- rm.temp.outlier(temp=tempt, month=montht) ############################
+##########################################
     cht   <- rm.ch.outlier(ch=cht) # this doesn't remove outlyers, it replaces missing data with the average of chamber deapth measurements for the whole plot.
     
     ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. 
@@ -171,7 +182,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
     # remove outliers and NAs: Flux (sd > 3), Temperature and Chamber height (see soilrespiration_aux-functions.R)
     fluxp <- rm.flux.outlier(fluxp, sd_interval=2)
     tempp <- rm.temp.outlier(temp=tempp, month=monthp)
-    chc <- rm.ch.outlier(ch=chc)
+    chc   <- rm.ch.outlier(ch=chc)
     
     # flux and chamber volume correction, see function fluxcorr
     RcpA <- fluxcorr(flux=fluxp, temp=tempp, ch=chp, Vd=Vd, A=A, pressure=pressure)
@@ -179,17 +190,6 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 
 ### Calculate respiration values in each year and month for the three different treatments:
 
-# Total Respiration initialize matrixes:
-  resAt     <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  resAtstd <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-
-# Control: initialize matrixes:
-  rcanotper <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  rcaper <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  DCdAstd <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-
-  if (partitioningoption==1) {
-#### Partitioning: Initialize matrices: (option 1)
 ### This section is to differentiate between different forms of partitioning experiments:
 #  Control - normal litterfall
 #  Control - no litterfall
@@ -201,34 +201,51 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 #  Soil - no litterfall
 #  Soil - double litterfall
 
+################################
+###### TO DO: plot data per tube & treatment to identify outlyers.
+################################
+
+# Total Respiration initialize matrixes:
+  resAt     <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+  resAtstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+
+# Control: initialize matrixes:
+  rcanotper <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+  rcaper    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+  DCdAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+
+# Partitioning: initialize matrices:
+
+  if (partitioningoption == 1) {
+    
     con_nor_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_no_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_doub_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_nor_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_no_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con_no_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con_doub_litA <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    My_nor_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    My_no_litA    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     My_doub_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_nor_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_no_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    So_nor_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    So_no_litA    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     So_doub_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     
     con_nor_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_no_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_doub_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_nor_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_no_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con_no_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con_doub_litAstd <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    My_nor_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    My_no_litAstd    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     My_doub_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_nor_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_no_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    So_nor_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    So_no_litAstd    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     So_doub_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
 
-  } else if (partitioningoption==2) {
+  } else if (partitioningoption == 2) {
     con_lit  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S1  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S2  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S3  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S1std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare)) 
-    S2std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S3std  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S1       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S2       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S3       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S1std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare)) 
+    S2std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    S3std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
     
 }
 
@@ -263,74 +280,74 @@ for (j in fir_year:fir_yeare) {
       }
     
     # calculate for different partitioning treatments:
-      imp = which(monthp==i & yearp==j) # imp is an index to get current year & current month
-      if (partitioningoption==1) {
+      imp = which(monthp == i & yearp == j) # imp is an index to get current year & current month
+      if (partitioningoption == 1) {
           xx = RcpA[imp]                
-          nx=treatmentp[imp]
-          
-          if (sum(xx, na.rm=T) > 0) {
-            ix1=which(nx==1)
-            ix2=which(nx==2)
-            ix3=which(nx==3)
-            ix4=which(nx==4)
-            ix5=which(nx==5)
-            ix6=which(nx==6)
-            ix7=which(nx==7)
-            ix8=which(nx==8)
-            ix9=which(nx==9)
-            con_nor_litA[m,n] = mean(xx[ix1],na.rm=T)
-            con_no_litA[m,n] = mean(xx[ix2],na.rm=T)   # 1b Controle-sem liteira
-            con_doub_litA[m,n] = mean(xx[ix3],na.rm=T) # 1cControle-duplo liteira
-            My_nor_litA[m,n] = mean(xx[ix4],na.rm=T)   # 2aMycorrhizae-normal liteira
-            My_no_litA[m,n] = mean(xx[ix5],na.rm=T)    # 2b Mycorrhizae-sem liteira
-            My_doub_litA[m,n] = mean(xx[ix6],na.rm=T)  # 2cMycorrhizae-duplo liteira
-            So_nor_litA[m,n] = mean(xx[ix7],na.rm=T)   # 3a Solo-normal liteira
-            So_no_litA[m,n] = mean(xx[ix8],na.rm=T)    # 3bSolo-sem liteira
-            So_doub_litA[m,n] = mean(xx[ix9],na.rm=T)  # 3cSolo-duplo liteira 
+          nx = treatmentp[imp]
+                              
+          if (sum(xx, na.rm = T) > 0) {
+            ix1 = which(nx == 1)
+            ix2 = which(nx == 2)
+            ix3 = which(nx == 3)
+            ix4 = which(nx == 4)
+            ix5 = which(nx == 5)
+            ix6 = which(nx == 6)
+            ix7 = which(nx == 7)
+            ix8 = which(nx == 8)
+            ix9 = which(nx == 9)
+            con_nor_litA[m,n]  = mean(xx[ix1], na.rm=T) # Control - normal litterfall
+            con_no_litA[m,n]   = mean(xx[ix2], na.rm=T) # Control - no litterfall
+            con_doub_litA[m,n] = mean(xx[ix3], na.rm=T) # Control - double litterfall
+            My_nor_litA[m,n]   = mean(xx[ix4], na.rm=T) # Mycorrhizae - normal litterfall
+            My_no_litA[m,n]    = mean(xx[ix5], na.rm=T) # Mycorrhizae - no litterfall
+            My_doub_litA[m,n]  = mean(xx[ix6], na.rm=T) # Mycorrhizae - double litterfall
+            So_nor_litA[m,n]   = mean(xx[ix7], na.rm=T) # Soil - normal litterfall
+            So_no_litA[m,n]    = mean(xx[ix8], na.rm=T) # Soil - no litterfall
+            So_doub_litA[m,n]  = mean(xx[ix9], na.rm=T) # Soil - double litterfall
             
-            con_nor_litAstd[m,n] = sd(xx[ix1],na.rm=T)
-            con_no_litAstd[m,n] = sd(xx[ix2],na.rm=T)  # 1b Controle-sem liteira
-            con_doub_litAstd[m,n] = sd(xx[ix3],na.rm=T)# 1cControle-duplo liteira
-            My_nor_litAstd[m,n] = sd(xx[ix4],na.rm=T)  # 2aMycorrhizae-normal liteira
-            My_no_litAstd[m,n] = sd(xx[ix5],na.rm=T)   # 2b Mycorrhizae-sem liteira
-            My_doub_litAstd[m,n] = sd(xx[ix6],na.rm=T) # 2cMycorrhizae-duplo liteira
-            So_nor_litAstd[m,n] = sd(xx[ix7],na.rm=T)  # 3a Solo-normal liteira
-            So_no_litAstd[m,n] = sd(xx[ix8],na.rm=T)   # 3bSolo-sem liteira
-            So_doub_litAstd[m,n] = sd(xx[ix9],na.rm=T) # 3cSolo-duplo liteira       
+            con_nor_litAstd[m,n]  = sd(xx[ix1], na.rm=T)
+            con_no_litAstd[m,n]   = sd(xx[ix2], na.rm=T)  
+            con_doub_litAstd[m,n] = sd(xx[ix3], na.rm=T)
+            My_nor_litAstd[m,n]   = sd(xx[ix4], na.rm=T)  
+            My_no_litAstd[m,n]    = sd(xx[ix5], na.rm=T)  
+            My_doub_litAstd[m,n]  = sd(xx[ix6], na.rm=T) 
+            So_nor_litAstd[m,n]   = sd(xx[ix7], na.rm=T)  
+            So_no_litAstd[m,n]    = sd(xx[ix8], na.rm=T)   
+            So_doub_litAstd[m,n]  = sd(xx[ix9], na.rm=T) 
           } else {
-            con_nor_litA[m,n] = NA
-            con_no_litA[m,n] = NA
+            con_nor_litA[m,n]  = NA
+            con_no_litA[m,n]   = NA
             con_doub_litA[m,n] = NA
-            My_nor_litA[m,n] = NA
-            My_no_litA[m,n] = NA
-            My_doub_litA[m,n] = NA
-            So_nor_litA[m,n] = NA
-            So_no_litA[m,n] = NA
-            So_doub_litA[m,n] = NA
+            My_nor_litA[m,n]   = NA
+            My_no_litA[m,n]    = NA
+            My_doub_litA[m,n]  = NA
+            So_nor_litA[m,n]   = NA
+            So_no_litA[m,n]    = NA
+            So_doub_litA[m,n]  = NA
             
-            con_nor_litAstd[m,n] = NA
-            con_no_litAstd[m,n] = NA   # 1b Controle-sem liteira
-            con_doub_litAstd[m,n] = NA # 1cControle-duplo liteira
-            My_nor_litAstd[m,n] = NA   # 2aMycorrhizae-normal liteira
-            My_no_litAstd[m,n] = NA    # 2b Mycorrhizae-sem liteira
-            My_doub_litAstd[m,n] = NA  # 2cMycorrhizae-duplo liteira
-            So_nor_litAstd[m,n] = NA   # 3a Solo-normal liteira
-            So_no_litAstd[m,n] = NA    # 3bSolo-sem liteira
-            So_doub_litAstd[m,n] = NA  # 3cSolo-duplo liteira 
+            con_nor_litAstd[m,n]  = NA
+            con_no_litAstd[m,n]   = NA   
+            con_doub_litAstd[m,n] = NA 
+            My_nor_litAstd[m,n]   = NA  
+            My_no_litAstd[m,n]    = NA  
+            My_doub_litAstd[m,n]  = NA  
+            So_nor_litAstd[m,n]   = NA  
+            So_no_litAstd[m,n]    = NA  
+            So_doub_litAstd[m,n]  = NA  
           }
-      } else if (partitioningoption==2) {
+      } else if (partitioningoption == 2) {
         xx = RcpA[imp]           
-        nx=treatmentp[imp]
-            if (sum(xx, na.rm=T) > 0) {
-              ix1=which(nx==1)  # Control
-              ix2=which(nx==2)  # No Litter
-              ix3=which(nx==3)  # No Litter/No Roots
-              ix4=which(nx==4)  # No Litter/ Root + Mycorrhizae Exclusion
+        nx = treatmentp[imp]
+            if (sum(xx, na.rm = T) > 0) {
+              ix1 = which(nx == 1)  # Control
+              ix2 = which(nx == 2)  # No Litter
+              ix3 = which(nx == 3)  # No Litter/ No Roots
+              ix4 = which(nx == 4)  # No Litter/ Root + Mycorrhizae Exclusion
               
-              con_lit[m,n] = mean(xx[ix1],na.rm=T) # Control
-              S1[m,n] = mean(xx[ix2],na.rm=T) # No Litter
-              S2[m,n] = mean(xx[ix3],na.rm=T) # No Litter/No Roots
-              S3[m,n] = mean(xx[ix4],na.rm=T) # No Litter/ Root + Mycorrhizae Exclusion
+              con_lit[m,n] = mean(xx[ix1],na.rm = T) # Control
+              S1[m,n] = mean(xx[ix2], na.rm=T) # No Litter
+              S2[m,n] = mean(xx[ix3], na.rm=T) # No Litter/No Roots
+              S3[m,n] = mean(xx[ix4], na.rm=T) # No Litter/ Root + Mycorrhizae Exclusion
               
             } else {
               con_lit[m,n] = NA # Control
@@ -361,7 +378,7 @@ for (j in fir_year:fir_yeare) {
 
     #  estimation of the relative contributions of (1) surface organic litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
     # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
-    corrsresA=exp(-0.0695*(1))
+    corrsresA = exp(-0.0695*(1))
 
 
     # convert from umol m-2 s-1 to MgC ha month
@@ -378,67 +395,109 @@ for (j in fir_year:fir_yeare) {
       #discorA = mean(colMeans(DCudA[,2:(dim(DCudA)[2])] - DCdA[,2:(dim(DCudA)[2])],na.rm=T),na.rm=T)
       #discorAstd = mean(colMeans(DCdAstd[,2:(dim(DCdAstd)[2])],na.rm=T),na.rm=T);
   
-  discorA = mean(colMeans(DCudA - DCdA,na.rm=T),na.rm=T)
-  #discorAstd = mean(colMeans(DCdAstd,na.rm=T),na.rm=T)
+  discorA = mean(colMeans(DCudA - DCdA, na.rm=T), na.rm=T)
+  discorAstd = sqrt(DCudA^2 + DCdAstd^2) # !!!!! GET DCudAstd !!!!!!!!!!!
+  
 
-if (partitioningoption==1) {
+if (partitioningoption == 1) {
     ## respiration under three different treatments: control, no litter and double litter.
     rrA1 = ((con_no_litA-(So_no_litA+discorA))/(con_no_litA))
     #rrA1[which(rrA1 < 0)] <- NA
-    rrA1[which(rrA1>1)] <- NA
+    rrA1[which(rrA1>1)] = NA
     
     rrA2 = ((con_nor_litA-(So_nor_litA+discorA))/(con_nor_litA))
     #rrA2[which(rrA2 < 0)] <- NA
-    rrA2[which(rrA2>1)] <- NA
+    rrA2[which(rrA2>1)] = NA
     
     rrA3 = ((con_doub_litA-(So_doub_litA+discorA))/(con_doub_litA))
     #rrA3[which(rrA3<0)] <- NA
     rrA3[which(rrA3>1)] <- NA
     
     rrxc = dim(rrA1)
-    rrA <- matrix(data=NA, nrow=rrxc[1], ncol=rrxc[2])
-    rrAstd <- matrix(data=NA, nrow=rrxc[1], ncol=rrxc[2])
+    rrA    <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
+    rrAstd <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
     for (i in 1:rrxc[1]) {
       for (j in 1:rrxc[2]) {
-        rrA[i,j] = mean(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
+        rrA[i,j]    = mean(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
         rrAstd[i,j] = sd(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
       }
     } 
-    rrA[which(rrA>1)] <- NA
-} else if (partitioningoption==2) {
-  rrA = ((S1-(S3+discorA))/S1) # Chris should check this equation. Should have 0<rrA<1.
-  #rrA[which(rrA>1)] <- NA
+    rrA[which(rrA>1)] = NA
+} else if (partitioningoption == 2) {
+  rrA = ((S1-(S3+discorA))/S1) # Check that this is what the new code does.
+  #rrA[which(rrA > 1)] = NA
+  # rrAstd = ....
 }
 
 
 ## autotrophic root respiration:
-rrtotresAc = totresAc*rrA
-rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should this be more generic? length(subplot)
+rrtotresAc    = totresAc*rrA
+rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should be more generic - length(subplot)
 
 ## heterotrophic respiration:
-hrtotresAc = totresAc*(1-rrA)
+hrtotresAc    = totresAc*(1-rrA)
 hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
 
+################################ NEW BIT I AM WORKING ON ##########################################
+
+# root respiration Ts ??? (Tdm ??? D)
+rrA1 <- ((con_nor_litA + con_no_litA + con_doub_litA) / 3) - (((My_nor_litA + My_no_litA + My_doub_litA) / 3) + discorA)
+rrA1std <- sqrt(((con_nor_litAstd^2) + (con_no_litAstd^2) + (con_doub_litAstd^2)) / 3 + ((My_nor_litAstd^2) + (My_no_litAstd^2) + (My_doub_litAstd^2)) / 3 + (discorAstd^2))
+
+  
+################## I AM HERE: STD FOR EACH NEW PARAMETER #####################
+  
+# set thresholds
+rrA1[which(rrA1 < (-0.5))] = NA ### CHECK THIS THRESHOLD IS RIGHT?
+rrA1[which(rrA1 > 3)] = NA
+
+# Mycorrhizal respiration = (Tdm + D) ??? (Tds + D)
+MrA1 <- (((My_nor_litA + My_no_litA + My_doub_litA) / 3) + discorA) - (((So_nor_litA + So_no_litA + So_doub_litA)/3) + discorA)
+MrA1std <- sqrt((My_nor_litAstd^2) + (My_no_litAstd^2) + (My_doub_litAstd^2) + (discorAstd^2) + (So_nor_litAstd^2) + (So_no_litAstd^2) + (So_doub_litAstd^2) + (discorAstd^2))
+
+# set thresholds
+MrA1[which(MrA1 < (-0.5))] = NA
+MrA1[which(MrA1 > 3)] = NA
+
+# Soil organic matter respiration = Tds + D
+OMrA1 <- (((So_nor_litA + So_no_litA + So_doub_litA) / 3) + discorA)
+OMrA1std <- sqrt(((So_nor_litAstd^2) + (So_no_litAstd^2) + (So_doub_litAstd^2)) / 3 + (discorAstd^2))
+
+# set thresholds
+OMrA1[which(OMrA1 < (-0.5))] = NA
+OMrA1[which(OMrA1 > 3)] = NA
+
+# Effects of litter addition on litter respiration are assessed by calculating this component twice ??? from double # litter (Rldl) and no-litter (Rlnl) compared to ambient litter tubes:
+# Rlnl = (Tdsal + D) ??? (Tdsnl + D)
+RlnlA <- (So_nor_litA + discorA) - (So_no_litA + discorA)
+RlnlAstd <- sqrt((So_nor_litAstd^2) + (So_no_litAstd^2) + (discorAstd^2))
+
+# Rldl = (Tdsdl + D) ??? (Tdsal + D)
+RldlA <- (So_doub_litA + discorA) - (So_nor_litA + discorA)
+RldlAstd <- sqrt((So_nor_litAstd^2) + (So_no_litAstd^2) + (discorAstd^2))
+
+###################################################################################################
+
 # fill gaps
-rrAfg = colMeans(t(rrA),na.rm=T)
+rrAfg = colMeans(t(rrA), na.rm=T)
 
 for (i in 1:12) {
   for (j in 1:(fir_yeare-fir_year+1)) {
     if (is.na(rrA[i,j]) & !is.na(totresAc[i,j])) {
       if (!is.na(rrAfg[i])) {
-        rrtotresAc[i,j] = totresAc[i,j]*rrAfg[i]
+        rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i]
         rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i])
-        hrtotresAc[i,j] = totresAc[i,j]*(1-rrAfg[i])
+        hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i])
         hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i])
-      } else if (i==12) {
-        rrtotresAc[i,j] = totresAc[i,j]*rrAfg[i-1]
+      } else if (i == 12) {
+        rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i-1]
         rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i-1])
-        hrtotresAc[i,j] = totresAc[i,j]*(1-rrAfg[i-1])
+        hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i-1])
         hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i-1])
       } else {
-        rrtotresAc[i,j] = totresAc[i,j]*rrAfg[i+1]
+        rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i+1]
         rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i+1])
-        hrtotresAc[i,j] = totresAc[i,j]*(1-rrAfg[i+1])
+        hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i+1])
         hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i+1])
       }
     }    
@@ -447,41 +506,42 @@ for (i in 1:12) {
 
 
 ### Relevant Data Output: totres, hrtotres
-## Build list with matrices that contain monthly values:
-{
-  soilresp.data.monthly.matrix <- list(
-    (rrtotresAc),(rrtotresAcstd),
-    (hrtotresAc),(hrtotresAcstd))
-  
-  names(soilresp.data.monthly.matrix) <- c("rrtotresAc","rrtotresAcstd",
-                                      "hrtotresAc","hrtotresAcstd")
-}
-
 ###  Build data frame with time series structure
 {
   ##Restructure the data (according to time series structure):
-  Year <- NULL
+  Year  <- NULL
   Month <- NULL
-  Day <- NULL
+  Day   <- NULL
   
   for (i in 1:dim(totresAc)[2]) {
-    Year[((i-1)*12+1):((i-1)*12+12)] <- (rep(c(fir_year:fir_yeare)[i],12))
+    Year[((i-1)*12+1):((i-1)*12+12)]  <- (rep(c(fir_year:fir_yeare)[i],12))
     Month[((i-1)*12+1):((i-1)*12+12)] <- (1:12)
-    Day[((i-1)*12+1):((i-1)*12+12)] <- rep(NA,12)
+    Day[((i-1)*12+1):((i-1)*12+12)]   <- rep(NA,12)
   }
   
   soilresp.data.monthly.ts <- data.frame(Year,Month,Day,
-                                    c(rrtotresAc),c(rrtotresAcstd),
-                                    c(hrtotresAc),c(hrtotresAcstd))
+                                    c(rrtotresAc), c(rrtotresAcstd),
+                                    c(hrtotresAc), c(hrtotresAcstd),
+                                    c(rrA1), c(),
+                                    c(MrA1), C(),
+                                    c(OMrA1), c(),
+                                    c(RlnlA), c(),
+                                    c(RldlA), c())
   
-  colnames(soilresp.data.monthly.ts) <- c("Year","Month","Day",  
-                                     "rrtotresAc","rrtotresAcstd",
-                                     "hrtotresAc","hrtotresAcstd")
+  "root_res_MgC_ha_mo", 
+  "mycorrhizal_res_MgC_ha_mo", 
+  "soil_organic_matter_res_MgC_ha_mo", 
+  "som_nolitter_res_MgC_ha_mo", 
+  "som_doublelitter_res_MgC_ha_mo",
+    
+  colnames(soilresp.data.monthly.ts) <- c("year","month","day",  
+                                     "auto_totres_MgC_ha_mo","auto_totres_std",
+                                     "hetero_totres_MgC_ha_mo","hetero_totres_std")
 }
  
 
 ## Plotroutine, triggered by argument 'plotit=T'
-if (plotit==T) {
+if (plotit == T) {
   ## Time representation of Dates as character in the vector 'dates':
   dates <- c()
   for (i in 1:length(Year)) {
@@ -490,20 +550,22 @@ if (plotit==T) {
   }
   
   x11()
-  par(mfrow=c(2,1))
-  par(mar=c(4,4,0.5,0.5))
-  plot(x=strptime(dates, format="%Y-%m-%d"), y=soilresp.data.monthly.ts$rrtotresAc, 
-       type='l',lwd=2,
-       xlab="Years", ylab="Total Respiration [Units]")
+  par(mfrow = c(2,1))
+  par(mar = c(4,4,0.5,0.5))
+  plot(x = strptime(dates, format = "%Y-%m-%d"), y = soilresp.data.monthly.ts$rrtotresAc, 
+       type = 'l',lwd = 2,
+       xlab = "Years", ylab = "Total Respiration [Units]")
   
-  plot(x=strptime(dates, format="%Y-%m-%d"), y=soilresp.data.monthly.ts$hrtotresAc, 
-       type='l',lty=1,
-       xlab="Years", ylab="Heterotrophic Soil Respiration [Units]")
+  plot(x = strptime(dates, format = "%Y-%m-%d"), y = soilresp.data.monthly.ts$hrtotresAc, 
+       type = 'l',lty=1,
+       xlab = "Years", ylab="Heterotrophic Soil Respiration [Units]")
   }
+
+# Get values for each tube rather than average
 
 # Return either monthly means (ret="monthly.means") as time series or matrix  
 switch(ret,
        monthly.means.matrix = {return(soilresp.data.monthly.matrix)},
-       monthly.means.ts = {return(soilresp.data.monthly.ts)}
+       monthly.means.ts     = {return(soilresp.data.monthly.ts)}
 )
 }

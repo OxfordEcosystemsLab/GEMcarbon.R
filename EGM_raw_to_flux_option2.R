@@ -1,7 +1,6 @@
-## Code to go from EGM-4 raw data files to the csv files we need for the db.
-## The csv files for the db are the same as the ones used for the R GEM functions. The output of this code feeds into soilrespiration.R
-# Cecile Girardin, 28.02.2014
-# Last edited: Cecile Girardin, 15.10.2014
+## Code to go from EGM-4 raw data files to the csv files we need for the soilrespiration_2014.R code
+# Cecile Girardin 28.02.2014
+# Last edited: Cecile Girardin 15.10.2014
 
 # Notes:
 ## Need to define the disturbance and partitioning codes for each plot - search "get disturbance code" and "get partitioning code". Does this fit your data?
@@ -22,6 +21,27 @@
 # 6. your new .csv files will be in the directory you specify in lines 111, 180 & 256
 # 7. Run the soilrespiration.R function
 
+
+# column names
+# plot_code
+# measurement_code: this is the partitionning code (e.g. TOT, CON, DLF, etc - see manual for codes)
+# subplot
+# year
+# egm_measurement: this is ;Plot from the EGM
+# recno, day, month, hour, min, CO2ref, inputD, atmp, probe_type: from EGM file
+
+# column names for temperature files:
+# plot_code
+# measurement_code: this is the partitionning code (e.g. TOT, CON, DLF, etc - see manual for codes)
+# subplot
+# day
+# month
+# year
+# temp
+# vwc
+# collar_depth
+# collar_diam
+
 # load packages
   library(sqldf)
 
@@ -34,8 +54,7 @@
   wea_con           <- read.table("5wea_con_27.08.2013_test.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, disturb, temp, vwc. Note: "measurement" is the measurement number (e.g. 21-35) 
   wea_par           <- read.table("65wea_par_27.08.2013_test.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)  # column names: plot, day, month, year, measurement, temp, vwc
 
-  # once you have added the temperature and vwc datasets here, you can uncomment the code on lines 35-39, 87-90, 150-153 
-  # and comment out the code that assings random values (raw_parsr$temp <- 25.8 and raw_parsr$vwc <- 50).
+  
   
 # read in soil respiration auxillary functions from GitHub
   source("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
@@ -43,10 +62,10 @@
 #### Soil Respiration ####
 ## Total soil respiration 
 # Rename columns. Note: ";Plot" in raw files is equivalent to "measurement" in the files that feed into the R GEM functions.
-  colnames(raw_totsr) <- c("measurement", "recno", "day", "month", "hour", "min", "co2ref", "unused1", "unused2", "inputA", "inputB", "inputC", "inputD", "time", "inputF", "inputG", "inputH", "atmp", "probetype")
-  raw_totsr$year   <- 2013
-  raw_totsr$month  <- 8 ######## TEMPORARY SOLUTION: the months should be the same in wea and raw_totsr!!!
-  raw_totsr$day    <- 27 ######## TEMPORARY SOLUTION: the days should be the same in wea and raw_totsr!!!
+  #colnames(raw_totsr) <- c("measurement", "recno", "day", "month", "hour", "min", "co2ref", "unused1", "unused2", "inputA", "inputB", "inputC", "inputD", "time", "inputF", "inputG", "inputH", "atmp", "probetype")
+  #raw_totsr$year   <- 2013
+  #raw_totsr$month  <- 8 ######## TEMPORARY SOLUTION: the months should be the same in wea and raw_totsr!!!
+  #raw_totsr$day    <- 27 ######## TEMPORARY SOLUTION: the days should be the same in wea and raw_totsr!!!
   
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
   wea_tot$codew     <- paste(wea_tot$subplot, wea_tot$day, wea_tot$month, wea_tot$year, sep=".") ##### ATTENTION!! Is subplot in wea the same as measurement in raw_totsr???

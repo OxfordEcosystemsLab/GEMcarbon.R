@@ -26,6 +26,10 @@ Chave2014 <- function(diax, density, height) {
   return(AGB_est)
 }
 
+# Tree ferns Farfan et al., in prep:
+Farfan2015 <- function() {
+  
+}
 
 ## Chambers et al, 2004: estimate surface area of a tree:
 # see also RAINFOR manual, p. 52; diameter in cm 

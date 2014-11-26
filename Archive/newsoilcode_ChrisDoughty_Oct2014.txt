@@ -1,0 +1,94 @@
+# Questions from meeting with Dan, Terhi, Walter, Norma, Chris, Yadvinder (03/11/2011)
+
+-Is there a consistent trend in how fluxes change over time after installation?
+
+-When do the data start and stop becoming useful?
+
+-What are the time series and patterns of variability?
+
+-Do we see evidence of clear waterlogging (decline in respiration of heterotrophic respiration)?
+
+
+
+# Tube Definitions 
+# 1)	Surface tubes (Ts): Three tubes inserted ~ 2 cm into the soil surface
+# 2)	Deep mesh tubes (Tdm): Three tubes each with four windows (3 x 3 cm) covered with fine mesh (41 µm aperture), to exclude fine roots but allow entry by mycorrhizae (Heinemeyer et al. 2007)
+# 3)	Deep solid tubes (Tds): Three tubes inserted to 30 cm depth into the soil with no lateral entry points, to exclude both roots and mycorrhizae.
+ 
+# Within each set of three, each tube has a different litter layer treatment (ambient litter- Tsal, Tdmal, Tdsal; no litter- Tsnl, Tdmnl, Tdsnl; double litter- Tsdl, Tdmdl, Tdsdl).
+
+# con_nor_litA  = surface tube (Ts) - normal litter - Tsal
+# con_no_litA   = surface tube (Ts) - no litter  - Tsnl
+# con_doub_litA = surface tube (Ts) - double litter -Tsdl
+# My_nor_litA   = Deep mesh tubes (Tdm) - normal litter - Tdmal
+# My_no_litA    = Deep mesh tubes (Tdm) - no litter - Tdmnl
+# My_doub_litA  = Deep mesh tubes (Tdm) - double litter -Tdmdl
+# So_nor_litA   = Deep solid tubes (Tds)- normal litter - Tdsal
+# So_no_litA    = Deep solid tubes (Tds) - no litter - Tdsnl
+# So_doub_litA  = Deep solid tubes (Tds) - double litter - Tdsdl
+
+# Calculations
+# Each month, a mean disturbance-induced flux (D) is calculated as:
+
+D = Td – Tud  
+# Decide on how we estimate discorA? In the current code, this is (mean of Td) - (mean of Tud).
+# disturbance may reduce or increase respiration (Cax problem?).
+
+#  Control - normal litterfall
+#  Control - no litterfall
+#  Control - double litterfall
+#  Mycorrhizae - normal litterfall
+#  Mycorrhizae - no litterfall
+#  Mycorrhizae - double litterfall
+#  Soil - normal litterfall
+#  Soil - no litterfall
+#  Soil - double litterfall
+
+# This flux is then included when calculating CO2 flux contributions from the different components as the # difference in CO2 efflux from the tubes:
+# Root respiration = Ts – (Tdm – D)
+# Mycorrhizal respiration = (Tdm – D) – (Tds – D)
+# Soil organic matter respiration = Tds – D
+# Effects of litter addition on litter respiration are assessed by calculating this component twice – from # double litter (Rldl) and no-litter (Rlnl) compared to ambient litter tubes:
+# Rlnl = (Tdsal – D) – (Tdsnl – D)
+# Rldl = (Tdsdl – D) – (Tdsal – D)
+
+# For the purposes of these calculations, all CO2 flux terms were quantified in the same units. 
+
+# root respiration Ts – (Tdm – D)
+rrA1 <- ((con_nor_litA + con_no_litA + con_doub_litA) / 3) - (((My_nor_litA + My_no_litA + My_doub_litA) / 3) - discorA)
+
+# set thresholds
+rrA1(find(rrA1<0)) <- 0/0
+rrA1(find(rrA1>3)) <- 0/0
+
+# Mycorrhizal respiration = (Tdm – D) – (Tds – D)
+MrA1 = (((My_nor_litA + My_no_litA + My_doub_litA) / 3) - discorA) - (((So_nor_litA + So_no_litA + So_doub_litA)/3)-discorA)
+
+# set thresholds
+MrA1(find(MrA1<0)) <- 0/0
+MrA1(find(MrA1>3)) <- 0/0
+
+# Soil organic matter respiration = Tds – D
+OMrA1 = (((So_nor_litA + So_no_litA + So_doub_litA) / 3) - discorA)
+
+# set thresholds
+OMrA1(find(OMrA1<0)) <- 0/0
+OMrA1(find(OMrA1>3)) <- 0/0
+
+# Effects of litter addition on litter respiration are assessed by calculating this component twice – from double # litter (Rldl) and no-litter (Rlnl) compared to ambient litter tubes:
+# Rlnl = (Tdsal – D) – (Tdsnl – D)
+RlnlA = (So_nor_litA - discorA) - (So_no_litA - discorA)
+
+# Rldl = (Tdsdl – D) – (Tdsal – D)
+RldlA = (So_doub_litA - discorA) - (So_nor_litA - discorA)
+
+
+??? How about standard deviations?
+
+Final table
+year month day auto_totres auto_totres_std hetero_totres hetero_totres_std 
+
+# Root respiration
+# Mycorrhizal respiration
+# Soil organic matter respiration
+# Effects of litter addition on litter respiration are assessed by calculating this component twice – from # double litter (Rldl) and no-litter (Rlnl) compared to ambient litter tubes:

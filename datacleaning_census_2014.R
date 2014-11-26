@@ -6,19 +6,19 @@ require(ggplot2)
 
 # get data
 setwd("C:/Users/Cecile/Dropbox/GEMcarbondb/db_csv/db_csv_eltr/forestplots_census")
-data  <- read.table("eltr_census_2011.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+data  <- read.table("SPD02_2014_WFarfan_test1_old.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
 # choose a plot
-data <- subset(data, plot=="WAY-01")
+data <- subset(data, plot=="SPD-02")
 
 # rename columnd 
-data$DBH.1 <- data$DAP_cm_start
+#data$DBH.1 <- data$DAP_cm_start
 #colnames(data) <- c("plot", "subplot", "tag", "DBH.1", "DBH.2", "height", "density")
 
 # define start and end date:
-date_1 <- as.character("2003/9/24") # Change date
-date_2 <- as.character("2007/7/6")
-date_3 <- as.character("2011/11/24")
+date_1 <- as.character("2006/09/20") # Change date
+date_2 <- as.character("2008/09/12")
+date_3 <- as.character("2009/09/12")
 date_1 <- as.Date(format(strptime(date_1, format="%Y/%m/%d")))
 date_2 <- as.Date(format(strptime(date_2, format="%Y/%m/%d")))
 date_3 <- as.Date(format(strptime(date_3, format="%Y/%m/%d")))

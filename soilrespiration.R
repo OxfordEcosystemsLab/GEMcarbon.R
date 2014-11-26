@@ -6,17 +6,11 @@
 # data.frame of total soil respiration
 # data.frame of partition respiration 
 # data.frame of control respiration 
-# plotname: specify plotname of which plot should be calculated (eg. 1,2,etc)
-# ret: data-format of return values: "monthly.means.ts" or "monthly.means.matrix"
-# plotit: logical, plot a quick graphical summary of the data?
-
-### COMMENT BY SEBASTIAN: I changed the order of the elements of the code:
-## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the
-## overall data), in order to find start and end years
-
+# plotname: specify the plot_code you need your estimates for.
+# ret: specify the data-format of return values this is either "monthly.means.ts" or "monthly.means.matrix"
+# plotit: logical, plotit=T to plot a quick graphical summary of the data. 
 
 ### read data for option 2:
-#setwd("D:/Dokumente/My Dropbox/Carbon_Use_Efficieny_R/testing/")
 setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
 data.resc <- read.table("Resconallsam.csv", sep=",", header=T)

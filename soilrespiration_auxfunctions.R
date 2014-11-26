@@ -1,6 +1,6 @@
 ## These functions are required for running the soilrespiration-program!
 # Sebastian Sippel, 06.12.2013
-# Last edited: Cécile Girardin, 01.07.2014 
+# Last edited: Cicile Girardin, 01.07.2014 
 
 ## remove flux outliers: CURRENTLY NOT IMPLEMENTED; DUE TO OVERALL FLUX CORRECTION (see below)!
 #rm.flux.outlier <- function(flux, sd_interval=3) {
@@ -26,8 +26,8 @@ rm.flux.outlier <- function(flux_overall, sd_interval=3) {
 
 ## remove temperature outlier:
 rm.temp.outlier <- function(temp, month) {
-  temp[which(temp<15)]=NA   # DEFINABLE VARIABLE
-  temp[which(temp>35)]=NA   # DEFINABLE VARIABLE
+  temp[which(temp<5)]=NA    # MAKE THIS A DEFINABLE VARIABLE
+  temp[which(temp>50)]=NA   # MAKE THIS A DEFINABLE VARIABLE
   
   xtemp <- NULL
   ## run through 12 months to find xtemp:
@@ -75,7 +75,7 @@ fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
 ## Temperature-dependent version of the barometric equation: 
 # see Berberan-Santos et al. (1997)
 barometric_equation_T <- function(elevation, temp) {
-  ## temp in °C
+  ## temp in 0C
   xtemp = temp+273.13
   Ru=8.31432                    # Universal gas constant in J/molK
   molarMd=28.9644               # Molar mass (molecular weight/mass) of dry air in g/mol
