@@ -1,5 +1,5 @@
 ## Data cleaning for census data
-## Cécile Girardin 03.07.2014.
+## Cecile Girardin 03.07.2014.
 
 # load packages
 require(ggplot2)

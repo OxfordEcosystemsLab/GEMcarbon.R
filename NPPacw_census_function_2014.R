@@ -1,4 +1,4 @@
-# Written by: Cécile Girardin July 2014
+# Written by: C?cile Girardin July 2014
 
 ## This script estimates largeTreeNPP annual NPP values based on census data
 # The monthly values you get from this code are plot-level values, as all the trees in the plot are censused. 
@@ -139,8 +139,8 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
     }
       
     ## TO DO ## error treatment remains to be done!
-    
     # Unit conversions are not carried out in allometricEquations.R
+    #print(bm)
     #print(ii)
     cen$agC[ii] <- (bm)*(1/(2.1097*1000)) # convert kg to Mg=1/1000=10 and convert to carbon = 47.8%
   }

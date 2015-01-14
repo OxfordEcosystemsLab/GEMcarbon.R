@@ -11,8 +11,7 @@
 # plotit: logical, plot a quick graphical summary of the data?
 
 ### COMMENT BY SEBASTIAN: I changed the order of the elements of the code:
-## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the
-## overall data), in order to find start and end years
+## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the overall data), in order to find start and end years
 
 ### read data for option 1:
 setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files/outputs")
