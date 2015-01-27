@@ -1,4 +1,4 @@
-# Written by: C?cile Girardin July 2014
+# Written by: Cecile Girardin July 2014
 
 ## This script estimates largeTreeNPP annual NPP values based on census data
 # The monthly values you get from this code are plot-level values, as all the trees in the plot are censused. 
@@ -121,13 +121,12 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   er = 0.1 # .1cm sampling error is trivial compared to systematic error of allometric equation. Change this see Chave et al. 2005.
   
   ## loop through each tree to estimate biomass (bm) and convert to above ground carbon (agC)
-   for (ii in 1:length(cen$tree_tag)) { 
-    thistree <- which(cen$tree_tag == cen$tree_tag[ii] & cen$year == cen$year[ii])     
-    dbh_tree <- cen$dbh[thistree]
-    den_tree <- cen$density[thistree]
-    h_tree   <- cen$height_m[thistree]
+   for (ii in 1:length(cen$plot_code)) {    # this is just looping through each row.
+    dbh_tree <- cen$dbh[ii]
+    den_tree <- cen$density[ii]
+    h_tree   <- cen$height_m[ii]
     
-    # this uses allometric equations from allometricEquations.R
+    # this uses allometric equations from allometric Equations.R
     if (allometrix == 2) {
       bm <- Chave2005_dry(diax=dbh_tree, density=den_tree, height=h_tree)
     } else if (allometrix == 3) {
@@ -140,8 +139,8 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
       
     ## TO DO ## error treatment remains to be done!
     # Unit conversions are not carried out in allometricEquations.R
-    #print(bm)
-    #print(ii)
+    # print(bm)
+    # print(ii)
     cen$agC[ii] <- (bm)*(1/(2.1097*1000)) # convert kg to Mg=1/1000=10 and convert to carbon = 47.8%
   }
   
