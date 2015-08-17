@@ -10,11 +10,11 @@
 # ret: data-format of return values: "monthly.means.ts" or "monthly.means.matrix"
 # plotit: logical, plot a quick graphical summary of the data?
 
-### COMMENT BY SEBASTIAN: I changed the order of the elements of the code:
+### Comment from Sebastian: I changed the order of the elements of the code:
 ## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the overall data), in order to find start and end years
 
 ### read data for option 1:
-setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files/outputs")
+setwd("/Users/cecile/Documents/GitHub/GEMcarbon.R/example files/outputs")
 data.resc <- read.table("Res_control_test1.csv", sep=",", header=T)
 data.resp <- read.table("Res_partitionning_test1.csv", sep=",", header=T)
 data.rest <- read.table("Res_total_test1.csv", sep=",", header=T)
@@ -25,7 +25,7 @@ elevation = "default"
 T_ambient="Default"
 
 ### read data for option 2:
-setwd("C:/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
+setwd("/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
 data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
 data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
@@ -38,7 +38,7 @@ pressure="Default"
 T_ambient="Default"
 
 # read correction functions:
-source("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
+source("/Users/cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
 
 
 soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
@@ -119,7 +119,7 @@ plotc = data.resc$plot_code
 yearc = data.resc$year[which(plotc==plotname)]
 monthc = data.resc$month[which(plotc==plotname)]
 tempc = data.resc$soil_temp_degC[which(plotc==plotname)]
-chc = data.resc$collar_depth_cm[which(plotc==plotname)] 
+chc = as.numeric(data.resc$collar_depth_cm[which(plotc==plotname)]) 
 fluxc = data.resc$flux_umolco2_m2_s[which(plotc==plotname)]
 distc = data.resc$disturbance_code[which(plotc==plotname)]
 
@@ -150,42 +150,40 @@ fir_year = min(c(yeart,yearp,yearc),na.rm=T)  # to know from when to when the da
 fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 }
 
-########################################## Should we have this in EGM_to_db code rather than here?
+##################################### Should we have this in EGM_to_db code rather than here?
 
 ## Total Soil respiration Calculation: 
     # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
     # the choice of the sd_interval changes things!    
 
     fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
-##########################################
-##########################################  PROBLEM HERE !!!              tempt <- rm.temp.outlier(temp=tempt, month=montht) ############################
-##########################################
+    tempt <- rm.temp.outlier(temp=tempt, month=montht) 
     cht   <- rm.ch.outlier(ch=cht) # this doesn't remove outlyers, it replaces missing data with the average of chamber deapth measurements for the whole plot.
     
-    ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. 
+    ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. ##### TO DO: CHECK WITH CHRIS: ARE WE ESTIMATINGFLUX TWICE ???!! 
     # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75. 
     RcAt <- fluxcorr(flux=fluxt, temp=tempt, ch=cht, Vd=Vd, A=A, pressure=pressure)
 
 ### Control Measurements 
 
     # remove outliers (> 3 SD) and NAs:
-    fluxc <- rm.flux.outlier(fluxc, sd_interval=2) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3sd.
+    fluxc <- rm.flux.outlier(fluxc, sd_interval=2) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3 sd.
     tempc <- rm.temp.outlier(temp = tempc, month=monthc)
     chc   <- rm.ch.outlier(ch=chc)
     
-    ## Flux correction according to Metcalfe, RAINFOR Manual, Appendix 2, p. 75
+    ## Flux correction according to Metcalfe, RAINFOR Manual, Appendix 2, p. 75 
     RccA <- fluxcorr(flux=fluxc, temp=tempc, ch=chc, Vd=Vd, A=A, pressure=pressure)
 
+##### CHECK THAT WE DON't USE ANOTHER CORRECTION BY METCALFE HERE? DAMAGE DONE TO COLLAR BY EXPERIMENT 
 
 #### Partitioning Soil Repiration calculation 
     # remove outliers and NAs: Flux (sd > 3), Temperature and Chamber height (see soilrespiration_aux-functions.R)
     fluxp <- rm.flux.outlier(fluxp, sd_interval=2)
     tempp <- rm.temp.outlier(temp=tempp, month=monthp)
-    chc   <- rm.ch.outlier(ch=chc)
+    chp   <- rm.ch.outlier(ch=chc)
     
     # flux and chamber volume correction, see function fluxcorr
     RcpA <- fluxcorr(flux=fluxp, temp=tempp, ch=chp, Vd=Vd, A=A, pressure=pressure)
-
 
 ### Calculate respiration values in each year and month for the three different treatments:
 
@@ -200,9 +198,7 @@ fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 #  Soil - no litterfall
 #  Soil - double litterfall
 
-################################
 ###### TO DO: plot data per tube & treatment to identify outlyers.
-################################
 
 # Total Respiration initialize matrixes:
   resAt     <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
@@ -264,36 +260,33 @@ for (j in fir_year:fir_yeare) {
        im = which(monthc==i & yearc==j)
         xx = RccA[im]                      # All current flux data we have is allocated to this new variable, xx
       if (partitioningoption==1) {
-           if (length(xx)==10) { # this only works with data that is structured like this, but we need to change this to a logical, as is done in partitionning option 2.
-            rcanotper[m,n] = mean(c(xx[1],xx[3], xx[5], xx[7], xx[9]),na.rm=T)  ## not disturbed
-            rcaper[m,n] = mean(c(xx[2],xx[4], xx[6], xx[8], xx[10]),na.rm=T)    ## disturbed
-            DCdAstd[m,n] = sd(c(xx[1]-xx[2],xx[3]-xx[4],xx[5]-xx[6],xx[7]-xx[8],xx[9]-xx[10]),na.rm=T)
-          } else {
-            rcanotper[m,n] = NA
-            rcaper[m,n] = NA
-          }
+            rcanotper[m,n] <- mean(xx[which(distc[im]=="UD")], na.rm=T)  ## not disturbed
+            rcaper[m,n]    <- mean(xx[which(distc[im]=="D")], na.rm=T)   ## disturbed
+            DCdAstd[m,n]   <- sd(RccA[im], na.rm=T)
+            
       } else if (partitioningoption==2) {
         # Here comes the data by disturbed or not: (i.e. rca not perturbed or rca perturbed?) 
-        rcanotper[m,n] <- mean(xx[which(distc[im]==1)],na.rm=T)  # disturbance == 1 is undisturbed # just change to "D" and "U" in database and code becomes rcanotper[m,n] <- mean(xx[which(distc=="U")],na.rm=T)
+        rcanotper[m,n] <- mean(xx[which(distc[im]==1)], na.rm=T)  # disturbance == 1 is undisturbed # just change to "D" and "U" in database and code becomes rcanotper[m,n] <- mean(xx[which(distc=="U")],na.rm=T)
         rcaper[m,n] <- mean(xx[which(distc[im]==2)], na.rm=T)  # disturbance == 2 is disturbed
       }
     
-    # calculate for different partitioning treatments:
-      imp = which(monthp == i & yearp == j) # imp is an index to get current year & current month
+    # calculate for different partitioning treatments: 
+    ##!! ATTENTION !! TREATMENT CODES HAVE CHANGED TO con_doub_lit con_no_lit con_nor_lit ml my_doub_lit my_no_lit my_nor_lit so_doub_lit so_no_lit so_nor_lit
+    
+    imp = which(monthp == i & yearp == j) # imp is an index to get current year & current month
       if (partitioningoption == 1) {
           xx = RcpA[imp]                
           nx = treatmentp[imp]
-                              
-          if (sum(xx, na.rm = T) > 0) {
-            ix1 = which(nx == 1)
-            ix2 = which(nx == 2)
-            ix3 = which(nx == 3)
-            ix4 = which(nx == 4)
-            ix5 = which(nx == 5)
-            ix6 = which(nx == 6)
-            ix7 = which(nx == 7)
-            ix8 = which(nx == 8)
-            ix9 = which(nx == 9)
+          #if (sum(xx, na.rm = T) > 0) {
+            ix1 = which(nx == "con_nor_lit")
+            ix2 = which(nx == "con_no_lit")
+            ix3 = which(nx == "con_doub_lit")
+            ix4 = which(nx == "my_nor_lit")
+            ix5 = which(nx == "my_no_lit")
+            ix6 = which(nx == "my_doub_lit")
+            ix7 = which(nx == "so_nor_lit")
+            ix8 = which(nx == "so_no_lit")
+            ix9 = which(nx == "so_doub_lit")
             con_nor_litA[m,n]  = mean(xx[ix1], na.rm=T) # Control - normal litterfall
             con_no_litA[m,n]   = mean(xx[ix2], na.rm=T) # Control - no litterfall
             con_doub_litA[m,n] = mean(xx[ix3], na.rm=T) # Control - double litterfall
@@ -313,27 +306,27 @@ for (j in fir_year:fir_yeare) {
             So_nor_litAstd[m,n]   = sd(xx[ix7], na.rm=T)  
             So_no_litAstd[m,n]    = sd(xx[ix8], na.rm=T)   
             So_doub_litAstd[m,n]  = sd(xx[ix9], na.rm=T) 
-          } else {
-            con_nor_litA[m,n]  = NA
-            con_no_litA[m,n]   = NA
-            con_doub_litA[m,n] = NA
-            My_nor_litA[m,n]   = NA
-            My_no_litA[m,n]    = NA
-            My_doub_litA[m,n]  = NA
-            So_nor_litA[m,n]   = NA
-            So_no_litA[m,n]    = NA
-            So_doub_litA[m,n]  = NA
+         # } else {
+          #  con_nor_litA[m,n]  = NA
+          #  con_no_litA[m,n]   = NA
+          #  con_doub_litA[m,n] = NA
+          #  My_nor_litA[m,n]   = NA
+          #  My_no_litA[m,n]    = NA
+          #  My_doub_litA[m,n]  = NA
+          #  So_nor_litA[m,n]   = NA
+          #  So_no_litA[m,n]    = NA
+          #  So_doub_litA[m,n]  = NA
             
-            con_nor_litAstd[m,n]  = NA
-            con_no_litAstd[m,n]   = NA   
-            con_doub_litAstd[m,n] = NA 
-            My_nor_litAstd[m,n]   = NA  
-            My_no_litAstd[m,n]    = NA  
-            My_doub_litAstd[m,n]  = NA  
-            So_nor_litAstd[m,n]   = NA  
-            So_no_litAstd[m,n]    = NA  
-            So_doub_litAstd[m,n]  = NA  
-          }
+          #  con_nor_litAstd[m,n]  = NA
+          #  con_no_litAstd[m,n]   = NA   
+          #  con_doub_litAstd[m,n] = NA 
+          #  My_nor_litAstd[m,n]   = NA  
+          #  My_no_litAstd[m,n]    = NA  
+          #  My_doub_litAstd[m,n]  = NA  
+          #  So_nor_litAstd[m,n]   = NA  
+          #  So_no_litAstd[m,n]    = NA  
+          #  So_doub_litAstd[m,n]  = NA  
+          #}
       } else if (partitioningoption == 2) {
         xx = RcpA[imp]           
         nx = treatmentp[imp]
@@ -521,21 +514,20 @@ for (i in 1:12) {
   soilresp.data.monthly.ts <- data.frame(Year,Month,Day,
                                     c(rrtotresAc), c(rrtotresAcstd),
                                     c(hrtotresAc), c(hrtotresAcstd),
-                                    c(rrA1), c(),
-                                    c(MrA1), C(),
-                                    c(OMrA1), c(),
-                                    c(RlnlA), c(),
-                                    c(RldlA), c())
+                                    c(rrA1), 
+                                    c(MrA1), 
+                                    c(OMrA1), 
+                                    c(RlnlA), 
+                                    c(RldlA))
   
-  "root_res_MgC_ha_mo", 
-  "mycorrhizal_res_MgC_ha_mo", 
-  "soil_organic_matter_res_MgC_ha_mo", 
-  "som_nolitter_res_MgC_ha_mo", 
-  "som_doublelitter_res_MgC_ha_mo",
-    
   colnames(soilresp.data.monthly.ts) <- c("year","month","day",  
                                      "auto_totres_MgC_ha_mo","auto_totres_std",
-                                     "hetero_totres_MgC_ha_mo","hetero_totres_std")
+                                     "hetero_totres_MgC_ha_mo","hetero_totres_std",
+                                     "root_res_MgC_ha_mo",
+                                     "mycorrhizal_res_MgC_ha_mo", 
+                                     "soil_organic_matter_res_MgC_ha_mo", 
+                                     "som_nolitter_res_MgC_ha_mo", 
+                                     "som_doublelitter_res_MgC_ha_mo")
 }
  
 

@@ -33,6 +33,7 @@ Farfan2015 <- function() {
 
 ## Chambers et al, 2004: estimate surface area of a tree:
 # see also RAINFOR manual, p. 52; diameter in cm 
+# Note: A. Shenkin is developing our own surface area equation. Check if this is the most up to date equation that we use.
 Chambers2004_surfaceArea <- function(diameter) {
   surface_area = 10^(-0.015-0.686*log10(diameter)+(2.208*log10(diameter)^2)-(0.627*log10(diameter)^3))
   return(surface_area)

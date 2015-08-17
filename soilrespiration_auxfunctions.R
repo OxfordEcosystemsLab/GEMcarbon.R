@@ -1,6 +1,6 @@
 ## These functions are required for running the soilrespiration-program!
 # Sebastian Sippel, 06.12.2013
-# Last edited: Cicile Girardin, 01.07.2014 
+# Last edited: Cicile Girardin, 01.03.2015 
 
 ## remove flux outliers: CURRENTLY NOT IMPLEMENTED; DUE TO OVERALL FLUX CORRECTION (see below)!
 #rm.flux.outlier <- function(flux, sd_interval=3) {

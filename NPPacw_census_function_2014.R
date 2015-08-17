@@ -172,11 +172,13 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   colnames(npp) <- c("plot_code", "tree_tag", "year", "month", "agC.1", "agC.2")
   npp_day       <- (npp$agC.2-npp$agC.1) / census_interval
   NPPacw_MgC_ha_yr <- (sum(npp_day, na.rm=T))*365 
- 
+  NPPacw_MgC_ha_yr_se <- sd(npp_day, na.rm=T)/length(cen$tree_tag)
+  
   # Talbot census correction function
   NPPcorr = NPPacw_MgC_ha_yr + (0.0091 * NPPacw_MgC_ha_yr) * (census_interval/365)
+  annual <- data.frame(NPPacw_MgC_ha_yr, NPPacw_MgC_ha_yr_se)
   
-return(NPPacw_MgC_ha_yr)
+return(annual)
 }
 
 # w=which(!is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id surviving trees to estimate biomass growth

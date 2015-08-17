@@ -4,8 +4,8 @@
 
 # get data files
 # !!!! CHECK WT YM: check tree tags in the original file - replace all "no placa", "???", and uncertain tags by NA. OR I am just using the TreeID from now on.
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/done")
-census <- read.table("advancedsearch_test2_alp01.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
+census <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 # Tip: if the file doesn't load, try opening it and saving it again. It may have some formatting issues, but once you re-save it, they are fixed by csv.
 
 # load packages
@@ -20,13 +20,10 @@ census$day      <- format(census$date, "%d")
 census$month    <- format(census$date, "%m")
 census$year     <- format(census$date, "%Y")
 # Average of four DBH measurements / 10. What is the unit of dbh in ALP?
-census$DBH <- mean(census$DBH1, census$DBH2, ) ########################################### JE SUIS LA!!!!!!  
+census$DBH <- (mean(census$DBH1, census$DBH2, census$DBH3, census$DBH4)) / 10 ########################################### JE SUIS LA!!!!!!  AVERAGE OVER SEVERAL MESUREMENTS RATHER THAN TAKE THE 1st.
 
 # choose a plot
 census <- subset(census, plot == "ALP-01")
-
-
-DBH
 
 # subset into different census
 census1 <- subset(census, census$year == 2006)
@@ -35,7 +32,9 @@ census3 <- subset(census, census$year == 2010)
 
 data1 <- sqldf("SELECT census1.*, census2.DBH1 as DBHtwo, census2.day as day2, census2.month as month2, census2.year as year2 FROM census2 JOIN census1 ON census1.TreeID = census2.TreeID")
 data  <- sqldf("SELECT data1.*, census3.DBH1 as DBHthree, census3.day as day3, census3.month as month3, census3.year as year3 FROM census3 JOIN data1 ON data1.TreeID = census3.TreeID")
-data$DBHone <- data$DBH1
+data$DBHone <- data$DBH1/10
+data$DBHtwo <- data$DBHtwo/10
+data$DBHthree <- data$DBHthree/10
 
 ############### ??? ###########################
 # Would a loop be better here?
@@ -86,8 +85,8 @@ w = which(is.na(data$DBHone) & is.na(data$DBHtwo) & !is.na(data$DBHthree))
 data$DBHthree[w] = 0/0    
 data$recruits[w] <- "recruit"
 
-# Do not allow for shrinking trees. QUESTION: Allow shrinkage of 10%?
-w = which(data$DBHone > data$DBHtwo) 
+# Do not allow for shrinking trees. QUESTION: Allow shrinkage of 10%? - ask Gaby.
+w = which(data$DBHone > data$DBHtwo) #+ (data$DBHone*0.01) 
 data$DBHtwo[w] = data$DBHone[w]  
 data$srink <- "ok"
 data$srink[w] <- "shrunk.dbh.2"
@@ -131,7 +130,7 @@ data[data$tag %in% n_occur$Var1[n_occur$Freq > 1],]
 data[is.na(data)] <- NA
 
 # Re-format to date / DBH instead of DBHone, DBHtwo, and DBHthree.
-# sqldf does not accept ".", so we need to replace by "_"
+# sqldf() does not accept ".", so we need to replace by "_"
 data$Plot_code <- data$Plot.Code
 data$Plot_Name <- data$Plot.Name
 data$Census_Mean_Date <- data$Census.Mean.Date
@@ -144,7 +143,7 @@ census2 <- sqldf("SELECT PlotID, Plot_Code as plot_code, Plot_Name, Country, PI,
 census3 <- sqldf("SELECT PlotID, Plot_Code as plot_code, Plot_Name, Country, PI, Census_Mean_Date, Census_No, TreeID as tree_tag, Tag_Number, DBHthree as dbh, POM, F1, F2, F3, F4, date, day3 as day, month3 as month, year3 as year, recruits, srink, missing, overgrown, value_replaced FROM data ORDER BY date")
 census  <- rbind(census1, census2, census3)
 
-# Add height_m and density 
+# Add height_m and density from data Chis used in PED papers
 setwd("/Users/cecile/Dropbox/Andes synthesis 2013/NPPacw")
 densityheight1      <- read.table("CensusIq.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 densityheight       <- subset(densityheight1, plot=="ALP-11") 
