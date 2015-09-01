@@ -1,4 +1,4 @@
-## Code to go from EGM-4 raw data files to the csv files we need for the soilrespiration_2014.R code
+## Code to go from EGM-4 raw data files to the csv files we need for the soilrespiration_Aug.R code
 # Cecile Girardin 28.02.2014
 # Last edited: Cecile Girardin 15.10.2014
 
@@ -50,7 +50,7 @@
 
 # read in data 
   setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files")
-  setwd("C:/Users/Cecile/Dropbox/GEMcarbondb/RawData_SA/Kosñipata/2014_Respiration/Control_soil_respiration_2013")
+  setwd("C:/Users/Cecile/Dropbox/GEMcarbondb/RawData_SA/Kos?ipata/2014_Respiration/Control_soil_respiration_2013")
   raw_totsr         <- read.table("eltr_tot.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
   raw_parsr         <- read.table("eltr_part.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
   raw_consr         <- read.table("eltr_ctrl.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)

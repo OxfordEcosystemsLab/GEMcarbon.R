@@ -2,6 +2,7 @@
 # Based on a matlab code by Chris Doughty, 2013.
 # Translated to R by Sebastian Sippel, 2014.
 # Last modified: Cécile Girardin, August 2015.
+# First step: run the data from the EGM through this code: EGM_raw_to_flux_stem_2015 to get the "Rstem" data frame. Here, we use delta CO2 as "FluxsA" (not the flux). 
 
 # get data: census, census_smalltrees, and Rstem_co2slope (this is the output from EGM_raw_to_flux_stem_2015)
 setwd("/Users/cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/")
@@ -10,8 +11,6 @@ setwd("/Users/cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-
 largeTree_census <- read.table("census.csv", header=T, sep=";")
 setwd("/Users/cecile/Dropbox/Carbon_Use_Efficieny_R/Original-matlab-code/Ken_Iq-Tang/data/")
 Rstem <- read.table("Resstemall_db_2015.csv",  sep=",", header=T)
-
-
 
 # get allometric equations:
 setwd("/Users/cecile/GitHub/GEMcarbon.R") 
@@ -27,12 +26,6 @@ library(scales)
 library(zoo)
 require(ggplot2)
 
-#re-name columns
-largeTree_census$plot_code <- largeTree_census$plot#as.character("ACJ")
-smallTree_census$plot_code <- smallTree_census$plot#as.character("ACJ")
-Rstem$plot_code            <- Rstem$plot#as.character("ACJ")
-largeTree_census$DAP_cm_start <- largeTree_census$DAP_cm_start #(largeTree_census$D..2013.1)/10 # ATTENTION!!! we are only /10 here because the data was entered in mm, not cm for this plot.
-smallTree_census$DAP_cm <- smallTree_census$DAP_cm #(smallTree_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
 
 # large tree diameters and correction:
 diameterlA = largeTree_census$DAP_cm_start[which(largeTree_census$plot_code==plotname)]   # Diameter at breast height at first census!
@@ -70,16 +63,16 @@ tree_area_sumA = sum(SAIplA) + sum(SAIpsA)*25   # no scaling; factor 25 due to R
 # Depth (cm)	
 # DCO2
 
-plot_codes = Rstem$plot_code # A=1 B=2
+plot_codes = Rstem$plot_code 
 yearsA = Rstem$year[which(plot_codes==plotname)] 
 monthsA = Rstem$month[which(plot_codes==plotname)] 
 plotnumsA = Rstem$sub_plot[which(plot_codes==plotname)]  
 TnumsA = Rstem$tree_num[which(plot_codes==plotname)] 
 # consA = Rstem$co2[which(plot_codes==plotname)] 
-tempsA = Rstem$T_aire#Rstem$soil_temp_degC[which(plot_codes==plotname)] ########################## ATTENTION!!!! THIS SHOULD BE AIR TEMP ###################
+tempsA = Rstem$soil_temp_degC[which(plot_codes==plotname)] #Rstem$T_aire########################## ATTENTION!!!! THIS SHOULD BE AIR TEMP ###################
 # waters = Rstem$volumetric_water_content[which(plot_codes==plotname)]  
-chrA = Rstem$depth_co2#Rstem$collar_depth_cm[which(plot_codes==plotname)] # chamber height
-fluxsA = Rstem$dco2[which(plot_codes==plotname)] 
+chrA = Rstem$collar_depth_cm[which(plot_codes==plotname)] # OR Rstem$depth_co2# chamber height
+fluxsA = Rstem$dco2[which(plot_codes==plotname)]  # FluxsA is actually delta CO2 in this code. We get delta CO2 from EGM_raw_to_flux_stem_2015
 
 # remove outliers > 3*SD
 outliers = mean(fluxsA, na.rm=T)+3*sd(fluxsA, na.rm=T)
@@ -89,7 +82,7 @@ fluxsA[which(fluxsA > outliers)] <- NA
 
 Vd = 1171/1000000    # chamber volume m3
 A = 0.0078           # tube area m2
-xchr = 5             # better replace by xchr = mean(chrA, na.rm=T)
+xchr = 0             # better replace by xchr = mean(chrA, na.rm=T)
 xtemps = mean(tempsA, na.rm=T)
 
 # replace NA's with 'mean' values
@@ -102,7 +95,7 @@ Va = A*(chrA/100)  # additional volume m3
 RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*(44.01/22.41)*(Vd/A)/1000*3600
 # chamber volume correction
 RcsA  = (RucsA*A/Vd*(Va+Vd)/A)*6.312   # convert to umol m-2 s-1
-RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*((Vd+Va)/0.02241)*(1/A)
+RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*((Vd+Va)/0.02241)*(1/A) #############   CHECK WITH CHRIS: what does this do??? Can we delete?
 
 # remove outliers
 RcsA[which(RcsA>8)] <- NA

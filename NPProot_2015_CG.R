@@ -7,6 +7,8 @@
 ## option = 2: this means the time steps 5, 10, 15 minutes are chosen
 # ATTENTION!! Make sure that 1st timestep is always followed by timesteps 2,3,4 in that order.
 
+# STOCKS: delete stocks data, we are only dealing with NPP here.
+
 # colnames in database:
 # plot_code                  
 # year                        
@@ -46,15 +48,15 @@ fine_root_cor <- "Default"
 tubed = 0.07  ## diameter of tube
 
 ### adjust options, with time step option 2:
-plotname = "try Sam's plots"
-option = 2
+plotname = "ANK-01"
+option = 1
 logtransform = T
 fine_root_cor <- "Default"
 tubed = 0.07  ## diameter of tube
 
 
 # The function starts here.
-NPProot_ic <- function(data.ic, plotname, option = 1, logtransform=T, fine_root_cor="Default", tubed=0.07, ret="monthly.means.ts", plotit=F) {
+#NPProot_ic <- function(data.ic, plotname, option = 1, logtransform = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", plotit = F) {
   
 # load packages
 library(sqldf)
@@ -95,8 +97,6 @@ data$ml_above5[is.na(data$ml_above5)] <- 0
 data$this_core <- (paste(as.character(data$year),as.character(data$month),as.character(data$day),as.character(data$ingrowth_core_num), sep="-"))
 dim(data)
 
-# OR exclude missing values from the cum data?
-# data <- na.exclude(data)
 
 if (option == 1) {
   
@@ -122,7 +122,7 @@ if (option == 1) {
     cumdata      <- tail(sub$ol_under2, n=4) # cumulative values for that diameter class
     tx           <- c(10,20,30,40)           # cumulative time steps in minutes WE SHOULD USE data.ic$time_step_cum
     cum1         <- cumsum(cumdata)
-    if(logtransform==F){ 
+    if(logtransform==F){                     # This doesn't logtransform, we can change the name of this parameter to "logoption"?
       P            <- nls(cum1 ~ a * tx^b, start=list(a=1, b=1), control = nls.control(maxiter=1000, warnOnly=T))
       tot_olunder2 <- coef(P)[1] * (100)^(coef(P)[2])  # Chris used 100 mins and power law, but here we use 120 min (Khoon & Terhi).
     }else{
@@ -131,7 +131,6 @@ if (option == 1) {
     }
     } else {
     tot_olunder2 <- NA 
-      #cum1 <- NA
     }
     
     #ol_2to3
@@ -287,32 +286,27 @@ if (option == 1) {
       #cum9 <- NA
     }
    
-    xx       <- rbind(xx, id)
-    aa       <- rbind(aa, tot_olunder2)
+    xx       <- rbind(xx, id) # use this
+    aa       <- rbind(aa, tot_olunder2) # use this
     bb       <- rbind(bb, tot_ol_2to3)
     cc       <- rbind(cc, tot_ol_3to4)
     dd       <- rbind(dd, tot_ol_4to5)
     ee       <- rbind(ee, tot_ol_above5)
-    ff       <- rbind(ff, tot_ml_under2)
+    ff       <- rbind(ff, tot_ml_under2) # use this
     gg       <- rbind(gg, tot_ml_2to3)
     hh       <- rbind(hh, tot_ml_3to4)
     ii       <- rbind(ii, tot_ml_4to5)
     jj       <- rbind(jj, tot_ml_above5)
   }
   
-  ################## TEMPORARY FIX ###########################################
-  #data2a <-  data.frame(xx, as.numeric(as.character(aa)))
-  #colnames(data2a) <- c("this_core", "rootztot")
-  #############################################################################
-  
   data2a <- data.frame(cbind(xx, as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), as.numeric(as.character(jj))))
   colnames(data2a) <- c("this_core", "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5")
   
 } else if (option==2) {
-  # see NPProot_2015.R code for details
+  # see NPProot_2015.R code for details. Just in case someone has another timestep structure.
   }
   
-  data2 <- data.frame(cbind(xx, as.numeric(as.character(aa)))) #, bb, cc, dd, ee, ff, gg, hh, ii, jj))
+  data2 <- data.frame(cbind(xx, as.numeric(as.character(aa)))) 
   colnames(data2) <- c("this_core", "tot_olunder2", "", "")
   
 }
@@ -333,12 +327,13 @@ df <- data.frame(data2a$tot_olunder2, data2a$tot_ol2to3, data2a$tot_ol3to4, data
 zz <- rowSums(df, na.rm=T)
 data2a$rootztot <- zz
 
+# Create new dataframe with date & total root in g day-1
 data3 <- sqldf("SELECT data2a.this_core, AVG(data2a.rootztot), data.year, data.month, data.day FROM data2a JOIN data ON data2a.this_core = data.this_core GROUP BY data2a.this_core")
 colnames(data3) <- c("this_core","rootztot","year","month","day")
 
 # dzz is the correction for fine root productivity below 30cm. dzz can be specified in fine_root_cor.
 if (fine_root_cor=="Default") {
-   tubeh=0
+   tubeh = 0 # why is this 0? ask Chris.
 # depth profile of roots
    depic = (30-tubeh/10)/100
    dzz = 0.5*(exp(-7.344*depic)+exp(-1.303*depic)) 
@@ -358,7 +353,7 @@ data3$rootztot[is.na(data3$rootztot)] = 0
 data3$totaic = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
 data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
                                                                    
-# convert to MgC ha month #
+# convert to MgC ha month 
 # replace 0 by NA
 data3[data3 == 0] <- NA
 
@@ -369,13 +364,11 @@ data4$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/"))
 data4$date  <- as.Date(data4$d, "%m/%d/%Y")
 data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
 
+# 3 monthly data divided by collection interval. Get collection interval: 
 c_time <- as.POSIXlt(data4$date)
 c_time <- rev(c_time)
-tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)])
-data4$interval <- c(90, tt)
-  
-#xx <- as.numeric(difftime(data4$date[(2:n)], data4$date[1:(n-1)], units="days"))
-#data4$interval <- c(90, xx)
+tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
+data4$interval <- c(90, tt)  # I add 90 days as first collection interval. You can change this.
 
 data4$monthlyNPProot    <- (as.numeric(data4$threemonthlyNPProot)/data4$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
 data4$monthlyNPProot_se <- ((as.numeric(data4$threemonthlyNPProot_sd)/sqrt(16))/data4$interval) * 30 

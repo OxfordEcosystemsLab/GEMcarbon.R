@@ -11,7 +11,7 @@
 
 # to test this code, you can define the following parameters
 plotsize = 1  ### VARIABLE PLOTSIZE IS NOT YET INCLUDED: DISCUSS HOW TO INCLUDE IT.
-plotname = "ACJ"
+plotname = "PAN-02"
 str(data.flf)
 
 flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plotsize=1                                                                                     
@@ -84,8 +84,10 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
   # Convert to Mg: *1 g = 1.0 ?? 10-6 = 0.000001 Mg
   # Convert to C: *0.49
 
-  # multiply small plot by 400 = 10,000/25*(0.5*0.5)m2 = 1600
-  # convert to MgC ha month # multiply by 2 because collected twice a month (see comments below on how to change this to daily)
+  # multiply small plot by 400 = 10,000/25*(0.5*0.5)m2 = 1600 (what is this? Ask Chris)
+  
+  # convert to g ha-1 month-1 
+  # multiply by 2 because collected twice a month (see comments below on how to change this to daily).
   
   la = (10000/0.25)*2
     
@@ -95,9 +97,8 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
     for (i in fir_mon:12) {
       ind = which(monthfA==i & yearfA==j)
       
-      # multiply by 2 because collected twice a month
-      totflfAs[m,n] = mean(totalfA[ind],na.rm=T)*(la/(2.032*1000000)) # Mg/ha convert to carbon divide by 2
-      totflfAsstd[m,n] = (sd(totalfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)  # should be sqrt(length(totalfA))
+      totflfAs[m,n] = mean(totalfA[ind],na.rm=T)*(la/(2.032*1000000)) # g/ha/month convert to Mg C/ha/month multiply by 0.49 (=1/2.032)
+      totflfAsstd[m,n] = (sd(totalfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)  # should be sqrt(length(totalfA)). This assumes you have 25 litter traps.
       
       # Terhi suggests calculating per litter trap and getting SE per litter trap:
       # Calculate MgC/ trap/ collection interval
