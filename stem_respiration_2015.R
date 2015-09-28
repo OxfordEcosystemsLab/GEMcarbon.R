@@ -19,7 +19,7 @@ Sys.setlocale('LC_ALL','C')
 source("allometric_equations_2014.R")
 
 ## This is the function command. You can use the code as a function when you uncomment this line (and the final bracket at the end of this code), or just run everything inside the {}, step by step.
-#stem_respiration <- function(largeTree_census, smallTree_census, Rstem, ret="monthly.means.ts", plotname, plot_codeit=T) {
+#stem_respiration <- function(largeTree_census, smallTree_census, Rstem, ret="monthly.means.ts", plotname, avg_tree_height, plot_it=T) {
 
 # load libraries
 library(scales)
@@ -44,8 +44,7 @@ SAIpsA <- Chambers2004_surfaceArea(diameter=diametersA) # Astem is in m?
 SAIplA <- Chambers2004_surfaceArea(diameter=diameterlA) # Astem is in m?
 
 #sum the area of trees
-#latreesumA = (sum(SAIpA, na.rm=T)+sum(AstemsA, na.rm=T)*25)*(21.6/25) #;%scale by tall (>40cm tree height) vs 30m manaus
-tree_area_sumA = sum(SAIplA) + sum(SAIpsA)*25   # no scaling; factor 25 due to RAINFOR manual, p.53
+tree_area_sumA = (sum(SAIplA, na.rm=T)+sum(SAIpsA, na.rm=T))*(avg_tree_height/30) # Trees are an everage of 30m height in Manaus, where the Chambers equation was developed. So we need to correct for mean plot tree height here.
 
 # Stem respiration
 
@@ -95,7 +94,8 @@ Va = A*(chrA/100)  # additional volume m3
 RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*(44.01/22.41)*(Vd/A)/1000*3600
 # chamber volume correction
 RcsA  = (RucsA*A/Vd*(Va+Vd)/A)*6.312   # convert to umol m-2 s-1
-RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*((Vd+Va)/0.02241)*(1/A) #############   CHECK WITH CHRIS: what does this do??? Can we delete?
+
+#RucsA = (fluxsA)*(1000/1000)*(273/(tempsA+273))*((Vd+Va)/0.02241)*(1/A) #############   CHECK WITH CHRIS: what does this do??? Can we delete?
 
 # remove outliers
 RcsA[which(RcsA>8)] <- NA
@@ -179,19 +179,20 @@ if (plot_it==T) {
   top <- stem_res.data.monthly.ts$stem_res + stem_res.data.monthly.ts$stem_resstd
   plot2 <- ggplot(data=stem_res.data.monthly.ts, aes(x=yearmonth, y=stem_res, na.rm=T)) +
                   geom_point(colour='black', size=2) +
-                  geom_line(data=stem_res.data.monthly.ts, aes(x=yearmonth, y=stem_res, na.rm=T), linetype='solid', colour='black', size=1) +
-                  geom_ribbon(data=stem_res.data.monthly.ts, aes(ymin=stem_res-stem_resstd, ymax=stem_res+stem_resstd), alpha=0.2) +
                   scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +  
                   scale_colour_grey() + 
                   theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
                   ylim(0, max(top, na.rm=T)) +                          
-                  xlab("") + ylab(expression(paste("Stem respiration (MgC ", ha^-1, mo^-1, ")", sep=""))) +
+                  xlab("") + ylab(expression(paste("Rstem (MgC ", ha^-1, mo^-1, ")", sep=""))) +
                   theme_classic(base_size = 15, base_family = "") + 
                   theme(legend.position="left") +
                   theme(panel.border = element_rect(fill = NA, colour = "black", size = 1)) 
   plot2
 }
 
+# Annual Rstem
+Rstem_yr    <- (mean(stem_res.data.monthly.ts$stem_res, na.rm=T))*12
+Rstem_yr_sd <- (mean(stem_res.data.monthly.ts$stem_resstd, na.rm=T))*12
 
 # Return either monthly means (ret="monthly.means") or annual means (ret="annual.means")  
 switch(ret, monthly.means.matrix = {return(stem_res.data.monthly.matrix)}, monthly.means.ts = {return(stem_res.data.monthly.ts)})

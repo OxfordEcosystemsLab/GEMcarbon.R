@@ -81,7 +81,7 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   # missing height function
   
   h.est=function(dbh, h){
-    l      =lm(h~dbh)
+    l      = lm(h~dbh) # Nikos Fyllas has a function with dbh and wood density: H=2.643913*((1.0/WD)^-0.319592)*(dbh^0.534951)
     coeffs = coefficients(l)
     pred.h = coeffs[1] + coeffs[2]*dbh
   }

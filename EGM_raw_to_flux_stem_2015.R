@@ -1,6 +1,6 @@
 ## Code to go from EGM-4 raw data files to the csv files we need for the stem_respiration_2015.R code
 # Cecile Girardin August 2015
-# Last edited: Cecile Girardin August 2015
+# Last edited: Cecile Girardin September 2015
 
 # Notes:
 
@@ -35,9 +35,9 @@
 
 # read in data 
 #setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files")
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/")
-Rstem_flux <- read.table("Rstem_flux_PAN02_2013_2014.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
-Rstem_temp <- read.table("Rstem_temp_PAN02_2013_2014.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/")
+Rstem_flux <- read.table("Rstem_flux_PAN03_2013_2014.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
+Rstem_temp <- read.table("Rstem_temp_PAN03_2013_2014.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
 
 # load packages
   library(sqldf)
@@ -59,8 +59,8 @@ Rstem_temp <- read.table("Rstem_temp_PAN02_2013_2014.csv", header=TRUE, sep=",",
 
 ## Total soil respiration 
 # select a plot
-  raw <- subset(Rstem_flux, plot_code=="PAN02")
-  wea <- subset(data.frame(Rstem_temp), plot_code=="PAN02")
+  raw <- subset(Rstem_flux, plot_code=="PAN-03")
+  wea <- subset(data.frame(Rstem_temp), plot_code=="PAN-03")
   
 # Add missing columns
   wea$vwc <- NA
@@ -148,8 +148,8 @@ raw <- raw[!(is.na(raw$co2ref_ppm)),]
   colnames(Res) <- c("codew", "flux", "co2slope")
   
 # build the new data frame
-  Restot <- sqldf("SELECT Res.*, MAX(raw.plot_code), MAX(sub_plot), MAX(raw.measurement_code), MAX(raw.egm_measurement), MAX(raw.day), MAX(raw.month), MAX(raw.year), MAX(raw.hour), MAX(raw.soil_temp), MAX(raw.vwc), MAX(raw.collar_depth) FROM Res JOIN raw ON Res.codew = raw.codew GROUP BY Res.codew")
-  colnames(Restot)  <- c("code", "flux_umolco2_m2_s", "co2slope", "plot_code", "sub_plot","measurement_code", "egm_measurement", "day", "month", "year", "hour", "soil_temp_degC", "vwc_percent", "collar_depth_cm") 
+  Restot <- sqldf("SELECT Res.*, MAX(raw.plot_code), MAX(sub_plot), MAX(raw.egm_measurement), MAX(raw.day), MAX(raw.month), MAX(raw.year), MAX(raw.hour), MAX(raw.soil_temp), MAX(raw.vwc), MAX(raw.collar_depth) FROM Res JOIN raw ON Res.codew = raw.codew GROUP BY Res.codew")
+  colnames(Restot)  <- c("code", "flux_umolco2_m2_s", "co2slope", "plot_code", "sub_plot", "egm_measurement", "day", "month", "year", "hour", "soil_temp_degC", "vwc_percent", "collar_depth_cm") 
     
 # save to current directory  
-  write.csv(Restot, file="Rstem_PAN02_co2slope.csv")
+  write.csv(Restot, file="Rstem_PAN03_co2slope.csv")

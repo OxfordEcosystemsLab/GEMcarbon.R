@@ -10,9 +10,9 @@
 # "bromeliads_g_per_trap", "epiphytes_g_per_trap","other_g_per_trap", "palm_leaves_g", "palm_flower_g", "palm_fruit_g", "quality_code", "comments")
 
 # to test this code, you can define the following parameters
-plotsize = 1  ### VARIABLE PLOTSIZE IS NOT YET INCLUDED: DISCUSS HOW TO INCLUDE IT.
-plotname = "PAN-02"
-str(data.flf)
+#plotsize = 1  ### VARIABLE PLOTSIZE IS NOT YET INCLUDED: DISCUSS HOW TO INCLUDE IT.
+#plotname = "PAN-02"
+#str(data.flf)
 
 flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plotsize=1                                                                                     
   
@@ -126,16 +126,16 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
       # Add a column for reproductive material
       
       #pointfAa = pointfA[ind]      
-      m=m+1;
+      m=m+1
     }
-    n=n+1;
+    n=n+1
   }
     
   totflfAs[which(totflfAs==0)] <- NaN
   
   
   ## Build list with matrices that contain monthly values:
-{
+
   flf.data.monthly.matrix <- list(
     (totflfAs),(totflfAsstd),
     (seedsfAs),(seedsfAsstd),
@@ -150,9 +150,9 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
                                 "fruitflfAs","fruitflfAsstd",
                                 "flowerflfAs","flowerflfAsstd",
                                 "branchflfAs","branchflfAsstd")
-}
+
   ###  Build data frame with time series structure
-{
+
   ##Restructure the data (according to time series structure):
   Year <- NULL
   Month <- NULL
@@ -179,7 +179,7 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
             "fruitflfAs","fruitflfAsstd",
             "flowerflfAs","flowerflfAsstd",
             "branchflfAs","branchflfAsstd")
-}
+
 
 
   ## Plotroutine, triggered by argument 'plotit=T'

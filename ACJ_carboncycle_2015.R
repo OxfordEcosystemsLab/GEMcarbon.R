@@ -15,27 +15,29 @@ source("NPProot_2015_CG.R")
 #############################################################################################################################
 
 ## Read-in data:
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
-flf_ACJ <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_ACJ_2013_2014.csv", sep=",", header=T)
-flf_PAN02 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_PAN02_2013_2014.csv", sep=",", header=T)
-flf_PAN03 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_PAN03_2013_2014.csv", sep=",", header=T)
-flf_TRU04 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_TRU04_2013_2014.csv", sep=",", header=T)
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
+flf_ACJ <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_ACJ_2013_2014.csv", sep=",", header=T)
+flf_PAN02 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_PAN02_2013_2014.csv", sep=",", header=T)
+flf_PAN03 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_PAN03_2013_2014.csv", sep=",", header=T)
+flf_TRU04 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_TRU04_2013_2014.csv", sep=",", header=T)
 
 ## ACJ-01
 # define parameters
 plotsize = 1 
 plotname = "ACJ"
+data.flf <- flf_ACJ
 str(flf_ACJ)
 ACJ_NPPlitterfall <- flf(flf_ACJ, plotname, ret="monthly.means.ts", plotit=T) # TO DO: fix figure.
-write.csv(ACJ_NPPlitterfall, file="ACJ_NPPlitterfall.csv")
+write.csv(flf.data.monthly.ts, file="ACJ01_NPPlitterfall_Sept2015.csv")
 
 ## PAN-02
 # define parameters
 plotsize = 1 
 plotname = "PAN-02"
-str(flf_PAN02)
+data.flf <- flf_PAN02
+plotit=T
 PAN02_NPPlitterfall <- flf(flf_PAN02, plotname, ret="monthly.means.ts", plotit=T)
-write.csv(PAN02_NPPlitterfall, file="PAN02_NPPlitterfall.csv")
+write.csv(flf.data.monthly.ts, file="PAN02_NPPlitterfall_Sept2015.csv")
 
 ## PAN-03
 # define parameters
@@ -72,7 +74,7 @@ require(lubridate)
 
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
 census_TRU04A <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
 census_ACJ01 <- read.table("census_ACJ_01.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 census_PAN02 <- read.table("census_PAN_02.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 census_PAN03 <- read.table("census_PAN_03.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
@@ -80,7 +82,7 @@ wd_chave      <- read.table("wsg.txt", header=TRUE, sep=",", na.strings=c("NA", 
 wsg           <- census_TRU04A
 
 ####### Function wood density from Ken Feeley (2008) 
- 
+
 find.wsg=function(family, genus, species, wsg){
   capply = function(str, ff) {sapply(lapply(strsplit(str, NULL), ff), paste, collapse="") }
   cap = function(char) {if (any(ind <- letters==char)) LETTERS[ind]    else char}
@@ -753,6 +755,22 @@ tru_04B  <- NPPacw_census(census, plotname="TRU-04", allometric_option="Default"
 ### NPPacw small trees
 #############################################################################################################################
 
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/")
+
+# ACJ-01
+smallTree_census <- read.table("census_smalltrees_ACJ.csv",  sep=",", header=T)
+#re-name columns
+smallTree_census$plot_code <- as.character(smallTree_census$plot_code)
+smallTree_census$DAP_cm       <- (smallTree_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
+
+# TRU-04
+smallTree_census <- read.table(".csv",  sep=",", header=T) ##### GET THIS FROM WILLIAM - Darcy & Beisit are on the case.
+
+# PAN-02
+smallTree_census <- read.table("census_ smalltrees_PAN_02.csv",  sep=",", header=T)
+
+# PAN-03
+smallTree_census <- read.table("census_smalltrees_PAN_03.csv",  sep=",", header=T)
 
 
 
@@ -761,13 +779,15 @@ tru_04B  <- NPPacw_census(census, plotname="TRU-04", allometric_option="Default"
 ### NPPacw dendrometer bands
 #############################################################################################################################
 
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
 NPPdend_ACJ01 <- read.table("Dendrometer_ACJ_2013_2014.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPPdend_TRU04 <- read.table(".csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPPdend_PAN02 <- read.table("Dendrometer_PAN_02_2013_2014.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPPdend_PAN03 <- read.table("Dendrometer_PAN_03_2013_2014.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
-# for all plots: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
+# STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
+# STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
+# STEP 3. at the end of "NPPacw_dendro_function_2014.R", you use the function "NPPacw_census" to get an annual value of NPPACW from census data. L 198. Make sure you have the correct parameters in that function (plot name & census years)
 
 #ACJ-01
 
@@ -776,6 +796,7 @@ plotname = "ACJ-01"     # TO DO: "ACJ" should be replaced by "ACJ-01" everywhere
 allometric_option = "Default"
 height_correction_option = "Default"
 census_year = 2013
+plotit=T
 
 # PAN-02
 dendrometer <- NPPdend_PAN02
@@ -783,6 +804,7 @@ plotname = "PAN-02"
 allometric_option = "Default"
 height_correction_option = "Default"
 census_year = 2013
+plotit=T
 
 # PAN-03
 dendrometer <- NPPdend_PAN03
@@ -790,6 +812,7 @@ plotname = "PAN-03"
 allometric_option = "Default"
 height_correction_option = "Default"
 census_year = 2013
+plotit=T
 
 # TRU-04
 
@@ -798,7 +821,7 @@ plotname = "TRU-04"
 allometric_option = "Default"
 height_correction_option = "Default"
 census_year = XxXXXXXXX
-
+plotit=T
 
 
 #############################################################################################################################
@@ -809,7 +832,7 @@ census_year = XxXXXXXXX
 ### NPProots_IC(NPProot_2015_CG) : 
 #############################################################################################################################
 
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
 NPProot_ACJ01A <- read.table("ingrowth_core_ACJ-01_2013_2104_nostock.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPProot_TRU04A <- read.table("ingrowth_core_TRU-04_2013-2014_nostock.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPProot_PAN02A <- read.table("ingrowth_core_PAN-02_2013-2104_nostock.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
@@ -833,7 +856,7 @@ data.ic$ol_4to5_mm_g   <- as.numeric(data.ic$ol_4to5_mm_g)
 data.ic$ml_4to5_mm_g   <- as.numeric(data.ic$ml_4to5_mm_g)
 data.ic$ol_above_5mm_g <- as.numeric(data.ic$ol_above_5mm_g) 
 data.ic$ml_above_5mm_g <- as.numeric(data.ic$ml_above_5mm_g) 
-              
+
 #NPProot_ACJ01 <- NPProot_ic(data.ic, plotname, option = 1, logtransform=T, fine_root_cor="Default", tubed=0.07, ret="monthly.means.ts", plotit=F)
 #NPProot_TRU04 <- NPProot_ic(data.ic, plotname, option = 1, logtransform=T, fine_root_cor="Default", tubed=0.07, ret="monthly.means.ts", plotit=F)
 #NPProot_PAN02 <- NPProot_ic(data.ic, plotname, option = 1, logtransform=T, fine_root_cor="Default", tubed=0.07, ret="monthly.means.ts", plotit=F)
@@ -843,12 +866,28 @@ data.ic$ml_above_5mm_g <- as.numeric(data.ic$ml_above_5mm_g)
 ### soilrespiration() : a function to calculate soil respiration partitionning
 #############################################################################################################################
 
+setwd("/Users/cecile/Dropbox/Dan_soil_resp_paper/Rs_flux")
+
+data.resc1 <- read.table("Rs_control_Mar2015.csv", sep=",", header=T)
+data.resp1 <- read.table("Rs_partitioning_Mar2015.csv", sep=",", header=T)
+data.rest1 <- read.table("Rs_total_Mar2015.csv", sep=",", header=T)
+
+# data.resp$collar_depth_cm has a lot of NAs, I am replacing NAs by mean(data.resp$collar_depth_cm, na.rm=T)
+data.resp$collar_depth_cm[is.na(data.resp$collar_depth_cm)] <- mean(data.resp$collar_depth_cm, na.rm=T)
+
+pressure = 1013.25
+plotname = "ACJ"
+partitioningoption = 1
+elevation = "default"
+T_ambient="Default"
+plotit=T
+
 #############################################################################################################################
 ### stemrespiration
 #############################################################################################################################
 
 ## EGM_raw_to_flux_stem_2015
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/")
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/")
 
 # ACJ-01
 Rstem_flux <- read.table("Rstem_flux_ACJ_2013_2014.csv", header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE)
@@ -869,14 +908,16 @@ Rstem_temp <- read.table("Rstem_temp_PAN03_2013.csv", header=TRUE, sep=",", na.s
 ## stem_respiration_2015
 
 
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/")
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/")
 
 # ACJ-01
 smallTree_census <- read.table("census_smalltrees_ACJ.csv",  sep=",", header=T)
 largeTree_census <- read.table("census_ACJ_01.csv", header=T, sep=",")
 Rstem            <- read.table("Rstem_ACJ_co2slope_wttreenum.csv",  sep=",", header=T)
 Rstem$dco2       <- Rstem$co2slope
-plotname <- "ACJ"
+plotname         <- "ACJ"
+avg_tree_height  <- mean((largeTree_census$Height..2013.1+(largeTree_census$Height..2015.1/1000)), na.rm=T) 
+plot_it=T
 
 #re-name columns
 largeTree_census$plot_code <- as.character("ACJ") #as.character(largeTree_census$plot_code)
@@ -887,7 +928,7 @@ smallTree_census$DAP_cm       <- (smallTree_census$dbh_northsouth_cm + smallTree
 
 
 # TRU-04
-smallTree_census <- read.table(".csv",  sep=",", header=T) ##### GET THIS FROM DARCY & BEISIT!!!
+smallTree_census <- read.table(".csv",  sep=",", header=T) ##### GET THIS FROM WILLIAM - Darcy & Beisit are on the case.
 
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
 largeTree_census <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
@@ -895,6 +936,9 @@ largeTree_census <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/")
 Rstem            <- read.table("Rstem_TU4_co2slope_wttreenum.csv",  sep=",", header=T)
 Rstem$dco2       <- Rstem$co2slope
+plotname         <- "TRU-04"
+avg_tree_height  <- mean((largeTree_census$Height..2013.1+(largeTree_census$Height..2015.1/1000)), na.rm=T)
+plot_it=T
 
 #re-name columns
 largeTree_census$plot_code <- as.character("TRU-04") 
@@ -908,19 +952,37 @@ smallTree_census <- read.table("census_ smalltrees_PAN_02.csv",  sep=",", header
 largeTree_census <- read.table("census_PAN_02.csv", header=T, sep=",")
 Rstem            <- read.table("Rstem_PAN02_co2slope_wttreenum.csv",  sep=",", header=T)
 Rstem$dco2       <- Rstem$co2slope
+plotname         <- "PAN-02"
+avg_tree_height  <- mean((largeTree_census$Height..2013.2+(largeTree_census$Height..2015.1/1000)), na.rm=T) 
+plot_it=T
+
+#re-name columns
+largeTree_census$plot_code    <- as.character("PAN-02") 
+smallTree_census$plot_code    <- as.character(smallTree_census$plot_code)
+Rstem$plot_code               <- as.character("PAN-02")
+largeTree_census$DAP_cm_start <- (largeTree_census$D..2013.2)/10 # ATTENTION!!! check data was entered in cm, not mm.
+smallTree_census$DAP_cm       <- (smallTree_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
 
 # PAN-03
-smallTree_census <- read.table("census_ smalltrees_PAN_03.csv",  sep=",", header=T)
+smallTree_census <- read.table("census_smalltrees_PAN_03.csv",  sep=",", header=T)
 largeTree_census <- read.table("census_PAN_03.csv", header=T, sep=",")
-Rstem            <- read.table(".csv",  sep=",", header=T) # NEED TREE NUMBERS FROM BEISIT & DARCY!!!
+Rstem            <- read.table("Rstem_PAN03_co2slope_wttreenum.csv",  sep=",", header=T) # NEED TREE NUMBERS FROM BEISIT & DARCY!!!
 Rstem$dco2       <- Rstem$co2slope
+plotname         <- "PAN-03"
+avg_tree_height  <- mean((largeTree_census$Height..2013.2+(largeTree_census$Height..2015.2/1000)), na.rm=T)
+plot_it=T
+
+#re-name columns
+largeTree_census$plot_code    <- as.character("PAN-03") 
+smallTree_census$plot_code    <- as.character("PAN-03") 
+Rstem$plot_code               <- as.character("PAN-03")
+largeTree_census$DAP_cm_start <- (largeTree_census$D..2013.2)/10 # ATTENTION!!! check data was entered in cm, not mm.
+smallTree_census$DAP_cm       <- (smallTree_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
+
+
 
 #############################################################################################################################
 ### leafrespiration
 #############################################################################################################################
 
-
-#############################################################################################################################
-############################################## TABLE: CARBON CYCLE ##########################################################
-#############################################################################################################################
 
