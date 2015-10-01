@@ -111,7 +111,7 @@ find.wsg=function(family, genus, species, wsg){
   genus2=capitalize(as.character(wsg$genus))
   #species2=capitalize(as.character(wsg$specie))  TO DO: what is wrong with this? Doesn't work. is it the () and numbers in the data?
   
-  fam.wsg=tapply(wsg$WD.14, family2, mean,na.rm=T)
+  fam.wsg=tapply(wsg$WD.14, family2, mean, na.rm=T)
   gen.wsg=tapply(wsg$WD.14, genus2, mean, na.rm=T)
   
   family2=names(fam.wsg)
@@ -758,10 +758,18 @@ tru_04B  <- NPPacw_census(census, plotname="TRU-04", allometric_option="Default"
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/")
 
 # ACJ-01
-smallTree_census <- read.table("census_smalltrees_ACJ.csv",  sep=",", header=T)
-#re-name columns
-smallTree_census$plot_code <- as.character(smallTree_census$plot_code)
-smallTree_census$DAP_cm       <- (smallTree_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
+
+small_census <- read.table("census_smalltrees_ACJ.csv",  sep=",", header=T)
+plotname = "ACJ"
+allometric_option = "Default"
+small_census$DAP_cm       <- (small_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
+small_census$wood_density_g_cm3 = 0.578 # This is a rough hack!! This is the average wood density in ACJ-01, but there seems to be a problem with wood density data in census of ACJ-01. CHECK!!!!
+
+
+# Add wood density to these datasets
+# Run "find.wsg" function . You can find it above, line approx. 86
+# TO DO - it would be better to get wood density from William Farfan's census data 2015.
+wsg <- read.table("wsg.txt", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
 # TRU-04
 smallTree_census <- read.table(".csv",  sep=",", header=T) ##### GET THIS FROM WILLIAM - Darcy & Beisit are on the case.

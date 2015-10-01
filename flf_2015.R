@@ -9,10 +9,10 @@
 # names(data.flf) <- c("plot_code", "year","month", "day","litterfall_trap_num", "litterfall_trap_size_m2","leaves_g_per_trap","twigs_g_per_trap","flowers_g_per_trap","fruits_g_per_trap",
 # "bromeliads_g_per_trap", "epiphytes_g_per_trap","other_g_per_trap", "palm_leaves_g", "palm_flower_g", "palm_fruit_g", "quality_code", "comments")
 
-# to test this code, you can define the following parameters
-#plotsize = 1  ### VARIABLE PLOTSIZE IS NOT YET INCLUDED: DISCUSS HOW TO INCLUDE IT.
-#plotname = "PAN-02"
-#str(data.flf)
+# plotsize = 1 ha  ### TO DO: Different plot size is not an option yet. 
+
+# Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
+# TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
 flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plotsize=1                                                                                     
   
