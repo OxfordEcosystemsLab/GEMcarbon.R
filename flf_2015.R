@@ -119,7 +119,7 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
       fruitflfAsstd[m,n] = (sd(fruitfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
 
       flowerflfAs[m,n] = mean(flowerfA[ind],na.rm=T)*(la/(2.032*1000000))
-      flowerflfAsstd[m,n] = (sd(flowerfA[ind])*(la/(2.032*1000000)))/sqrt(25)
+      flowerflfAsstd[m,n] = (sd(flowerfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
       
       branchflfAs[m,n] = mean(branchfA[ind],na.rm=T)*(la/(2.032*1000000))
       branchflfAsstd[m,n] = (sd(branchfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
