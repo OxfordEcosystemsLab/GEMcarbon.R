@@ -28,7 +28,7 @@ plotname = "ACJ"
 data.flf <- flf_ACJ
 str(flf_ACJ)
 ACJ_NPPlitterfall <- flf(flf_ACJ, plotname, ret="monthly.means.ts", plotit=T) # TO DO: fix figure.
-write.csv(flf.data.monthly.ts, file="ACJ01_NPPlitterfall_Sept2015.csv")
+write.csv(flf.data.monthly.ts, file="ACJ01_NPPlitterfall_Oct2015.csv")
 
 ## PAN-02
 # define parameters
@@ -37,15 +37,16 @@ plotname = "PAN-02"
 data.flf <- flf_PAN02
 plotit=T
 PAN02_NPPlitterfall <- flf(flf_PAN02, plotname, ret="monthly.means.ts", plotit=T)
-write.csv(flf.data.monthly.ts, file="PAN02_NPPlitterfall_Sept2015.csv")
+write.csv(flf.data.monthly.ts, file="PAN02_NPPlitterfall_Oct2015.csv")
 
 ## PAN-03
 # define parameters
 plotsize = 1 
 plotname = "PAN-03"
+data.flf <- flf_PAN03
 str(flf_PAN03)
 PAN03_NPPlitterfall <- flf(flf_PAN03, plotname, ret="monthly.means.ts", plotit=T)
-write.csv(PAN03_NPPlitterfall, file="PAN03_NPPlitterfall.csv")
+write.csv(flf.data.monthly.ts, file="PAN03_NPPlitterfall_Oct2015.csv")
 
 NPPlitterfall <- (mean(flf.data.monthly.ts$totflfAs, na.rm=T))*12
 NPPleaf
@@ -762,14 +763,44 @@ setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/ac
 small_census <- read.table("census_smalltrees_ACJ.csv",  sep=",", header=T)
 plotname = "ACJ"
 allometric_option = "Default"
-small_census$DAP_cm       <- (small_census$dbh_northsouth_cm + smallTree_census$dbh_westeast_cm)/2
+small_census$DAP_cm       <- (small_census$dbh_northsouth_cm + small_census$dbh_westeast_cm)/2
 small_census$wood_density_g_cm3 = 0.578 # This is a rough hack!! This is the average wood density in ACJ-01, but there seems to be a problem with wood density data in census of ACJ-01. CHECK!!!!
-
 
 # Add wood density to these datasets
 # Run "find.wsg" function . You can find it above, line approx. 86
 # TO DO - it would be better to get wood density from William Farfan's census data 2015.
 wsg <- read.table("wsg.txt", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+
+# Use the data cleaning code datacleaning_census_2014
+data <- subset(small_census, plot_code=="ACJ")
+data$dates <- strptime(paste(data$year, data$month, data$day, sep="-"), format="%Y-%m-%d")
+
+
+for (ii in 1:(length(data$plot_code))) {  # length(eltrcensus$plot) is equivalent to nrow(eltrcensus)
+  DBH.1tmp <- NA 
+  DBH.2tmp <- NA
+  DBH.3tmp <- NA
+  
+  if (data$month[ii] == 2) {
+    DBH.1tmp = data$DAP_cm[ii]   
+  }
+  if (data$month[ii] == 9) {
+    DBH.2tmp = data$DAP_cm[ii]   
+  }
+  if (data$month[ii] == 3) {
+    DBH.3tmp = data$DAP_cm[ii]   
+  }
+  else {
+    DBH.1tmp = NA 
+    DBH.2tmp = NA
+    DBH.3tmp = NA
+  }
+  data$DBH.1[ii] <- DBH.1tmp
+  data$DBH.2[ii] <- DBH.2tmp
+  data$DBH.3[ii] <- DBH.3tmp
+}
+
+
 
 # TRU-04
 smallTree_census <- read.table(".csv",  sep=",", header=T) ##### GET THIS FROM WILLIAM - Darcy & Beisit are on the case.

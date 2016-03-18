@@ -140,9 +140,6 @@ smallTreeNPP <- function(small_census, plotname, census1_year="Default", census2
     cen$NPPbio[ii]    <- (nor)*(1/(2.1097*1000))    # convert kgto Mg=1/1000=10 and convert to carbon = 50%
     cen$NPPbio_er[ii] <- (norer*(1/(2.1097*1000)))  # convert kgto Mg=1/1000=10 and convert to carbon = 50%                       
   }
-####################################################################################  
-############################ NEW CODE ##############################################
-####################################################################################
 
 ## find global start and end date:
 cen$min_date <- NULL
