@@ -87,9 +87,10 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
   # multiply small plot by 400 = 10,000/25*(0.5*0.5)m2 = 1600 (what is this? Ask Chris)
   
   # convert to g ha-1 month-1 
-  # multiply by 2 because collected twice a month (see comments below on how to change this to daily).
+  # ATTENTION!! CHANGE THIS if data are collected once a month.
+  # multiply by 2 if collected twice a month (see comments below on how to change this to daily).
   
-  la = (10000/0.25)*2
+  la = (10000/0.25) #*2
     
   ## calculate monthly means in each year:
   for (j in fir_year:fir_yeare) {
@@ -118,7 +119,7 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
       fruitflfAsstd[m,n] = (sd(fruitfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
 
       flowerflfAs[m,n] = mean(flowerfA[ind],na.rm=T)*(la/(2.032*1000000))
-      flowerflfAsstd[m,n] = (sd(flowerfA[ind])*(la/(2.032*1000000)))/sqrt(25)
+      flowerflfAsstd[m,n] = (sd(flowerfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
       
       branchflfAs[m,n] = mean(branchfA[ind],na.rm=T)*(la/(2.032*1000000))
       branchflfAsstd[m,n] = (sd(branchfA[ind],na.rm=T)*(la/(2.032*1000000)))/sqrt(25)
