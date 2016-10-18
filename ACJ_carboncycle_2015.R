@@ -174,6 +174,9 @@ sqldf("select count(1) from census_ACJ01")
 #******************* Clean census data *********************
 #***********************************************************
 
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
+census_ACJ01 <- read.table("ACJcensus_clean_date.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+
 # choose a plot
 data <- subset(census_ACJ01, plot=="ACJ-01") 
 
@@ -723,7 +726,7 @@ for (ii in 1:(length(eltrcensus$plot))) {  #length(eltrcensus$plot) is equivalen
 
 eltrcen1 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.1, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP1)
 eltrcen2 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.2, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP2)
-#eltrcen3 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.3, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP3) 
+eltrcen3 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.3, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP3) 
 
 census <- rbind(eltrcen1, eltrcen2)#, eltrcen3)
 census$height_m <- as.numeric(census$height_m)
@@ -733,7 +736,7 @@ sapply(census, class)
 setwd("/Users/cecile/GitHub/GEMcarbon.R") 
 dir()
 Sys.setlocale('LC_ALL','C') 
-source("NPPacw_census_function_2014.R")
+source("NPPacw_census_function_2015.R")
 source("allometric_equations_2014.R")
 
 # Chave et al. 2005 
