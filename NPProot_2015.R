@@ -6,6 +6,7 @@
 ## option = 1: this means the time steps 10,20,30,40 minutes are chosen
 ## option = 2: this means the time steps 5, 10, 15 minutes are chosen
 # ATTENTION!! Make sure that 1st timestep is always followed by timesteps 2,3,4 in that order.
+# Note: options have been obviated in leiu of pasing in timesteps
 
 # STOCKS: delete stocks data, we are only dealing with NPP here.
 
@@ -83,12 +84,15 @@ calc_roots <- function(core_data, root_type, plotname, tx = c(10,20,30,40), mins
   return(tot_roots)
 }
 
-NPProot_ic <- function(datafile, plotname, option = 1, logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts") {
+NPProot_ic <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts") {
+  
+  # TODO: don't subset by plot - just rip the data across plots and data as it's passed in
   
   library(sqldf)
   require(ggplot2)
   library(scales)
   library(nlme)
+  library(dplyr)
     
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
@@ -124,76 +128,66 @@ NPProot_ic <- function(datafile, plotname, option = 1, logmodel = T, fine_root_c
   data$ml_above5[is.na(data$ml_above5)] <- 0
   
   data$this_core <- (paste(as.character(data$year),as.character(data$month),as.character(data$day),as.character(data$ingrowth_core_num), sep="-"))
-  #dim(data)
+    
+  data = transform(data, persist_id = paste(plotname, ingrowth_core_num, sep="_"))
   
-  if (option == 1) {
+  uid <- unique(data$this_core)
+  xx <- c()
+  aa <- c()
+  bb <- c() 
+  cc <- c() 
+  dd <- c()
+  ee <- c()
+  ff <- c()
+  gg <- c()
+  hh <- c()
+  ii <- c()
+  jj <- c()
+  
+  for (i in 1:length(uid)) {
+    sub          <- subset(data, subset=(data$this_core == uid[i]))
+    id           <- tail(sub$this_core, n=1) 
     
-    uid <- unique(data$this_core)
-    xx <- c()
-    aa <- c()
-    bb <- c() 
-    cc <- c() 
-    dd <- c()
-    ee <- c()
-    ff <- c()
-    gg <- c()
-    hh <- c()
-    ii <- c()
-    jj <- c()
-    
-    # TODO: Test for initial 0's and for exponent (b or coef) > 1.  If either of these happen, then fit the curve through the final
-    #   point (x,y = tx, cum) with a site-mean exponent (b, perhaps per size-class), solving for linear slope (a).  
-    #   For example, cum1 ~ a * tx^b.  Thus, a = cum1/tx^b.  Then extrapolate to 100 minutes.
-    
-    for (i in 1:length(uid)) {
-      sub          <- subset(data, subset=(data$this_core == uid[i]))
-      id           <- tail(sub$this_core, n=1) 
-      
-      #ol_under2
-      tot_olunder2 = calc_roots(sub, "ol_under2", plotname)
-      #ol_2to3
-      tot_ol2to3 = calc_roots(sub, "ol_2to3", plotname)
-      #ol_3to4
-      tot_ol3to4 = calc_roots(sub, "ol_3to4", plotname)
-      #ol_4to5
-      tot_ol4to5 = calc_roots(sub, "ol_4to5", plotname)
-      #ol_above5
-      tot_olabove5 = calc_roots(sub, "ol_above5", plotname)
-      #ml_under2 
-      tot_mlunder2 = calc_roots(sub, "ml_under2", plotname)
-      #ml_2to3
-      tot_ml2to3 = calc_roots(sub, "ml_2to3", plotname)
-      #ml_3to4
-      tot_ml3to4 = calc_roots(sub, "ml_3to4", plotname)
-      #ml_4to5
-      tot_ml4to5 = calc_roots(sub, "ml_4to5", plotname)
-      #ml_above5
-      tot_mlabove5 = calc_roots(sub, "ml_above5", plotname)
-     
-      xx       <- rbind(xx, id) # use this
-      aa       <- rbind(aa, tot_olunder2) # use this
-      bb       <- rbind(bb, tot_ol2to3)
-      cc       <- rbind(cc, tot_ol3to4)
-      dd       <- rbind(dd, tot_ol4to5)
-      ee       <- rbind(ee, tot_olabove5)
-      ff       <- rbind(ff, tot_mlunder2) # use this
-      gg       <- rbind(gg, tot_ml2to3)
-      hh       <- rbind(hh, tot_ml3to4)
-      ii       <- rbind(ii, tot_ml4to5)
-      jj       <- rbind(jj, tot_mlabove5)
-    }
-    
-    data2a <- data.frame(cbind(xx, as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), as.numeric(as.character(jj))))
-    colnames(data2a) <- c("this_core", "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5")
-    
-  } else if (option==2) {
-    # see NPProot_2015.R code for details. Just in case someone has another timestep structure.
+    #ol_under2
+    tot_olunder2 = calc_roots(sub, "ol_under2", plotname)
+    #ol_2to3
+    tot_ol2to3 = calc_roots(sub, "ol_2to3", plotname)
+    #ol_3to4
+    tot_ol3to4 = calc_roots(sub, "ol_3to4", plotname)
+    #ol_4to5
+    tot_ol4to5 = calc_roots(sub, "ol_4to5", plotname)
+    #ol_above5
+    tot_olabove5 = calc_roots(sub, "ol_above5", plotname)
+    #ml_under2 
+    tot_mlunder2 = calc_roots(sub, "ml_under2", plotname)
+    #ml_2to3
+    tot_ml2to3 = calc_roots(sub, "ml_2to3", plotname)
+    #ml_3to4
+    tot_ml3to4 = calc_roots(sub, "ml_3to4", plotname)
+    #ml_4to5
+    tot_ml4to5 = calc_roots(sub, "ml_4to5", plotname)
+    #ml_above5
+    tot_mlabove5 = calc_roots(sub, "ml_above5", plotname)
+   
+    xx       <- rbind(xx, id) # use this
+    # yy       <- rbind(yy, persist_id) # use this
+    aa       <- rbind(aa, tot_olunder2) # use this
+    bb       <- rbind(bb, tot_ol2to3)
+    cc       <- rbind(cc, tot_ol3to4)
+    dd       <- rbind(dd, tot_ol4to5)
+    ee       <- rbind(ee, tot_olabove5)
+    ff       <- rbind(ff, tot_mlunder2) # use this
+    gg       <- rbind(gg, tot_ml2to3)
+    hh       <- rbind(hh, tot_ml3to4)
+    ii       <- rbind(ii, tot_ml4to5)
+    jj       <- rbind(jj, tot_mlabove5)
   }
+  
+  data2a <- data.frame(cbind(xx, as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), as.numeric(as.character(jj))))
+  colnames(data2a) <- c("this_core", "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5")
     
   # data2 <- data.frame(cbind(xx, as.numeric(as.character(aa)))) 
   # colnames(data2) <- c("this_core", "tot_olunder2", "", "")
-    
-  #}  # function end
   
   ## rootztot is the sum of roots in the soil layers.
   data2a$tot_olunder2 <- as.numeric(as.character(data2a$tot_olunder2))
@@ -212,8 +206,8 @@ NPProot_ic <- function(datafile, plotname, option = 1, logmodel = T, fine_root_c
   data2a$rootztot <- zz
   
   # Create new dataframe with date & total root in g day-1
-  data3 <- sqldf("SELECT data2a.this_core, AVG(data2a.rootztot), data.year, data.month, data.day FROM data2a JOIN data ON data2a.this_core = data.this_core GROUP BY data2a.this_core")
-  colnames(data3) <- c("this_core","rootztot","year","month","day")
+  data3 <- sqldf("SELECT data2a.this_core, data.persist_id, AVG(data2a.rootztot), data.year, data.month, data.day FROM data2a JOIN data ON data2a.this_core = data.this_core GROUP BY data2a.this_core")
+  colnames(data3) <- c("this_core","persist_id", "rootztot","year","month","day")
   
   # dzz is the correction for fine root productivity below 30cm. dzz can be specified in fine_root_cor.
   if (fine_root_cor=="Default") {
@@ -225,32 +219,31 @@ NPProot_ic <- function(datafile, plotname, option = 1, logmodel = T, fine_root_c
      dzz <- fine_root_cor 
   }
   
-  # In David's study, 37% of the fine roots (<2mm) were below 30cm, this is close to 39% found by this equation.
-  # Please note: there is a discrepancy between here and the RAINFOR manual (2.3, pp. 47), because the assumption there is 45% in the top 30 cm of the soil.
-  
-  #sum total carbon from roots (diameter ~ 14cm, depth ~ 30cm)
-  data3$ciric = (3.14*tubed^2) # surface area m2
-  data3$volic = data3$ciric*depic
-  data3$rootztot[is.na(data3$rootztot)] = 0 
-  data3$totaic = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
-  data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
+  # Add root estimates below 30cm
+    # In David's study, 37% of the fine roots (<2mm) were below 30cm, this is close to 39% found by this equation.
+    # Please note: there is a discrepancy between here and the RAINFOR manual (2.3, pp. 47), because the assumption there is 45% in the top 30 cm of the soil.
+    
+    # sum total carbon from roots (diameter ~ 14cm, depth ~ 30cm)
+      data3$ciric = (3.14*tubed^2) # surface area m2
+      data3$volic = data3$ciric*depic
+      data3$rootztot[is.na(data3$rootztot)] = 0 
+      data3$totaic = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
+      data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
                                                                      
-  # convert to MgC ha month 
-  # replace 0 by NA
-  data3[data3 == 0] <- NA
-  
-  data4 <- sqldf("SELECT data3.year, data3.month, data3.day, AVG(data3.ic_MgCha), STDEV(data3.ic_MgCha) FROM data3 GROUP BY data3.month")
-  colnames(data4) <- c("year", "month", "day", "threemonthlyNPProot", "threemonthlyNPProot_sd")
-  data4$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
-  data4$date  <- as.Date(data4$d, "%m/%d/%Y")
-  data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
+  # convert to MgC ha / month 
+    data3[data3 == 0] <- NA
+    data4 <- sqldf("SELECT data3.year, data3.month, data3.day, AVG(data3.ic_MgCha), STDEV(data3.ic_MgCha) FROM data3 GROUP BY data3.month")
+    colnames(data4) <- c("year", "month", "day", "threemonthlyNPProot", "threemonthlyNPProot_sd")
+    data4$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
+    data4$date  <- as.Date(data4$d, "%m/%d/%Y")
+    data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
   
   # split out into per-tube summaries here ####
-  data4_pertube <- sqldf("SELECT data3.this_core, data3.year, data3.month, data3.day, AVG(data3.ic_MgCha) FROM data3 GROUP BY data3.month, data3.this_core")
-  colnames(data4_pertube) <- c("this_core", "year", "month", "day", "threemonthlyNPProot")
-  data4_pertube$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
-  data4_pertube$date  <- as.Date(data4$d, "%m/%d/%Y")
-  data4_pertube <- sqldf("SELECT data4_pertube.* FROM data4_pertube ORDER BY data4_pertube.year, data4_pertube.month, data4_pertube.day ASC")
+    data4_pertube <- sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, AVG(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
+    colnames(data4_pertube) <- c("persist_id", "year", "month", "day", "threemonthlyNPProot")
+    data4_pertube$d     <- as.character(paste(data4_pertube$month, data4_pertube$day, data4_pertube$year, sep="/")) 
+    data4_pertube$date  <- as.Date(data4_pertube$d, "%m/%d/%Y")
+    data4_pertube <- sqldf("SELECT data4_pertube.* FROM data4_pertube ORDER BY data4_pertube.persist_id, data4_pertube.year, data4_pertube.month, data4_pertube.day ASC")
   
   # 3 monthly data divided by collection interval. Get collection interval: 
     c_time <- as.POSIXlt(data4$date)
@@ -263,14 +256,12 @@ NPProot_ic <- function(datafile, plotname, option = 1, logmodel = T, fine_root_c
     # (mean(data4$monthlyNPProot_se, na.rm=T))*12
 
   # 3 monthly data divided by collection interval per tube
-    c_time <- as.POSIXlt(data4_pertube$date)
-    c_time <- rev(c_time)
-    tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
-    data4_pertube$interval <- c(90, tt)  # I add 90 days as first collection interval. You can change this.
-    data4_pertube$monthlyNPProot    <- (as.numeric(data4_pertube$threemonthlyNPProot)/data4_pertube$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
-    # (mean(data4_pertube$monthlyNPProot, na.rm=T))*12
+    data4_pertube = 
+      data4_pertube %>% group_by(persist_id) %>% arrange(persist_id, date) %>% 
+      mutate(interval = ifelse(is.na(lag(date)), 90, as.numeric(difftime(date, lag(date)))),  # I add 90 days as first collection interval. You can change this.
+             monthlyNPProot = threemonthlyNPProot/interval * 30) # TODO: change to reflect days per month
 
-    return(list(data4, data4_pertube))
+    return(list("three_monthly" = data4, "three_monthly_pertube" = data4_pertube, "all_times_and_tubes" = data3))
 }
 
 ## Plotroutine, triggered by argument 'plotit=T'
