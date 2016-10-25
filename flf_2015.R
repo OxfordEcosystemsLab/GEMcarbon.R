@@ -14,13 +14,16 @@
 # Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
 # TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
-flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plotsize=1                                                                                     
-  
-  # load libraries
+flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plotsize=1                                                                                     
+
   library(scales)
   library(zoo)
   require(ggplot2)
-  
+
+  if (class(data.flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+    data.flf <- read.csv(data.flf)
+  }
+    
   # define each parameter
   plotfA = data.flf$plot_code  
   yearfA = data.flf$year[which(plotname==plotfA)]
@@ -91,11 +94,12 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
   # multiply by 2 if collected twice a month (see comments below on how to change this to daily).
   
   la = (10000/0.25) #*2
-    
+  
   ## calculate monthly means in each year:
   for (j in fir_year:fir_yeare) {
     m=1
     for (i in fir_mon:12) {
+      
       ind = which(monthfA==i & yearfA==j)
       
       totflfAs[m,n] = mean(totalfA[ind],na.rm=T)*(la/(2.032*1000000)) # g/ha/month convert to Mg C/ha/month multiply by 0.49 (=1/2.032)
@@ -184,8 +188,8 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=T) {   # plot
 
 
   ## Plotroutine, triggered by argument 'plotit=T'
-flf.data.monthly.ts$date <- strptime(paste(as.character(flf.data.monthly.ts$Year), as.character(flf.data.monthly.ts$Month), as.character(15), sep="-"), format="%Y-%m-%d")
-flf.data.monthly.ts$yearmonth <- as.yearmon(flf.data.monthly.ts$date)
+  flf.data.monthly.ts$date <- strptime(paste(as.character(flf.data.monthly.ts$Year), as.character(flf.data.monthly.ts$Month), as.character(15), sep="-"), format="%Y-%m-%d")
+  flf.data.monthly.ts$yearmonth <- as.yearmon(flf.data.monthly.ts$date)
 
   if (plotit==T) {
     top <- flf.data.monthly.ts$totflfAs+flf.data.monthly.ts$totflfAsstd
