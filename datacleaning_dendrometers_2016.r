@@ -42,6 +42,9 @@ dataA[dataA$codew %in% n_occur$Var1[n_occur$Freq > 1],]
 # Get rid of duplicate codew
 # data[data$tag!=210.2 & data$height!=3.77, ]
 
+# identify dendrometers that have been replaced.
+dendrometer_reading_replaced_mm
+
 # get unique identifyer for each measurement
 uid   <- unique(dataA$codeb)
 uidii <- unique(dataA$codew)
@@ -96,8 +99,10 @@ write.csv(data3, file="LPG01_daniela_2016.csv")
 
 # Visualise data: normal distribution of dbhgrowth per year by diameter class
 
-plot1 <- ggplot(data=data3, aes(x=tree_tag, y=measurement_mmpermonth, na.rm=T)) +
-  geom_point()
+plot1 <- ggplot(data=data3, aes(x=tree_tag, y=measurement_mmpermonth, na.rm=T))
+  + geom_point()
+  + geom_text(aes(label=tree_tag),hjust=0, vjust=0)
+
 plot1               # use this plot to decide your cut off point for annual growth.
 
 # Plot growth over time for each tree in bb
