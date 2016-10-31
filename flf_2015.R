@@ -189,6 +189,7 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plot
 
   ## Plotroutine, triggered by argument 'plotit=T'
   flf.data.monthly.ts$date <- strptime(paste(as.character(flf.data.monthly.ts$Year), as.character(flf.data.monthly.ts$Month), as.character(15), sep="-"), format="%Y-%m-%d")
+  flf.data.monthly.ts$date = as.POSIXct(flf.data.monthly.ts$date)
   flf.data.monthly.ts$yearmonth <- as.yearmon(flf.data.monthly.ts$date)
 
   if (plotit==T) {
