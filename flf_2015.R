@@ -95,6 +95,13 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plot
   
   la = (10000/0.25) #*2
   
+  ## calculate daily means:
+  uid <- plot, trap, year, month, day
+  meas_int <- date2/date1
+  meas_trap <- measurement from the trap
+  meas_day <- meas_trap/meas_int 
+  aa <- uid  
+  
   ## calculate monthly means in each year:
   for (j in fir_year:fir_yeare) {
     m=1
