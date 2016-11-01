@@ -26,6 +26,9 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plot
     
   # define each parameter
   plotfA = data.flf$plot_code  
+  if (missing(plotname)) {  # calculate for first-mentioned plot if plot not specified
+    plotname = plotfA[1]
+  }
   yearfA = data.flf$year[which(plotname==plotfA)]
   monthfA = data.flf$month[which(plotname==plotfA)]
   #pointfA = data.flf$litterfall_trap_num[which(plotname==plotfA)]
@@ -95,12 +98,12 @@ flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plot
   
   la = (10000/0.25) #*2
   
-  ## calculate daily means:
-  uid <- plot, trap, year, month, day
-  meas_int <- date2/date1
-  meas_trap <- measurement from the trap
-  meas_day <- meas_trap/meas_int 
-  aa <- uid  
+  # ## calculate daily means:
+  # uid <- plot, trap, year, month, day
+  # meas_int <- date2/date1
+  # meas_trap <- measurement from the trap
+  # meas_day <- meas_trap/meas_int 
+  # aa <- uid  
   
   ## calculate monthly means in each year:
   for (j in fir_year:fir_yeare) {
