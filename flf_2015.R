@@ -3,10 +3,10 @@
 
 ## Read-in data:
 #setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
-#data.flf <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_ACJ_2013_2014_test.csv", sep=",", header=T)
+#data_flf <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan/Litterfall_ACJ_2013_2014_test.csv", sep=",", header=T)
 
 # this is what we have in db:
-# names(data.flf) <- c("plot_code", "year","month", "day","litterfall_trap_num", "litterfall_trap_size_m2","leaves_g_per_trap","twigs_g_per_trap","flowers_g_per_trap","fruits_g_per_trap",
+# names(data_flf) <- c("plot_code", "year","month", "day","litterfall_trap_num", "litterfall_trap_size_m2","leaves_g_per_trap","twigs_g_per_trap","flowers_g_per_trap","fruits_g_per_trap",
 # "bromeliads_g_per_trap", "epiphytes_g_per_trap","other_g_per_trap", "palm_leaves_g", "palm_flower_g", "palm_fruit_g", "quality_code", "comments")
 
 # plotsize = 1 ha  ### TO DO: Different plot size is not an option yet. 
@@ -14,44 +14,99 @@
 # Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
 # TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
-flf <- function(data.flf, plotname, ret="monthly.means.ts", plotit=F) {   # plotsize=1                                                                                     
+flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # plotsize=1                                                                                     
 
   library(scales)
   library(zoo)
   require(ggplot2)
 
-  if (class(data.flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
-    data.flf <- read.csv(data.flf)
+  if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+    data_flf <- read.csv(data_flf)
   }
     
+  # new data frame
+  data_flf2 <- c()  
+  
   # define each parameter
-  plotfA = data.flf$plot_code  
-  yearfA = data.flf$year[which(plotname==plotfA)]
-  monthfA = data.flf$month[which(plotname==plotfA)]
-  #pointfA = data.flf$litterfall_trap_num[which(plotname==plotfA)]
-  leaffA = data.flf$leaves_g_per_trap[which(plotname==plotfA)]   
-  branchfA = data.flf$twigs_g_per_trap[which(plotname==plotfA)]
-  flowerfA = data.flf$flowers_g_per_trap[which(plotname==plotfA)]
-  fruitfA = data.flf$fruits_g_per_trap[which(plotname==plotfA)]
-  seedsfA <- NA #data.flf$seeds[which(plotname==plotfA)]
-  BromfA = data.flf$bromeliads_g_per_trap[which(plotname==plotfA)]
-  EpiphfA = data.flf$epiphytes_g_per_trap[which(plotname==plotfA)]
-  otherfA = data.flf$other_g_per_trap[which(plotname==plotfA)]
+  data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
+  data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
+  data_flf2         <- data.frame(data_flf2)
+  data_flf2$month   <- data_flf$month[which(plotname==data_flf2$plot)]
+  data_flf2$day     <- data_flf$day[which(plotname==data_flf2$plot)]
+  data_flf2$date       <- as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d") # 
+  #data_flf2$date    <- as.Date(as.character(data_flf2$d,format="%Y-%m-%d")) 
+  data_flf2$num     <- data_flf$litterfall_trap_num[which(plotname==data_flf2$plot)]
+  data_flf2$leaves  <- data_flf$leaves_g_per_trap[which(plotname==data_flf2$plot)]   
+  data_flf2$twigs   <- data_flf$twigs_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$flowers <- data_flf$flowers_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$fruits  <- data_flf$fruits_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$seeds   <- NA #data_flf$seeds[which(plotname==data_flf2$plot)]
+  data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
   
-  ### TO DO: sanity check of the inputs.
+  ### Calculate total litterfall (sum of branches, leaves, flowers, fruits, seeds, Broms, Epiphs, other...):
+  data_flf2$total   <- rowSums(data_flf2$leaves, data_flf2$twigs, data_flf2$flowers, data_flf2$fruits, data_flf2$seeds, data_flf2$brom, data_flf2$epi, data_flf2$other, na.rm = T)   
   
-  ### Calculates total litterfall (sum of branches, leaves, flowers, fruits, seeds, Broms, Epiphs, other...):
-  totalfA <- NULL
-  for (i in 1:length(yearfA)) {
-    totalfA[i] = sum(leaffA[i], branchfA[i], flowerfA[i], fruitfA[i], seedsfA[i], BromfA[i], EpiphfA[i], otherfA[i], na.rm=T)
-  }
+  ################################################################## !!!! SUM DOESN"T WORK HERE !!!!!!!!!!!!!!!!
   
-  totalfA[which(totalfA>300)] <- NA   # remove outliers with totalf > 300
-  totalfA[which(totalfA<0)]   <- NA   # remove implausible totallf (negative litter)
+  ### Sanity check of the inputs.
+  
+  data_flf2$total[which(data_flf2$total>300)] <- NA   # remove outliers with totalf > 300
+  data_flf2$total[which(data_flf2$total<0)]   <- NA   # remove implausible totallf (negative litter)
   
   # Calculate leaf area ****need density from photos, we assume average SLA = 100g/m2
   # leaflaifA = leaffA/100   # convert to area     
 
+  ### flf per trap per day
+  
+  data_flf2$codeb <- paste(data_flf2$plot, data_flf2$num, sep=".") 
+  data_flf2$codew <- paste(data_flf2$plot, data_flf2$num, data_flf2$year, data_flf2$month, data_flf2$day, sep=".") 
+  uid   <- unique(data_flf2$codeb)
+  ww    <- c()
+  xx    <- c()
+  yy    <- c()
+  zz    <- c()
+  
+    
+  for (i in 1:length(data_flf2$num)) { 
+    sub       <- subset(data_flf2, subset=(data_flf2$codeb == uid[i]))
+    if(length(sub$codeb) > 1) {
+      meas_int      <- difftime(sub$date[1:(length(sub$date)-1)], sub$date[2:length(sub$date)], units="days")
+      meas_int_num  <- as.numeric(as.character(meas_int))
+      meas_trap     <- tail(sub$leaves,-1)
+      meas          <- meas_trap/(-meas_int_num)   
+      id            <- tail(sub$codew,-1) 
+      num           <- tail(sub$num,-1)
+      ww            <- c(ww, num)
+      xx            <- c(xx, id)
+      yy            <- c(yy, meas_int_num)
+      zz            <- c(zz, meas)
+      print(i)
+      print(length(ww))
+      print(length(yy))
+      print(length(xx))
+      print(length(zz))
+    } else {   
+      print(paste("row number:", i))
+      print(paste("trap number:", sub$num))
+      print(paste("subset length:", length(sub$codeb)))
+    }
+  }
+  data2 <- data.frame(cbind(ww, xx, yy, zz))
+  colnames(data2) <- c("litterfall_trap_num", "id", "measurement_interval_days", "totalflf_g_per_trap_per_day")
+  
+  # get day, month, year from data_flf2
+  
+  data3 <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data ON data2.codew = data_flf2.codew") 
+  
+  # flf per ha per measurement date (every two weeks)
+  
+  # flf per trap per month
+  
+  # flf per ha per month (average of all the traps)
+  
+  
   fir_mon = 1
   fir_mone = 12
   fir_year = min(yearfA, na.rm=T)

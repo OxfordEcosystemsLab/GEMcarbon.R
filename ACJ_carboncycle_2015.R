@@ -15,8 +15,9 @@ source("NPProot_2015_CG.R")
 #############################################################################################################################
 
 ## Read-in data:
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
-flf_ACJ <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_ACJ_2013_2014.csv", sep=",", header=T)
+setwd("/Users/cecile/Github/GEMcarbon.R/a_readyforupload_db/acj_pan_2015")
+
+flf_ACJ <- read.table("/Users/cecile/Github/GEMcarbon.R/a_readyforupload_db/acj_pan_2015/Litterfall_ACJ_2013_2014.csv", sep=",", header=T)
 flf_PAN02 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_PAN02_2013_2014.csv", sep=",", header=T)
 flf_PAN03 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_PAN03_2013_2014.csv", sep=",", header=T)
 flf_TRU04 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015/Litterfall_TRU04_2013_2014.csv", sep=",", header=T)
@@ -25,7 +26,7 @@ flf_TRU04 <- read.table("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/re
 # define parameters
 plotsize = 1 
 plotname = "ACJ"
-data.flf <- flf_ACJ
+data_flf <- flf_ACJ
 str(flf_ACJ)
 ACJ_NPPlitterfall <- flf(flf_ACJ, plotname, ret="monthly.means.ts", plotit=T) # TO DO: fix figure.
 write.csv(flf.data.monthly.ts, file="ACJ01_NPPlitterfall_Oct2015.csv")
