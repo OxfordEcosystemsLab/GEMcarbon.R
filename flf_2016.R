@@ -28,6 +28,10 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
   data_flf2 <- c()  
   
   # define each parameter
+  if (missing(plotname)) {  # calculate for first-mentioned plot if plot not specified.  rethink whether we should really have this here...
+    plotname = data_flf$plot_code[1]
+  }
+  
   data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
   data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
   data_flf2         <- data.frame(data_flf2)
@@ -112,16 +116,20 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
       ff            <- c(ff, bepi)
       gg            <- c(gg, bother)
       hh            <- c(hh, btotal)
-      
-      print(i)
-      print(length(yy))
 
-    } else {   
-      print(paste("row number:", i))
-      print(paste("trap number:", sub$num))
-      print(paste("subset length:", length(sub$codeb)))
+    } else {  
+      # print(paste("row number:", i))
+      # print(paste("trap number:", sub$num))
+      # print(paste("subset length:", length(sub$codeb)))
+      if(exists("error_df")) {
+        error_df <- rbind(error_df, data.frame(row = i, trap = sub$num[i], sub_len = length(sub$codeb)))
+      } else {
+        error_df <- data.frame(row = i, trap = sub$num[i], sub_len = length(sub$codeb))
+      }
     }
   }
+  error_df_g <<- error_df
+  print(paste(nrow(error_df), " errors in the data.  See error_df_g."))
   data2 <- data.frame(cbind(xx, yy, aa, bb, cc, dd, ee, ff, gg, hh))
   colnames(data2) <- c("id", "meas_int_days", "bleavesflf_g_trap_day", "btwigs", "bflowers", "bfruits", "bbrom", "bepi", "bother", "btotal")
   
@@ -204,6 +212,7 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
   
   ## Plotroutine, triggered by argument 'plotit=T' 
   data5$date      <- strptime(paste(as.character(data5$year), as.character(data5$month), as.character(15), sep="-"), format="%Y-%m-%d")
+  data5$date <- as.POSIXct(data5$date)
   data5$yearmonth <- as.yearmon(data5$date)
   
   if (plotit==T) {
@@ -258,7 +267,7 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
   
 # Return either monthly means (ret="monthly.means") or annual means (ret="annual.means")  
   switch(ret,
-         monthly.means.subplot = {return(data4)}
+         monthly.means.subplot = {return(data4)},
          monthly.means.ts = {return(data5)}
          )
 }
