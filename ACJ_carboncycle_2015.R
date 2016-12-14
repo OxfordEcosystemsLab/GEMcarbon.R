@@ -827,6 +827,8 @@ NPPdend_ACJ01 <- read.table("Dendrometer_ACJ_2013_2014.csv", header=TRUE, sep=",
 NPPdend_TRU04 <- read.table(".csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPPdend_PAN02 <- read.table("Dendrometer_PAN_02_2013_2014.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 NPPdend_PAN03 <- read.table("Dendrometer_PAN_03_2013_2014.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+setwd("/Users/cecile/Desktop")
+NPPdend_ESP01 <- read.table("ESP01_GEM.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 
 # STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
 # STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
@@ -863,8 +865,9 @@ dendrometer <- NPPdend_TRU04
 plotname = "TRU-04"
 allometric_option = "Default"
 height_correction_option = "Default"
-census_year = XxXXXXXXX
+census_year = XXXXXXXX
 plotit=T
+
 
 
 #############################################################################################################################

@@ -10,7 +10,7 @@ library(sqldf)
 setwd("~/Desktop/data_sorting/flf")
 list.files()
 
-way01A  <- read.table("~/Desktop/data_sorting/flf/Litterfall_WAY01_2006_2009.csv", skip=1, sep=",", header=T)
+way01A  <- read.table("~/Desktop/data_sorting/flf/Litterfall_WAY01_2006_2009.csv", sep=",", header=T)
 way01B  <- read.table("~/Desktop/data_sorting/flf/Litterfall_WAY01_2009_2011.csv", sep=",", header=T)
 way01C  <- read.table("~/Desktop/data_sorting/flf/Litterfall_WAY01_2013.csv", sep=",", header=T)
      
@@ -217,12 +217,132 @@ esp01c$test                         <- NULL
 head(esp01c)
 
 
-############################################### TO DO ######################################################################
-acj01A 
-pan02A 
-pan03A 
-tru04A 
-############################################### TO DO ######################################################################
+head(acj01A) 
+
+acj01a <- c()  
+acj01a$test                         <- acj01A$litterfall_trap_num
+acj01a$plot_code                    <- "ACJ-01"
+acj01a$year                         <- acj01A$year 
+
+acj01a <- data.frame(acj01a)
+
+acj01a$month                        <- acj01A$month                   
+acj01a$day                          <- acj01A$day                   
+acj01a$litterfall_trap_num          <- acj01A$litterfall_trap_num
+acj01a$litterfall_trap_size_m2      <- 0.25
+acj01a$leaves_g_per_trap            <- acj01A$leaves_g_per_trap
+acj01a$twigs_g_per_trap             <- acj01A$twigs_g_per_trap  
+acj01a$flowers_g_per_trap           <- acj01A$flowers_g_per_trap  
+acj01a$fruits_g_per_trap            <- acj01A$fruits_g_per_trap
+acj01a$seeds_g_per_trap             <- NA  
+acj01a$bromeliads_g_per_trap        <- acj01A$bromeliads_g_per_trap
+acj01a$epiphytes_g_per_trap         <- acj01A$epiphytes_g_per_trap
+acj01a$other_g_per_trap             <- acj01A$other_g_per_trap
+acj01a$palm_leaves_g_per_trap       <- NA       
+acj01a$palm_flower_g_per_trap       <- NA
+acj01a$palm_fruit_g_per_trap        <- NA        
+acj01a$total_litterfall_g_per_trap  <- rowSums(acj01A[, c("leaves_g_per_trap", "twigs_g_per_trap", "flowers_g_per_trap", "fruits_g_per_trap", "bromeliads_g_per_trap", "epiphytes_g_per_trap", "other_g_per_trap")])
+acj01a$quality_code                 <- "good"
+acj01a$comments                     <- acj01A$comments
+acj01a$test                         <- NULL
+
+head(acj01a)
+
+
+head(pan02A)
+
+pan02a <- c()  
+pan02a$test                         <- pan02A$litterfall_trap_num
+pan02a$plot_code                    <- "PAN-02"
+pan02a$year                         <- pan02A$year 
+
+pan02a <- data.frame(pan02a)
+
+pan02a$month                        <- pan02A$month                   
+pan02a$day                          <- pan02A$Day                   
+pan02a$litterfall_trap_num          <- pan02A$litterfall_trap_num
+pan02a$litterfall_trap_size_m2      <- 0.25
+pan02a$leaves_g_per_trap            <- pan02A$leaves_g_per_trap
+pan02a$twigs_g_per_trap             <- pan02A$twigs_g_per_trap  
+pan02a$flowers_g_per_trap           <- pan02A$flowers_g_per_trap  
+pan02a$fruits_g_per_trap            <- pan02A$fruits_g_per_trap
+pan02a$seeds_g_per_trap             <- NA  
+pan02a$bromeliads_g_per_trap        <- pan02A$bromeliads_g_per_trap
+pan02a$epiphytes_g_per_trap         <- pan02A$epiphytes_g_per_trap
+pan02a$other_g_per_trap             <- pan02A$other_g_per_trap
+pan02a$palm_leaves_g_per_trap       <- NA       
+pan02a$palm_flower_g_per_trap       <- NA
+pan02a$palm_fruit_g_per_trap        <- NA        
+pan02a$total_litterfall_g_per_trap  <- rowSums(pan02A[, c("leaves_g_per_trap", "twigs_g_per_trap", "flowers_g_per_trap", "fruits_g_per_trap", "bromeliads_g_per_trap", "epiphytes_g_per_trap", "other_g_per_trap")])
+pan02a$quality_code                 <- "good"
+pan02a$comments                     <- pan02A$Notes
+pan02a$test                         <- NULL
+
+head(pan02a)
+
+
+head(pan03A)
+
+pan03a <- c()  
+pan03a$test                         <- pan03A$litterfall_trap_num
+pan03a$plot_code                    <- "PAN-03"
+pan03a$year                         <- pan03A$year 
+
+pan03a <- data.frame(pan03a)
+
+pan03a$month                        <- pan03A$month                   
+pan03a$day                          <- pan03A$day                   
+pan03a$litterfall_trap_num          <- pan03A$litterfall_trap_num
+pan03a$litterfall_trap_size_m2      <- 0.25
+pan03a$leaves_g_per_trap            <- pan03A$leaves_g_per_trap
+pan03a$twigs_g_per_trap             <- pan03A$twigs_g_per_trap  
+pan03a$flowers_g_per_trap           <- pan03A$flowers_g_per_trap  
+pan03a$fruits_g_per_trap            <- pan03A$fruits_g_per_trap
+pan03a$seeds_g_per_trap             <- NA  
+pan03a$bromeliads_g_per_trap        <- pan03A$bromeliads_g_per_trap
+pan03a$epiphytes_g_per_trap         <- pan03A$epiphytes_g_per_trap
+pan03a$other_g_per_trap             <- pan03A$other_g_per_trap
+pan03a$palm_leaves_g_per_trap       <- NA       
+pan03a$palm_flower_g_per_trap       <- NA
+pan03a$palm_fruit_g_per_trap        <- NA        
+pan03a$total_litterfall_g_per_trap  <- rowSums(pan03A[, c("leaves_g_per_trap", "twigs_g_per_trap", "flowers_g_per_trap", "fruits_g_per_trap", "bromeliads_g_per_trap", "epiphytes_g_per_trap", "other_g_per_trap")])
+pan03a$quality_code                 <- "good"
+pan03a$comments                     <- pan03A$Notes
+pan03a$test                         <- NULL
+
+head(pan03a)
+
+
+head(tru04A) 
+
+tru04a <- c()  
+tru04a$test                         <- tru04A$litterfall_trap_num
+tru04a$plot_code                    <- "TRU-04"
+tru04a$year                         <- tru04A$Year 
+
+tru04a <- data.frame(tru04a)
+
+tru04a$month                        <- tru04A$Month                   
+tru04a$day                          <- tru04A$Day                   
+tru04a$litterfall_trap_num          <- tru04A$Sub.plot
+tru04a$litterfall_trap_size_m2      <- 0.25
+tru04a$leaves_g_per_trap            <- NA
+tru04a$twigs_g_per_trap             <- NA  
+tru04a$flowers_g_per_trap           <- NA  
+tru04a$fruits_g_per_trap            <- NA
+tru04a$seeds_g_per_trap             <- NA  
+tru04a$bromeliads_g_per_trap        <- NA
+tru04a$epiphytes_g_per_trap         <- NA
+tru04a$other_g_per_trap             <- NA
+tru04a$palm_leaves_g_per_trap       <- NA       
+tru04a$palm_flower_g_per_trap       <- NA
+tru04a$palm_fruit_g_per_trap        <- NA        
+tru04a$total_litterfall_g_per_trap  <- tru04A$Total.weigth
+tru04a$quality_code                 <- "good"
+tru04a$comments                     <- tru04A$Notes
+tru04a$test                         <- NULL
+
+head(tru04a)
 
 head(spd02A)  
 
@@ -448,19 +568,28 @@ tam09a$test                         <- NULL
 head(tam09a)
 
 
-head(tam05bis)
-
-head(tam06bis)
+eltr_flf <- rbind(way01a, way01b, way01c, esp01b, esp01c, acj01a, pan02a, pan03a, tru04a, spd02a, spd02b, spd01b, spd01c, tam05a, tam06a, tam09a)
 
 
+str(way01a) 
+str(way01b) 
+str(way01c) 
+str(esp01b) 
+str(esp01c) 
+str(acj01a) 
+str(pan02a) 
+str(pan03a) 
+str(tru04a) 
+str(spd02a) 
+str(spd02b) 
+str(spd01b) 
+str(spd01c) 
+str(tam05a) 
+str(tam06a) 
+str(tam09a) 
 
-eltr_flf <- rbind(way01a, way01b, way01c, esp01b, esp01c, spd02a, spd02b, spd01b, spd01c, tam05a, tam06a, tam09a)
 
-eltr_flf$leaves_g_per_trap <- as.numeric(as.character(eltr_flf$leaves_g_per_trap)) 
-eltr_flf$day <- as.numeric(as.character(eltr_flf$day))
-eltr_flf$month <- as.numeric(as.character(eltr_flf$month))
-
-write.csv(eltr_flf, file="eltr_flf_2009to2014.csv") 
+write.csv(eltr_flf, file="eltr_flf_2006to2014.csv") 
 
 
 

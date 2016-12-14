@@ -137,6 +137,8 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
   
   data3 <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data_flf2 ON data2.id = data_flf2.codew") 
   
+  # OR you can set the data type in your sqldf("...", method = c("character", "numeric", "numeric", "numeric"))
+  
   data3$leavesflf_g_trap_day <- as.numeric(as.character(data3$bleavesflf_g_trap_day))
   data3$meas_int_days        <- as.numeric(as.character(data3$meas_int_days))
   data3$twigs                <- as.numeric(as.character(data3$btwigs))
