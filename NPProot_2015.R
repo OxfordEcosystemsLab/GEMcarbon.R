@@ -84,9 +84,39 @@ calc_roots <- function(core_data, root_type, plotname, tx = c(10,20,30,40), mins
   return(tot_roots)
 }
 
-NPProot_ic <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts") {
+NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
+                       
+                       #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")) {
+  ret_type = match.arg(ret_type)
+  data.ic = read.csv(datafile, na.strings = c("NA", "NaN"))
+  output = list()
+  first_run = T
+  pb = txtProgressBar(max = length(unique(data.ic$plot_code)), style = 3); i = 0
+  for (thisplot in unique(data.ic$plot_code)) {
+    output[[thisplot]] = NPProot_ic_oneplot(datafile, thisplot, ...)
+    if (first_run) {
+      first_run = F
+      three_monthly = output[[thisplot]][["three_monthly"]]
+      three_monthly_pertube = output[[thisplot]][["three_monthly_pertube"]]
+      all_times_and_tubes = output[[thisplot]][["all_times_and_tubes"]]
+    } else {
+      three_monthly = rbind(three_monthly, output[[thisplot]][["three_monthly"]])
+      three_monthly_pertube = rbind(three_monthly_pertube, output[[thisplot]][["three_monthly_pertube"]])
+      all_times_and_tubes = rbind(all_times_and_tubes, output[[thisplot]][["all_times_and_tubes"]])
+    }
+    i = i + 1
+    setTxtProgressBar(pb, i)
+  }
+  close(pb)
   
-  # TODO: don't subset by plot - just rip the data across plots and data as it's passed in
+  if (ret_type == "list") { # return plot results in different list elements
+    return(output)
+  } else { # return results concatenated across plots
+    return(list("three_monthly" = three_monthly, "three_monthly_pertube" = three_monthly_pertube, "all_times_and_tubes" = all_times_and_tubes))
+  }
+}
+  
+NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts") {
   
   library(sqldf)
   require(ggplot2)
@@ -97,7 +127,7 @@ NPProot_ic <- function(datafile, plotname, logmodel = T, fine_root_cor = "Defaul
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
   data.ic = read.csv(datafile, na.strings = c("NA", "NaN"))
-  data <- subset(subset(data.ic, plot_code == plotname))
+  data <- subset(subset(data.ic, plotname == plotname))
   
   # re-name columns rather than building new ones?
   data$ol_under2 <- data$ol_under_2mm_g   
@@ -261,6 +291,13 @@ NPProot_ic <- function(datafile, plotname, logmodel = T, fine_root_cor = "Defaul
       mutate(interval = ifelse(is.na(lag(date)), 90, as.numeric(difftime(date, lag(date)))),  # I add 90 days as first collection interval. You can change this.
              monthlyNPProot = threemonthlyNPProot/interval * 30) # TODO: change to reflect days per month
 
+    data4$plot_code = plotname
+    data4_pertube$plot_code = plotname
+    data3$plot_code = plotname
+    
+    data4_pertube$tubenum = sub("^.*_(.*)$", "\\1", data4_pertube$persist_id)
+    data3$tubenum = sub("^.*_(.*)$", "\\1", data3$persist_id)
+    
     return(list("three_monthly" = data4, "three_monthly_pertube" = data4_pertube, "all_times_and_tubes" = data3))
 }
 

@@ -14,15 +14,48 @@
 # Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
 # TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
-flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
-  # ret = monthly.means.subplot or monthly.means.ts for plot averages.
 
-  library(sqldf)
-  require(ggplot2)
 
+flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
     data_flf <- read.csv(data_flf)
   }
+  ret_type = match.arg(ret_type)
+  
+  pb = txtProgressBar(max = length(unique(data_flf$plot_code)), style = 3); i = 0
+  output = list()
+  first_run = T
+  for (thisplot in unique(data_flf$plot_code)) {
+    output[[thisplot]] = flf_oneplot(data_flf, thisplot, ...)
+    if (first_run) {
+      first_run = F
+      output_concat = output[[thisplot]]
+    } else {
+      output_concat = rbind(output_concat, output[[thisplot]])
+    }
+    i = i + 1
+    setTxtProgressBar(pb, i)
+  }
+  close(pb)
+  
+  if (ret_type == "list") { # return plot results in different list elements
+    return(output)
+  } else { # return results concatenated across plots
+    return(output_concat)
+  }
+    
+}
+
+
+flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
+  # ret = monthly.means.subplot or monthly.means.ts for plot averages.
+  
+  if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+    data_flf <- read.csv(data_flf)
+  }
+  
+  library(sqldf)
+  require(ggplot2)
     
   # new data frame
   data_flf2 <- c()  
@@ -129,7 +162,7 @@ flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add 
     }
   }
   error_df_g <<- error_df
-  print(paste(nrow(error_df), " errors in the data.  See error_df_g."))
+  print(paste(nrow(error_df), "errors in the data.  See error_df_g."))
   data2 <- data.frame(cbind(xx, yy, aa, bb, cc, dd, ee, ff, gg, hh))
   colnames(data2) <- c("id", "meas_int_days", "bleavesflf_g_trap_day", "btwigs", "bflowers", "bfruits", "bbrom", "bepi", "bother", "btotal")
   
