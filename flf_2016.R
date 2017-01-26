@@ -56,6 +56,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   
   library(sqldf)
   require(ggplot2)
+  library(dplyr)
     
   # new data frame
   data_flf2 <- c()  
@@ -64,22 +65,37 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   if (missing(plotname)) {  # calculate for first-mentioned plot if plot not specified.  rethink whether we should really have this here...
     plotname = data_flf$plot_code[1]
   }
+
+  data_flf2 = subset(data_flf, plot_code == plotname)
+  data_flf2 = data_flf2 %>% rename(plot = plot_code,
+                                   num = litterfall_trap_num,
+                                   leaves = leaves_g_per_trap,
+                                   twigs = twigs_g_per_trap,
+                                   flowers = flowers_g_per_trap,
+                                   fruits = fruits_g_per_trap,
+                                   brom = bromeliads_g_per_trap,
+                                   epi = epiphytes_g_per_trap,
+                                   other = other_g_per_trap) %>% 
+                            mutate(seeds = NA,
+                                   date = as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d"))
+                            # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
   
-  data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
-  data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
-  data_flf2         <- data.frame(data_flf2)
-  data_flf2$month   <- data_flf$month[which(plotname==data_flf2$plot)]
-  data_flf2$day     <- data_flf$day[which(plotname==data_flf2$plot)]
-  data_flf2$date       <- as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d")  
-  data_flf2$num     <- data_flf$litterfall_trap_num[which(plotname==data_flf2$plot)]
-  data_flf2$leaves  <- data_flf$leaves_g_per_trap[which(plotname==data_flf2$plot)]   
-  data_flf2$twigs   <- data_flf$twigs_g_per_trap[which(plotname==data_flf2$plot)]
-  data_flf2$flowers <- data_flf$flowers_g_per_trap[which(plotname==data_flf2$plot)]
-  data_flf2$fruits  <- data_flf$fruits_g_per_trap[which(plotname==data_flf2$plot)]
-  data_flf2$seeds   <- NA # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
-  data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
-  data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
-  data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
+  
+  # data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
+  # data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
+  # data_flf2         <- data.frame(data_flf2)
+  # data_flf2$month   <- data_flf$month[which(plotname==data_flf2$plot)]
+  # data_flf2$day     <- data_flf$day[which(plotname==data_flf2$plot)]
+  # data_flf2$date       <- as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d")  
+  # data_flf2$num     <- data_flf$litterfall_trap_num[which(plotname==data_flf2$plot)]
+  # data_flf2$leaves  <- data_flf$leaves_g_per_trap[which(plotname==data_flf2$plot)]   
+  # data_flf2$twigs   <- data_flf$twigs_g_per_trap[which(plotname==data_flf2$plot)]
+  # data_flf2$flowers <- data_flf$flowers_g_per_trap[which(plotname==data_flf2$plot)]
+  # data_flf2$fruits  <- data_flf$fruits_g_per_trap[which(plotname==data_flf2$plot)]
+  # data_flf2$seeds   <- NA # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
+  # data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
+  # data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
+  # data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
   
   # Calculate total litterfall (sum of branches, leaves, flowers, fruits, seeds, Broms, Epiphs, other...):
   x <- cbind(data_flf2$leaves, data_flf2$twigs, data_flf2$flowers, data_flf2$fruits, data_flf2$seeds, data_flf2$brom, data_flf2$epi, data_flf2$other)   
@@ -198,17 +214,27 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data3$otherflf   <- (((data3$other*(10000/0.25))*0.000001)*0.49)*30
   data3$totalflf   <- (((data3$total*(10000/0.25))*0.000001)*0.49)*30
   
-
-  
   # flf per ha per month (for each trap)
   
-  data4            <- sqldf("SELECT plot, num, year, month, 
-                            AVG(leavesflf_MgC_ha_month), AVG(twigsflf), AVG(flowersflf), AVG(fruitsflf), AVG(bromflf), AVG(epiflf), AVG(otherflf), AVG(totalflf),  
-                            STDEV(leavesflf_MgC_ha_month), STDEV(twigsflf), STDEV(flowersflf), STDEV(fruitsflf), STDEV(bromflf), STDEV(epiflf), STDEV(otherflf), STDEV(totalflf)
-                            FROM data3 GROUP BY plot, num, year, month")
-
-  colnames(data4)  <- c("plot", "litterfall_trap_num", "year", "month","leavesflf_MgC_ha_month_trap", "twigsflf_MgC_ha_month_trap", "flowersflf_MgC_ha_month_trap", "fruitsflf_MgC_ha_month_trap", "bromflf_MgC_ha_month_trap", "epiflf_MgC_ha_month_trap", "otherflf_MgC_ha_month_trap", "totalflf_MgC_ha_month_trap", "sd_leavesflf", "sd_twigsflf", "sd_flowersflf", "sd_fruitsflf", "sd_bromflf", "sd_epiflf", "sd_otherflf", "sd_totalflf") # Note: SD is 0 if we only have a year's worth of data!
-  
+  data4 = data3 %>% group_by(plot, num, year, month) %>% 
+                    summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
+                              twigsflf_MgC_ha_month_trap = mean(twigsflf, na.rm = T),
+                              flowersflf_MgC_ha_month_trap = mean(flowersflf, na.rm = T),
+                              fruitsflf_MgC_ha_month_trap = mean(fruitsflf, na.rm = T),
+                              bromflf_MgC_ha_month_trap = mean(bromflf, na.rm = T),
+                              epiflf_MgC_ha_month_trap = mean(epiflf, na.rm = T),
+                              otherflf_MgC_ha_month_trap = mean(otherflf, na.rm = T),
+                              totalflf_MgC_ha_month_trap = mean(totalflf, na.rm = T),
+                              sd_leavesflf = sd(leavesflf_MgC_ha_month, na.rm = T),
+                              sd_twigsflf = sd(twigsflf, na.rm = T),
+                              sd_flowersflf = sd(flowersflf, na.rm = T),
+                              sd_fruitsflf = sd(fruitsflf, na.rm = T),
+                              sd_bromflf = sd(bromflf, na.rm = T),
+                              sd_epiflf = sd(epiflf, na.rm = T),
+                              sd_otherflf = sd(otherflf, na.rm = T),
+                              sd_totalflf = sd(totalflf, na.rm = T)) %>%
+                    rename(litterfall_trap_num = num)
+          
   # calculate standard error sd/sqrt(length(unique(data3$year)))
   
   data4$se_leavesflf  <- data4$sd_leavesflf/sqrt(length(unique(data3$year)))
@@ -219,7 +245,6 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data4$se_epiflf     <- data4$sd_epiflf/sqrt(length(unique(data3$year))) 
   data4$se_otherflf   <- data4$sd_otherflf/sqrt(length(unique(data3$year))) 
   data4$se_totalflf   <- data4$sd_totalflf/sqrt(length(unique(data3$year)))
-  
   
   # flf per ha per month (average of all the traps)
   
