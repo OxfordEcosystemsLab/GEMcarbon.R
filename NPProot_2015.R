@@ -88,12 +88,22 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
                        
                        #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")) {
   ret_type = match.arg(ret_type)
-  data.ic = read.csv(datafile, na.strings = c("NA", "NaN"))
+  if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+      data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
+  } else {
+      data.ic = datafile # data.frame passed in directly
+  }
   output = list()
   first_run = T
   pb = txtProgressBar(max = length(unique(data.ic$plot_code)), style = 3); i = 0
   for (thisplot in unique(data.ic$plot_code)) {
-    output[[thisplot]] = NPProot_ic_oneplot(datafile, thisplot, ...)
+      
+    this_output = NPProot_ic_oneplot(datafile, thisplot, ...)
+    if (class(this_output) == "logical" & is.na(this_output)) {
+        next() # likely no rows after removing stock measurements
+    }
+    output[[thisplot]] = this_output
+    
     if (first_run) {
       first_run = F
       three_monthly = output[[thisplot]][["three_monthly"]]
@@ -108,7 +118,7 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
     setTxtProgressBar(pb, i)
   }
   close(pb)
-  
+
   if (ret_type == "list") { # return plot results in different list elements
     return(output)
   } else { # return results concatenated across plots
@@ -116,8 +126,8 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
   }
 }
   
-NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts") {
-  
+NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = T, ret = "monthly.means.ts") {
+
   library(sqldf)
   require(ggplot2)
   library(scales)
@@ -125,9 +135,22 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   library(dplyr)
     
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
+
+  if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+      data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
+  } else {
+      data.ic = datafile # data.frame passed in directly
+  }
   
-  data.ic = read.csv(datafile, na.strings = c("NA", "NaN"))
-  data <- subset(subset(data.ic, plotname == plotname))
+  data <- subset(data.ic, plot_code == plotname)
+  
+  if (remove_stock_meas) {
+      stock_meas = rep(F, nrow(data))
+      stock_meas[data$is_stock %in% "y"] = T
+      data <- data[!stock_meas,]
+  }
+  
+  if(nrow(data) == 0) { return(NA) }
   
   # re-name columns rather than building new ones?
   data$ol_under2 <- data$ol_under_2mm_g   
@@ -158,7 +181,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$ml_above5[is.na(data$ml_above5)] <- 0
   
   data$this_core <- (paste(as.character(data$year),as.character(data$month),as.character(data$day),as.character(data$ingrowth_core_num), sep="-"))
-    
+
   data = transform(data, persist_id = paste(plotname, ingrowth_core_num, sep="_"))
   
   uid <- unique(data$this_core)
@@ -259,18 +282,20 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
       data3$rootztot[is.na(data3$rootztot)] = 0 
       data3$totaic = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
       data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
-                                                                     
+                                                                   
   # convert to MgC ha / month 
     data3[data3 == 0] <- NA
     data4 <- sqldf("SELECT data3.year, data3.month, data3.day, AVG(data3.ic_MgCha), STDEV(data3.ic_MgCha) FROM data3 GROUP BY data3.month")
     colnames(data4) <- c("year", "month", "day", "threemonthlyNPProot", "threemonthlyNPProot_sd")
+    data4$year = sub("^(\\d\\d)$", "20\\1", data4$year) # make 2-digit years into 4-digit years.  Assume 20xx.
     data4$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
     data4$date  <- as.Date(data4$d, "%m/%d/%Y")
     data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
-  
+
   # split out into per-tube summaries here ####
     data4_pertube <- sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, AVG(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
     colnames(data4_pertube) <- c("persist_id", "year", "month", "day", "threemonthlyNPProot")
+    data4_pertube$year = sub("^(\\d\\d)$", "20\\1", data4_pertube$year) # make 2-digit years into 4-digit years.  Assume 20xx.
     data4_pertube$d     <- as.character(paste(data4_pertube$month, data4_pertube$day, data4_pertube$year, sep="/")) 
     data4_pertube$date  <- as.Date(data4_pertube$d, "%m/%d/%Y")
     data4_pertube <- sqldf("SELECT data4_pertube.* FROM data4_pertube ORDER BY data4_pertube.persist_id, data4_pertube.year, data4_pertube.month, data4_pertube.day ASC")
@@ -286,10 +311,10 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     # (mean(data4$monthlyNPProot_se, na.rm=T))*12
 
   # 3 monthly data divided by collection interval per tube
-    data4_pertube = 
-      data4_pertube %>% group_by(persist_id) %>% arrange(persist_id, date) %>% 
-      mutate(interval = ifelse(is.na(lag(date)), 90, as.numeric(difftime(date, lag(date)))),  # I add 90 days as first collection interval. You can change this.
-             monthlyNPProot = threemonthlyNPProot/interval * 30) # TODO: change to reflect days per month
+    data4_pertube = data4_pertube %>% 
+                    group_by(persist_id) %>% arrange(persist_id, date) %>% 
+                    mutate(interval = ifelse(is.na(lag(date)), 90, as.numeric(difftime(date, lag(date)))),  # I add 90 days as first collection interval. You can change this.
+                           monthlyNPProot = threemonthlyNPProot/interval * 30) # TODO: change to reflect days per month
 
     data4$plot_code = plotname
     data4_pertube$plot_code = plotname
