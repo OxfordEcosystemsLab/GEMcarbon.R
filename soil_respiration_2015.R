@@ -3,46 +3,44 @@
 # Based on matlab code developed by Chris Doughty, 2011.
 # Last edited: Cecile Girardin, 10.09.2015
 
-### Comment from Sebastian: I changed the order of the elements of the code:
-## In this version, first the assignment of variables is done, in order to check for the lowest year value (in the overall data), in order to find start and end years
-
 ### Required Data:
 # data.frame of total soil respiration
 # data.frame of partition respiration 
 # data.frame of control respiration 
-# plotname: specify plotname of which plot should be calculated (eg. WAY-01)
+# plotname: specify plot_code of the plot you are working with (eg. WAY-01)
 # ret: data-format of return values: "monthly.means.ts" or "monthly.means.matrix"
 # plotit: logical (T/F), plot a quick graphical summary of the data?
 # User has to specify either elevation or pressure.
 
 
 ### read data for option 1:
-setwd("/Users/cecile/Github/GEMcarbon.R/example files/soilrespiration_test")
-data.resc <- read.table("Res_control_test.csv", sep=",", header=T)
-data.resp <- read.table("Res_part_test.csv", sep=",", header=T)
-data.rest <- read.table("Res_total_test.csv", sep=",", header=T)
-# data.resp$collar_depth_cm has a lot of NAs, I am replacing NAs by mean(data.resp$collar_depth_cm, na.rm=T)
-data.resp$collar_depth_cm[is.na(data.resp$collar_depth_cm)] <- mean(data.resp$collar_depth_cm, na.rm=T)
+setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
+data.resc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
+data.resp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
+data.rest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
+
+# data.resp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(data.resp$collar_height_cm, na.rm=T)
+data.resp$collar_height_cm[is.na(data.resp$collar_height_cm)] <- mean(data.resp$collar_height_cm, na.rm=T)
 
 pressure = 1013.25
-plotname = "ACJ"
+plotname = "ESP-01"
 partitioningoption = 1
 elevation = "default"
 T_ambient="Default"
 plotit=T
 
 ### read data for option 2:
-setwd("/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
+#setwd("/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
-data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
-data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
-data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
-pressure = 1013.25
-plotname = 1.1
-partitioningoption = 2
-elevation = "Default"
-pressure="Default"
-T_ambient="Default"
+#data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
+#data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
+#data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
+#pressure = 1013.25
+#plotname = 1.1
+#partitioningoption = 2
+#elevation = "Default"
+#pressure="Default"
+#T_ambient="Default"
 
 # read correction functions:
 source("/Users/cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
@@ -96,9 +94,9 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   plott = data.rest$plot_code   # 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB  
   yeart = data.rest$year[which(plott==plotname)]
   montht = data.rest$month[which(plott==plotname)]
-  tempt = data.rest$soil_temp_degC[which(plott==plotname)]
-  cht = data.rest$collar_depth_cm[which(plott==plotname)]     ## depth (cm)
-  fluxt = data.rest$flux_umolco2_m2_s[which(plott==plotname)]    ## This is to determine overall outliers
+  tempt = data.rest$soil_temp_c_out[which(plott==plotname)]
+  cht = data.rest$collar_height_cm[which(plott==plotname)]     ## height (cm)
+  fluxt = data.rest$flux[which(plott==plotname)]    ## This is flux_umolco2_m2_s
   
   # Control
   # insert 5 40cm tubes in the soil, excavate soil cores 13cm diameter by 35cm depth, mix soil but don't remove roots
@@ -106,10 +104,10 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   plotc = data.resc$plot_code   
   yearc = data.resc$year[which(plotc==plotname)]
   monthc = data.resc$month[which(plotc==plotname)]
-  tempc = data.resc$soil_temp_degC[which(plotc==plotname)]
-  chc = as.numeric(data.resc$collar_depth_cm[which(plotc==plotname)]) 
-  fluxc = data.resc$flux_umolco2_m2_s[which(plotc==plotname)]
-  distc = data.resc$disturbance_code[which(plotc==plotname)]
+  tempc = data.resc$soil_temp_c_out[which(plotc==plotname)]
+  chc = data.resc$collar_height_cm[which(plotc==plotname)]
+  fluxc = data.resc$flux[which(plotc==plotname)]
+  distc = data.resc$disturbance_code_control[which(plotc==plotname)]
   
   #  Partitioning components of soil respiration
   #  4 groups of 9 tubes per plot (36 tubes in total per plot).
@@ -117,10 +115,10 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   plotp = data.resp$plot_code 
   yearp = data.resp$year[which(plotp==plotname)]
   monthp = data.resp$month[which(plotp==plotname)]
-  treatmentp = data.resp$treatment_code[which(plotp==plotname)] # CHECK THIS IS RIGHT?
-  tempp = data.resp$soil_temp_degC[which(plotp==plotname)]
-  chp = data.resp$collar_depth_cm[which(plotp==plotname)]  
-  fluxp = data.resp$flux_umolco2_m2_s[which(plotp==plotname)] 
+  treatmentp = data.resp$treatment_code_partitioning[which(plotp==plotname)] # CHECK THIS IS RIGHT?
+  tempp = data.resp$soil_temp_c_out[which(plotp==plotname)]
+  chp = data.resp$collar_height_cm[which(plotp==plotname)]  
+  fluxp = data.resp$flux[which(plotp==plotname)] 
   
   ### Defaults for chamber volume and tube area:
   # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
@@ -129,16 +127,15 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   fir_year = min(c(yeart,yearp,yearc),na.rm=T)  # to know from when to when the data should be calculated for.
   fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
 
-  
   ## Total Soil respiration Calculation: 
   # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
-  # the choice of the sd_interval changes things!   
+  # Note: the choice of the sd_interval changes things.
   
-  # NOTE FROM CG, 22 SEPT 2015: There is a problem with fluxcorr in the soilrespiration_auxfunctions.R. Need to solve this!!
+  # Note from CG, 22 Sept 2015: check the functions from soilrespiration_auxfunctions. They are from Chris's Matlab code.
   
   fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
   tempt <- rm.temp.outlier(temp=tempt, month=montht) 
-  cht   <- rm.ch.outlier(ch=cht) # this doesn't remove outlyers, it replaces missing data with the average of chamber deapth measurements for the whole plot.
+  cht   <- rm.ch.outlier(ch=cht)                 # !!Attention!! this doesn't remove outlyers. It replaces missing data with the average of chamber deapth measurements for the whole plot.
   
   ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. ##### TO DO: CHECK WITH CHRIS: ARE WE ESTIMATINGFLUX TWICE ???!! 
   # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75. 
@@ -417,14 +414,11 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   hrtotresAc    = totresAc*(1-rrA)
   hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
   
-  ################################ NEW BIT FOR DAN's PAPER ##########################################
+  ### NEW BIT FOR DAN's PAPER ################## I AM HERE##################### 
   
   # root respiration Ts ??? (Tdm ??? D)
-  rrA1 <- ((con_nor_litA + con_no_litA + con_doub_litA) / 3) - (((My_nor_litA + My_no_litA + My_doub_litA) / 3) + discorA)
-  rrA1std <- sqrt(((con_nor_litAstd^2) + (con_no_litAstd^2) + (con_doub_litAstd^2)) / 3 + ((My_nor_litAstd^2) + (My_no_litAstd^2) + (My_doub_litAstd^2)) / 3 + (discorAstd^2))
-  
-  
-  ################## I AM HERE: STD FOR EACH NEW PARAMETER #####################
+  #rrA1 <- ((con_nor_litA + con_no_litA + con_doub_litA) / 3) - (((My_nor_litA + My_no_litA + My_doub_litA) / 3) + discorA)
+  #rrA1std <- sqrt(((con_nor_litAstd^2) + (con_no_litAstd^2) + (con_doub_litAstd^2)) / 3 + ((My_nor_litAstd^2) + (My_no_litAstd^2) + (My_doub_litAstd^2)) / 3 + (discorAstd^2))
   
   # set thresholds
   rrA1[which(rrA1 < (-0.5))] = NA ### CHECK THIS THRESHOLD IS RIGHT?

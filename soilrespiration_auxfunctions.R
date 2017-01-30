@@ -37,26 +37,34 @@ rm.temp.outlier <- function(temp, month) {
   return(temp)
 }
 
+
+#######################################SORT THIS OUT!! ########################################################################
+###############################################################################################################################
+
 ## remove ch outlier:
 
 library(zoo)
 
-# zoo function
-# date column
-# na.approx
+ts$date <- as.Date(paste(ts$year, ts$month, ts$day, sep="."), format="%Y.%m.%d") 
 
-# sort by collar
-# sort by date
+ts = ts[order(ts$date),]
+temp <- zoo(ts)
+temp <- zoo(subset(ts, sub_plot ==1, select = c(date, cht1)))
+index(temp) <- temp$date
+na.approx(temp)
+
+
+ch = tst$cht1 
+sub_plot = tst$sub_plot
+month = tst$month
 
 fill.ch.na <- function(ch, sub_plot, month) {
-  xxch <- NULL
   xch <- NULL
   for (i in 1:25) {
     for (j in 1:12) {
-      xxch[j] <-ch[which(month == j-1)]
+      xch[i] <-mean(ch[which(sub_plot == i & month == j)], na.rm=T)
+      ch[which(is.na(ch) & sub_plot == i & month == j)] <- xch[i]
     }
-    xch[i] <-mean(ch[which(sub_plot == i)], na.rm=T)
-    ch[which(is.na(ch) & sub_plot == i)] <- xch[i]
   }
   return(ch)
   
@@ -65,6 +73,14 @@ fill.ch.na <- function(ch, sub_plot, month) {
   #return(ch)
 }
 
+
+
+#xch=mean(ch,na.rm=T)  ## mean of ch over all plot! This should be the ch for that collar for the month before.
+#ch[which(is.na(ch))] <- xch
+#return(ch)
+
+###############################################################################################################################
+###############################################################################################################################
 # ch=ch-1 in cm. This eliminates the overlap between the collar and the adaptor.
 
 ## Perform chamber and flux correction (Metcalfe 2009) 

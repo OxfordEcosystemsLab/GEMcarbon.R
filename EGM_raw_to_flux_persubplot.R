@@ -1,9 +1,7 @@
-## Code to go from EGM-4 raw data files to the csv files we need for the soilrespiration_Aug.R code
+## Code to go from EGM-4 raw data files to the csv files you need to run the code soil_respiration_2015.r.
 # Cecile Girardin 28.02.2014
-# Last edited: Cecile Girardin 15.10.2014
+# Last edited: Cecile Girardin 15.01.2017
 
-# Notes:
-## Need to define the disturbance and partitioning codes for each plot - search "get disturbance code" and "get partitioning code". Does this fit your data?
 
 # Column names needed for this code:
 # plot_code : this is the rainfor code of your ploy (e.g. TAM-05)
@@ -26,27 +24,39 @@
 # load packages
   library(sqldf)
   require(ggplot2)
+  require(plyr)
   
 # read in soil respiration auxillary functions from GitHub
   setwd("~/Github/GEMcarbon.R")
   source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
 
 # read in data 
-  raw_consrA   <- read.table("~/Desktop/data_sorting/eltr_rsoil_control_dec16.csv", sep=",", header=T)
-  raw_parsrA   <- read.table("~/Desktop/data_sorting/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
-  raw_totsrA   <- read.table("~/Desktop/data_sorting/eltr_rsoil_total_dec16.csv", sep=",", header=T)
-  weather      <- read.table("~/Desktop/data_sorting/eltr_rsoil_weather_dec16.csv", sep=",", header=T) 
+  setwd("~/Desktop/data_sorting/rsoil")
+  raw_consrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_control_dec16.csv", sep=",", header=T)
+  raw_parsrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
+  raw_totsrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_total_dec16.csv", sep=",", header=T)
+  weather      <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_weather_dec16.csv", sep=",", header=T) 
   
-
+# clean weather data
+  w <- which(weather$air_temp_c >= '100')
+  weather$air_temp_c[w] <- "NA"
+  weather$air_temp_c <- as.numeric(as.character(weather$air_temp_c)) 
+  
+# Weather data problem: which of these is air temp/soil temp? and what are plots 1 to 9? they all have a MAT ca.10 deg C.
+  maat <- sqldf("SELECT AVG(weather.plot_code), AVG(weather.air_temp_c) FROM weather GROUP BY plot_code")
+  mast <- sqldf("SELECT MAX(weather.plot_code), AVG(weather.soil_temp_c_out) FROM weather GROUP BY plot_code")
+  
+  
 ## TOTAL SOIL RESPIRATION
-  #ACJ-01 ESP-01 PAN-02 PAN-03 SPD-01 SPD-02 TAM-03 TAM-04 TAM-05 TAM-06 TAM-09 TRU-04 WAY-01
+  
+  # ACJ-01 ESP-01 PAN-02 PAN-03 SPD-01 SPD-02 TAM-03 TAM-04 TAM-05 TAM-06 TAM-09 TRU-04 WAY-01
   # TAM-03 = TAM-05
   # TAM-04 = TAM-06
   # TAM-09 = TAM-09
   
 # select a plot
   raw_totsrA            <- subset(raw_totsrA, plot_code=="WAY-01")
-  raw_totsrA$collar_num <- raw_totsrA$sub_plot                       ## Attention!! We don't always need this.
+  raw_totsrA$collar_num <- raw_totsrA$sub_plot                                              #### Attention!! We don't always need this. ####
   wea_tot               <- subset(weather, plot_code=="WAY-01" | measurement_code=="TOTAL")
   
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
@@ -63,6 +73,9 @@
   # Replace missing collar height data with the average collar height of that collar. Above, we are grouping by collar number, replica and date. Here, we get the average over all previous measurements.
   collar_h           <- sqldf("SELECT wea_tot.collar_number, AVG(wea_tot.collar_height_cm) FROM  wea_tot GROUP BY collar_number")
   colnames(collar_h) <- c("collar_number","avg_collar_height")
+  
+  ################################### ATTENTION! This should be previous collar height.
+  
   raw_totsr          <- sqldf("SELECT raw_totsrB.*, collar_h.avg_collar_height FROM raw_totsrB LEFT JOIN collar_h ON raw_totsrB.collar_number = collar_h.collar_number")
 
   w <- which(is.na(raw_totsr$collar_height_cm))
@@ -196,6 +209,9 @@
   # Replace missing collar height data with the average collar height of that collar. Above, we are grouping by collar number, replica and date. Here, we get the average over all previous measurements.
   collar_h            <- sqldf("SELECT wea_con.collar_number, AVG(wea_con.collar_height_cm) FROM wea_con GROUP BY collar_number")
   colnames(collar_h)  <- c("collar_number","avg_collar_height")
+  
+  ################################### ATTENTION! This should be previous collar height.
+  
   raw_consrC          <- merge(raw_consrB, collar_h,  by.x = "collar_number", by.y = "collar_number", all.x=T)
   test3               <- sqldf("select raw_consrC.* from raw_consrC where raw_consrC.code1 = '10_1_2014'")
 
@@ -304,7 +320,7 @@
   write.csv(ResCON, file="flux_control_WAY01_09to14.csv")
   
    
-## SOIL RESPIRATION PARTITIONNING
+  # SOIL RESPIRATION PARTITIONNING
   ## change treatment codes to the numbers we have in the database
   
   # Total respiration normal litterfall - CNH = 1
@@ -318,18 +334,25 @@
   # Soil matter respiration double litterfall - S2H = 9
   # Mineral layer respiration - ML = 10
   
-  raw_parsr$treatment_code <- mgsub(c("CNH","CSH","C2H","MNH","MSH","M2H","SNH","SSH","S2H","M"), c("1","2","3","4","5","6","7","8","9", "10"), raw_parsr$treatment_code)
-  wea_par$treatment_code <- mgsub(c("CNH","CSH","C2H","MNH","MSH","M2H","SNH","SSH","S2H","M"), c("1","2","3","4","5","6","7","8","9", "10"), wea_par$treatment_code)
+  raw_parsrA$treatment_code <- mapvalues(raw_parsrA$treatment_code, from=c("SSN","M2C","ml"), to=c("so_no_lit","my_doub_lit","ml_nor_lit"))
+  weather$treatment_code <- mapvalues(weather$treatment_code, from=c("mlayer_no_lit"), to=c("ml_no_lit"))
   
   # select a plot
-  raw_parsr <- subset(raw_parsr, plot_code=="ACJ")
-  wea_par <- subset(data.frame(wea_par), plot_code=="ACJ")
+  # TAM-03 TAM-04 TAM-05 TAM-06 TAM-09 
+  raw_parsrA <- subset(raw_parsrA, plot_code=="TAM-09")
+  wea_part   <- subset(weather, plot_code=="TAM-09" | measurement_code=="PART")
   
   # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
-  wea_par$code1     <- paste(wea_par$subplot, wea_par$treatment_code, wea_par$day, wea_par$month, wea_par$year, sep=".") # only use code 1 to merge wea_par and raw_parsr (subplot.day.month.year is not a unique identifier).
-  raw_parsr$code1   <- paste(raw_parsr$subplot, raw_parsr$treatment_code, raw_parsr$day, raw_parsr$month, raw_parsr$year, sep=".")
-  raw_parsr         <- sqldf("SELECT raw_parsr.*, wea_par.soil_temp, wea_par.vwc, wea_par.collar_depth FROM  raw_parsr JOIN  wea_par  ON raw_parsr.code1 = wea_par.code1")
- 
+  wea_part$code1     <- paste(wea_part$sub_plot, wea_part$treatment_code_partitioning, wea_part$day, wea_part$month, wea_part$year, sep=".") # only use code 1 to merge weather and raw_parsr (subplot.day.month.year is not a unique identifier).
+  raw_parsrA$code1  <- paste(raw_parsrA$sub_plot, raw_parsrA$treatment_code_partitioning, raw_parsrA$day, raw_parsrA$month, raw_parsrA$year, sep=".")
+    
+  wea_part_avg       <- sqldf("SELECT AVG(wea_part.vwc_percent_in), AVG(wea_part.vwc_percent_out), AVG(wea_part.soil_temp_c_in), AVG(wea_part.soil_temp_c_out), AVG(wea_part.air_temp_c), AVG(wea_part.collar_height_cm), wea_part.code1 FROM wea_part GROUP BY code1")
+  colnames(wea_part_avg) <- c("vwc_percent_in","vwc_percent_out","soil_temp_c_in", "soil_temp_c_out", "air_temp_c", "collar_height_cm", "code1")
+  test1             <- sqldf("select wea_part_avg.* from wea_part_avg where wea_part_avg.code1 = '4.my_doub_lit.27.8.2013'")
+  
+  raw_parsr        <- sqldf("SELECT raw_parsrA.*, wea_part_avg.vwc_percent_in, wea_part_avg.vwc_percent_out, wea_part_avg.soil_temp_c_in, wea_part_avg.soil_temp_c_out, wea_part_avg.air_temp_c, wea_part_avg.collar_height_cm FROM raw_parsrA LEFT JOIN wea_part_avg ON raw_parsrA.code1 = wea_part_avg.code1")
+  test2             <- sqldf("select raw_parsr.* from raw_parsr where raw_parsr.code1 = '4.my_doub_lit.27.8.2013'")
+  
   # code1 for subplot.day.month.year, but then use egm_measurement for codew
   raw_parsr$codew   <- paste(raw_parsr$egm_measurement, raw_parsr$day, raw_parsr$month, raw_parsr$year, sep=".")
    
@@ -337,21 +360,26 @@
   #raw_parsr$collar_diam <- 12
   
   # Estimate missing pressure whith temperature-dependent version of the barometric equation (see soilrespiration_aux-functions)
-  t <- mean(as.numeric(wea_par$temp), na.rm=T)
+  t <- mean(as.numeric(weather$soil_temp_c_out), na.rm=T) # most of our data is soil temp here. We should use air temp, but it is not available.
   w <- which(is.na(raw_parsr$atmp))
   raw_parsr$atmp[w] <- barometric_equation_T(elevation=0, temp=t )
   
-  ## estimate flux for each measurement
-  ## Sanity checks. Plot each flux batch to check data.
+  # Estimate missing temperature as average temperature for the plot
+  w <- which(is.na(raw_parsr$soil_temp_c_out))
+  raw_parsr$soil_temp_c_out[w] <- t
   
+  
+  ## Estimate flux for each measurement
+  
+  ## Sanity checks. Plot each flux batch to check data.
   #### TO DO: this only shows the last plot. What's wrong? 
-  op <- par(ask=TRUE) # http://stackoverflow.com/questions/6031093/making-a-series-of-plots-that-proceed-by-a-click
-  for (i in 1:length(raw_parsr$codew)){
-    aa <- subset(raw_parsr, codew == codew[i], select = c(codew, co2ref, time))
-    colnames(aa) <- c("codew", "co2", "time")
-    plot(aa$co2, aa$time, main = paste("code:", head(aa$codew, 1)), xlab="time", ylab="CO2 (micro mol s-1? ppm?)")
-    par(op)
-  }
+  #op <- par(ask=TRUE) # http://stackoverflow.com/questions/6031093/making-a-series-of-plots-that-proceed-by-a-click
+  #for (i in 1:length(raw_parsr$codew)){
+  #  aa <- subset(raw_parsr, codew == codew[i], select = c(codew, co2ref, time))
+  #  colnames(aa) <- c("codew", "co2", "time")
+  #  plot(aa$co2, aa$time, main = paste("code:", head(aa$codew, 1)), xlab="time", ylab="CO2 (micro mol s-1? ppm?)")
+  #  par(op)
+  #}
   
   
   ## Linear fit, estimate r2 quality check. 
@@ -372,6 +400,7 @@
   }
   table <- data.frame(cbind(xx, yy, zz))
   colnames(table) <- c("r2", "pvalue", "unique_code") 
+  table
   
   # get unique identifyer for each measurement
   uid <- unique(raw_parsr$codew)
@@ -382,14 +411,14 @@
   for (i in 1:length(uid)) {
     sub      <- subset(raw_parsr, subset=(raw_parsr$codew == uid[i]))
     id       <- tail(sub$codew, n=1) 
-    ten_co2  <- tail(sub$co2ref, n=10) 
+    ten_co2  <- tail(sub$co2ref, n=10)                                               # this should be more than last 10 measurements
     ten_time <- tail(sub$time, n=10)
     C10      <- tail(ten_co2, n=1)                                                   # last CO2 measurement of last 10 measurements
     C1       <- head(ten_co2, n=1)                                                   # first CO2 measurement of last 10 measurements
     t10      <- tail(ten_time, n=1)                                                  # last time step of 10 last measurements
     t1       <- head(ten_time, n=1)                                                  # first time step of 10 last measurements
     P        <- tail(sub$atmp, n=1)                                                  # ambient pressure at t10 (mb)
-    Ta       <- tail(sub$soil_temp, n=1)                                                  # air temp at t10 (deg C)
+    Ta       <- tail(sub$soil_temp_c_out, n=1)                                       # air temp at t10 (deg C)
     Vd       <- 0.0012287                                                            # m3 (constant)
     A        <- 0.00950                                                              # m2 (constant)
     Ru       <- 8.31432                                                              # J mol-1 K-1 (constant)
@@ -398,16 +427,23 @@
     yy       <- rbind(yy, flux)
   }
   Res <- data.frame(cbind(xx, yy))
-  colnames(Res) <- c("codew", "flux")
   
-  # TO DO: have a look at how Khoon calculates this.
+  colnames(Res) <- c("codew", "flux")
+  Res$codew <- as.character(Res$codew)
+  
+  test3             <- sqldf("select raw_parsr.* from raw_parsr where raw_parsr.codew = '65.9.2.2013'")
+  
 
-# build the new data frame
-  Respar <- sqldf("SELECT Res.*, MAX(raw_parsr.plot_code), MAX(raw_parsr.measurement_code), MAX(raw_parsr.treatment_code), MAX(raw_parsr.egm_measurement), MAX(raw_parsr.day), MAX(raw_parsr.month), MAX(raw_parsr.year), MAX(raw_parsr.hour), MAX(raw_parsr.soil_temp), MAX(raw_parsr.vwc), MAX(raw_parsr.collar_depth) FROM Res JOIN raw_parsr ON Res.codew = raw_parsr.codew GROUP BY codew")
-  colnames(Respar)  <- c("code", "flux_umolco2_m2_s", "plot_code", "measurement_code", "treatment_code", "egm_measurement", "day", "month", "year", "hour", "soil_temp_degC", "vwc_percent", "collar_depth_cm") 
+  
+# build the new data frame 
+  
+  xx <- sqldf("SELECT raw_parsr.codew, raw_parsr.plot_code, raw_parsr.sub_plot, raw_parsr.measurement_code, raw_parsr.treatment_code_partitioning, MAX(raw_parsr.egm_measurement), MAX(raw_parsr.day), MAX(raw_parsr.month), MAX(raw_parsr.year), MAX(raw_parsr.hour), MAX(raw_parsr.soil_temp_c_out), MAX(raw_parsr.vwc_percent_out), MAX(raw_parsr.collar_height_cm) FROM raw_parsr GROUP BY raw_parsr.codew")
+  colnames(xx) <- c("codew", "plot_code", "sub_plot", "measurement_code", "treatment_code_partitioning", "egm_measurement", "day", "month", "year", "hour", "soil_temp_c_out", "vwc_percent_out", "collar_height_cm")
+  ResPAR <- merge(Res, xx,  by.x = "codew", by.y = "codew", all.x=TRUE)
+  head(ResPAR)
   
 # save to current directory  
-  setwd("C:/Users/Cecile/Documents/GitHub/GEMcarbon.R/example files/outputs")
-  write.csv(Respar, file="Res_partitionning_test1.csv") 
+  setwd("~/Desktop/data_sorting/Rflux")
+  write.csv(ResPAR, file="flux_part_TAM_09_2013.csv") 
   
   ## style guide on how to lay out R code: http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml#indentation 
