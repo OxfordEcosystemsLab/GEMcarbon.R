@@ -26,28 +26,56 @@ rm.flux.outlier <- function(flux_overall, sd_interval=3) {
 
 ## remove temperature outlier:
 rm.temp.outlier <- function(temp, month) {
-  temp[which(temp<5)]=NA    # MAKE THIS A DEFINABLE VARIABLE
-  temp[which(temp>50)]=NA   # MAKE THIS A DEFINABLE VARIABLE
-  
+  temp[which(temp<5)]=NA   
+  temp[which(temp>50)]=NA   
   xtemp <- NULL
   ## run through 12 months to find xtemp:
   for (i in 1:12) {
     xtemp[i] <-mean(temp[which(month == i)],na.rm=T)
     temp[which(is.na(temp) & month == i)] <- xtemp[i]
   }
-  #%if temp data are missing fill in the values with these data -> WHY?
-  # This was before I changed the error correction:
-  #xtemp= t(matrix(data=c(23.5768518518518,23.5444444444444,24.1574074074074,23.8675925925926,20.1416666666667,22.7888888888889,20.1111111111111,21.2144444444444,23.4574074074074,24.3486111111111,24.3129629629630,24.3324074074074,23.7212962962963,23.5629629629630,24.3620370370370,24.3703703703704,22.4324074074074,22.7194444444444,18.4259259259259,21.8000000000000,24.7944444444444,24.6347222222222,24.7742592592593,24.1861111111111,23.8083590509375,23.8083590509375,25.0081202046036,23.5112903225806,24.7426680672269,25.1614285714286,23.6415492957747,24.8514084507042,24.7034439513795,26.1714285714286,23.8083590509375,23.8083590509375,23.8083590509375,23.8083590509375,24.6732394366197,24.4428571428572,23.8083590509375,25.8693635014982,23.5798507462687,24.8459611546023,24.6394366197183,26.3195085470086,23.8083590509375,23.8083590509375,25.3805555555556,24.1027777777778,24.1736111111111,23.6175925925926,23.9555555555556,22.1527777777778,21.5527777777778,21.6125000000000,23.5277777777778,24.0222222222222,24.5375000000000,24.0166666666667,25.0629629629630,25.0629629629630,24.8013888888889,26.4185185185185,24.1972222222222,22.9416666666667,22.1652777777778,22.3138888888889,24.1083333333333,24.7944444444444,24.5000000000000,24.2944444444444),nrow=12,ncol=6))
   return(temp)
 }
 
+
+#######################################SORT THIS OUT!! ########################################################################
+###############################################################################################################################
+
 ## remove ch outlier:
-rm.ch.outlier <- function(ch) {
-  xch=mean(ch,na.rm=T)  ## mean of ch over all plots!
-  ch[which(is.na(ch))] <- xch
+
+library(zoo)
+ts$date <- as.Date(paste(ts$year, ts$month, ts$day, sep="."), format="%Y.%m.%d") 
+
+ts = ts[order(ts$date),]
+temp <- zoo(ts)
+temp <- zoo(subset(ts, sub_plot ==1, select = c(date, cht1)))
+index(temp) <- temp$date
+na.approx(temp)
+
+
+ch = tst$cht1 
+sub_plot = tst$sub_plot
+month = tst$month
+
+fill.ch.na <- function(ch, sub_plot, month) {
+  xch <- NULL
+  for (i in 1:25) {
+    for (j in 1:12) {
+      xch[i] <-mean(ch[which(sub_plot == i & month == j)], na.rm=T)
+      ch[which(is.na(ch) & sub_plot == i & month == j)] <- xch[i]
+    }
+  }
   return(ch)
 }
 
+
+
+#xch=mean(ch,na.rm=T)  ## mean of ch over all plot! This should be the ch for that collar for the month before.
+#ch[which(is.na(ch))] <- xch
+#return(ch)
+
+###############################################################################################################################
+###############################################################################################################################
 # ch=ch-1 in cm. This eliminates the overlap between the collar and the adaptor.
 
 ## Perform chamber and flux correction (Metcalfe 2009) 

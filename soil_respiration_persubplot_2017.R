@@ -4,37 +4,42 @@
 # Last edited: Cecile Girardin, 10.09.2015
 
 ### Required Data:
-# data.frame of total soil respiration
-# data.frame of partition respiration 
-# data.frame of control respiration 
+# dataframe of total soil respiration
+# dataframe of partition respiration 
+# dataframe of control respiration 
 # plotname: specify plot_code of the plot you are working with (eg. WAY-01)
 # ret: data-format of return values: "monthly.means.ts" or "monthly.means.matrix"
 # plotit: logical (T/F), plot a quick graphical summary of the data?
 # User has to specify either elevation or pressure.
 
 
+#load packages
+library(sqldf)
+require(ggplot2)
+
+
 ### read data for option 1:
 setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
-data.resc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
-data.resp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
-data.rest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
+dataresc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
+dataresp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
+datarest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
 
-# data.resp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(data.resp$collar_height_cm, na.rm=T)
-data.resp$collar_height_cm[is.na(data.resp$collar_height_cm)] <- mean(data.resp$collar_height_cm, na.rm=T)
+# dataresp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(dataresp$collar_height_cm, na.rm=T)
+dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
 
 pressure = 1013.25
 plotname = "ESP-01"
 partitioningoption = 1
-elevation = "default"
+elevation = "Default"
 T_ambient="Default"
 plotit=T
 
 ### read data for option 2:
 #setwd("/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
 
-#data.resc <- read.table("Resconallsam.csv", sep=",", header=T)
-#data.resp <- read.table("Resparallsam.csv", sep=",", header=T)
-#data.rest <- read.table("Restotallsam.csv", sep=",", header=T)
+#dataresc <- read.table("Resconallsam.csv", sep=",", header=T)
+#dataresp <- read.table("Resparallsam.csv", sep=",", header=T)
+#datarest <- read.table("Restotallsam.csv", sep=",", header=T)
 #pressure = 1013.25
 #plotname = 1.1
 #partitioningoption = 2
@@ -46,7 +51,7 @@ plotit=T
 source("/Users/cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
 
 
-soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
+soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
                             partitioningoption="Default",
                             pressure="Default", elevation="Default", T_ambient="Default",
                             plotit=F) {
@@ -88,139 +93,259 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
     pressure <- barometric_equation_T(elevation, T_ambient)
   }
   
-  ### Total soil respiration
-  ### 25 tubes measured every month, record soil moisture and temp in every tube
-  
-  plott = data.rest$plot_code   # 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB  
-  yeart = data.rest$year[which(plott==plotname)]
-  montht = data.rest$month[which(plott==plotname)]
-  tempt = data.rest$soil_temp_c_out[which(plott==plotname)]
-  cht = data.rest$collar_height_cm[which(plott==plotname)]     ## height (cm)
-  fluxt = data.rest$flux[which(plott==plotname)]    ## This is flux_umolco2_m2_s
-  
-  # Control
-  # insert 5 40cm tubes in the soil, excavate soil cores 13cm diameter by 35cm depth, mix soil but don't remove roots
-  
-  plotc = data.resc$plot_code   
-  yearc = data.resc$year[which(plotc==plotname)]
-  monthc = data.resc$month[which(plotc==plotname)]
-  tempc = data.resc$soil_temp_c_out[which(plotc==plotname)]
-  chc = data.resc$collar_height_cm[which(plotc==plotname)]
-  fluxc = data.resc$flux[which(plotc==plotname)]
-  distc = data.resc$disturbance_code_control[which(plotc==plotname)]
-  
-  #  Partitioning components of soil respiration
-  #  4 groups of 9 tubes per plot (36 tubes in total per plot).
-  
-  plotp = data.resp$plot_code 
-  yearp = data.resp$year[which(plotp==plotname)]
-  monthp = data.resp$month[which(plotp==plotname)]
-  treatmentp = data.resp$treatment_code_partitioning[which(plotp==plotname)] # CHECK THIS IS RIGHT?
-  tempp = data.resp$soil_temp_c_out[which(plotp==plotname)]
-  chp = data.resp$collar_height_cm[which(plotp==plotname)]  
-  fluxp = data.resp$flux[which(plotp==plotname)] 
   
   ### Defaults for chamber volume and tube area:
   # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
   Vd = 1171/1000000    # chamber volume m3
   A = 0.0078           # tube area m2
-  fir_year = min(c(yeart,yearp,yearc),na.rm=T)  # to know from when to when the data should be calculated for.
-  fir_yeare = max(c(yeart,yearp,yearc),na.rm=T) # fir_yeare means last year.
+  
+  ## TOTAL SOIL RESPIRATION per subplot, Mg C / ha / yr.
 
-  ## Total Soil respiration Calculation: 
   # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
   # Note: the choice of the sd_interval changes things.
-  
   # Note from CG, 22 Sept 2015: check the functions from soilrespiration_auxfunctions. They are from Chris's Matlab code.
   
-  fluxt <- rm.flux.outlier(fluxt, sd_interval=2) # IS this really defining SD? check in aux-functions
-  tempt <- rm.temp.outlier(temp=tempt, month=montht) 
-  cht   <- rm.ch.outlier(ch=cht)                 # !!Attention!! this doesn't remove outlyers. It replaces missing data with the average of chamber deapth measurements for the whole plot.
+  # Initialise dataframe for timeseries (ts)
+  tst <- data.frame(datarest$plot_code, datarest$sub_plot, datarest$plot_corner_code, datarest$collar_number, datarest$measurement_code, datarest$replica, datarest$year, datarest$egm_measurement, datarest$recno, datarest$day, datarest$month, datarest$hour, datarest$soil_temp_c_out, datarest$collar_height_cm, datarest$flux)
+  colnames(tst) <- c("plot_code", "sub_plot", "plot_corner_code", "collar_number", "measurement_code", "replica", "year", "egm_measurement", "recno", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "flux")  
   
-  ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. ##### TO DO: CHECK WITH CHRIS: ARE WE ESTIMATINGFLUX TWICE ???!! 
+  tst$fluxt1 <- tst$flux
+  tst$fluxt <- rm.flux.outlier(tst$fluxt1, sd_interval=5) 
+  tst$tempt1 <- tst$soil_temp_c_out
+  tst$tempt <- rm.temp.outlier(tst$tempt1, tst$month) 
+  
+  tst$cht1  <- tst$collar_height_cm
+  tst$cht   <- fill.ch.na(tst$cht1, tst$sub_plot, tst$month) ###mean(tst$cht1,na.rm=T) ## ####### REPLACE : ######################################### #################################### ############################# !!INTERPOLATION: WORKING ON THIS WITH ALLIE
+  
+  
+  ## Perform chamber and flux correction (Metcalfe 2009), see function fluxcorr. 
   # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75. 
-  RcAt <- fluxcorr(flux=fluxt, temp=tempt, ch=cht, Vd=Vd, A=A, pressure=pressure)
+  tst$Rs_total <- fluxcorr(flux=tst$fluxt, temp=tst$tempt, ch=tst$cht, Vd=Vd, A=A, pressure=pressure) ## STILL NOT SURE THAT THIS IS NOT REPEATING FLUX CALCULATION TWICE!!??
+  
+  # Group by replica
+  ts_total <- sqldf("SELECT tst.plot_code, tst.sub_plot, year, day, month, hour, AVG(soil_temp_c_out), AVG(collar_height_cm), AVG(Rs_total), STDEV(Rs_total) FROM tst GROUP BY year, month, sub_plot")
+  colnames(ts_total) <- c("plot_code", "sub_plot", "year", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "Rs_total", "Rs_total_std")  
+  ts_total$date <- as.Date(paste(ts_total$year, ts_total$month, ts_total$day, sep="."), format="%Y.%m.%d") 
+  ts_total$soil_temp_c_out <- as.numeric(as.character(ts_total$soil_temp_c_out))
+  ts_total$Rs_total <- as.numeric(as.character(ts_total$Rs_total))
+  
+  # Corrections and conversions
+  
+  # estimation of the relative contributions of (1) surface organic litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
+  # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
+  corrsresA = exp(-0.0695*(1))
+  
+  # convert from umol m-2 s-1 to MgC ha month
+  # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
+  # 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
+  convert = (2592000*10000*12)/(1000000*1000000)
+  ts_total$Rs_total_MgC_ha_mo = ts_total$Rs_total*convert*corrsresA
+  ts_total$Rs_total_std = ts_total$Rs_total_std*convert*corrsresA
+  
+  plot <- ggplot(ts_total, aes(x=date, y=Rs_total_MgC_ha_mo, na.rm=T)) +
+          geom_point(data = ts_total, aes(x=date, y=Rs_total_MgC_ha_mo), size=2, colour=ts_total$sub_plot, na.rm=T) 
+  plot
+  
+  #ts_total1 <- subset(ts_total, sub_plot == 1 | sub_plot == 2 | sub_plot == 3 | sub_plot == 4 | sub_plot == 5)
+  setwd("~/Desktop/data_sorting/Rflux")
+  write.csv(ts_total, file="ESP01_ts_Rs_total.csv") 
  
-  ### Control Measurements 
+ 
+  ### CONTROL SOIL RESPIRATION
   
   # remove outliers (> 3 SD) and NAs:
-  fluxc <- rm.flux.outlier(fluxc, sd_interval=2) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3 sd.
-  tempc <- rm.temp.outlier(temp = tempc, month=monthc)
-  chc   <- rm.ch.outlier(ch=chc)
+  dataresc$fluxc <- rm.flux.outlier(dataresc$flux, sd_interval=4) # Discuss with team: it makes a big difference to the data if you use 2 sd or 3 sd.
+  dataresc$tempc <- rm.temp.outlier(dataresc$soil_temp_c_out, dataresc$month)
+  dataresc$chc   <- rm.ch.outlier(ch=dataresc$collar_height_cm)
   
   ## Flux correction according to Metcalfe, RAINFOR Manual, Appendix 2, p. 75 
-  RccA <- fluxcorr(flux=fluxc, temp=tempc, ch=chc, Vd=Vd, A=A, pressure=pressure) 
+  dataresc$Rs_control <- fluxcorr(flux=dataresc$fluxc, temp=dataresc$tempc, ch=dataresc$chc, Vd=Vd, A=A, pressure=pressure)
   
-  #### Partitioning Soil Repiration calculation 
+  # Corrections and conversions
+  
+  dataresc$Rs_control_MgC_ha_mo = dataresc$Rs_control*convert*corrsresA
+  dataresc$Rs_control_std = 0/0
+  
+  # Disturbed and undisturbed: 
+  control_d  <- subset(dataresc, disturbance_code_control == "Y", select = c(,,))
+  control_ud  <- subset(dataresc, disturbance_code_control == "N", select = c(,,))
+  
+  # calculate average fluxes by month for control soil respiration: (for disturbed and non-disturbed plots)
+  im = which(monthc==i & yearc==j)
+  xx = RccA[im]                      # All current flux data we have is allocated to this new variable, xx
+  if (partitioningoption==1) {
+    rcanotper[m,n] <- mean(xx[which(distc[im]=="UD")], na.rm=T)  ## not disturbed
+    rcaper[m,n]    <- mean(xx[which(distc[im]=="D")], na.rm=T)   ## disturbed
+    DCdAstd[m,n]   <- sd(RccA[im], na.rm=T)
+    
+  
+  
+  #### PARTITIONING SOIL RESPIRATION
+    
   # remove outliers and NAs: Flux (sd > 3), Temperature and Chamber height (see soilrespiration_aux-functions.R)
-  fluxp <- rm.flux.outlier(fluxp, sd_interval=2)
-  tempp <- rm.temp.outlier(temp=tempp, month=monthp)
-  chp   <- rm.ch.outlier(ch=chp)
+  dataresp$fluxp <- rm.flux.outlier(dataresp$flux, sd_interval=4) 
+  dataresp$tempp <- rm.temp.outlier(dataresp$soil_temp_c_out, dataresp$month) 
+  dataresp$chp   <- mean(dataresp$collar_height_cm,na.rm=T) ## ####### REPLACE : fill.ch.na(tsp$cht1, tsp$sub_plot, tsp$month)######################################### #################################### ############################# !!INTERPOLATION: WORKING ON THIS WITH ALLIE
+  
   
   # flux and chamber volume correction, see function fluxcorr
-  RcpA <- fluxcorr(flux=fluxp, temp=tempp, ch=chp, Vd=Vd, A=A, pressure=pressure)
+  dataresp$Rs_part <- fluxcorr(flux=dataresp$fluxp, temp=dataresp$tempp, ch=dataresp$chp, Vd=Vd, A=A, pressure=pressure)
+  
+  # Corrections and conversions
+
+  dataresp$Rs_part_MgC_ha_mo = dataresp$Rs_part*convert*corrsresA
+  dataresp$Rs_part_std = 0/0
+  
+  dataresp$id   <- paste(dataresp$sub_plot, dataresp$day, dataresp$month, dataresp$year, sep=".")
   
   ### Calculate respiration values in each year and month for the three different treatments:
-  
-  ### This section is to differentiate between different forms of partitioning experiments:
-  #  Control - normal litterfall
-  #  Control - no litterfall
-  #  Control - double litterfall
-  #  Mycorrhizae - normal litterfall
-  #  Mycorrhizae - no litterfall
-  #  Mycorrhizae - double litterfall
-  #  Soil - normal litterfall
-  #  Soil - no litterfall
-  #  Soil - double litterfall
-  
-  ###### TO DO: plot data per tube & treatment to identify outlyers.
-  
-  # Total Respiration initialize matrixes:
-  resAt     <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  resAtstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  
-  # Control: initialize matrixes:
-  rcanotper <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  rcaper    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-  DCdAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
   
   # Partitioning: initialize matrices:
   
   if (partitioningoption == 1) {
     
-    con_nor_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_no_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_doub_litA <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_nor_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_no_litA    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_doub_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_nor_litA   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_no_litA    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_doub_litA  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con1  <- subset(dataresp, treatment_code_partitioning == "con_nor_lit", select = c(id, Rs_part_MgC_ha_mo))
+    con2  <- subset(dataresp, treatment_code_partitioning == "con_no_lit", select = c(id, Rs_part_MgC_ha_mo))
+    con3  <- subset(dataresp, treatment_code_partitioning == "con_doub_lit", select = c(id, Rs_part_MgC_ha_mo))
+    my1   <- subset(dataresp, treatment_code_partitioning == "my_nor_lit", select = c(id, Rs_part_MgC_ha_mo))
+    my2   <- subset(dataresp, treatment_code_partitioning == "my_no_lit", select = c(id, Rs_part_MgC_ha_mo))
+    my3   <- subset(dataresp, treatment_code_partitioning == "my_doub_lit", select = c(id, Rs_part_MgC_ha_mo))
+    so1   <- subset(dataresp, treatment_code_partitioning == "so_nor_lit", select = c(id, Rs_part_MgC_ha_mo))
+    so2   <- subset(dataresp, treatment_code_partitioning == "so_no_lit", select = c(id, Rs_part_MgC_ha_mo))
+    so3   <- subset(dataresp, treatment_code_partitioning == "so_doub_lit", select = c(id, Rs_part_MgC_ha_mo))
     
-    con_nor_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_no_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    con_doub_litAstd <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_nor_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_no_litAstd    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    My_doub_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_nor_litAstd   <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_no_litAstd    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    So_doub_litAstd  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    # build new dataframe
+    tempdata = merge(con1, con2, by='id', all=T)
+    tempdata = merge(tempdata, con3, by='id', all=T)
+    colnames(tempdata) <- c("id", "con_nor_lit_MgC_ha_mo", "con_no_lit_MgC_ha_mo", "con_doub_lit_MgC_ha_mo")
+    tempdata = merge(tempdata, my1, by='id', all=T)
+    tempdata = merge(tempdata, my2, by='id', all=T)
+    tempdata = merge(tempdata, my3, by='id', all=T)
+    colnames(tempdata) <- c("id",  "con_nor_lit_MgC_ha_mo", "con_no_lit_MgC_ha_mo", "con_doub_lit_MgC_ha_mo", "my_nor_lit_MgC_ha_mo", "my_no_lit_MgC_ha_mo", "my_doub_lit_MgC_ha_mo")
+    tempdata = merge(tempdata, so1, by='id', all=T)
+    tempdata = merge(tempdata, so2, by='id', all=T)
+    tempdata = merge(tempdata, so3, by='id', all=T)
+    colnames(tempdata) <- c("id", "con_nor_lit_MgC_ha_mo", "con_no_lit_MgC_ha_mo", "con_doub_lit_MgC_ha_mo", "my_nor_lit_MgC_ha_mo", "my_no_lit_MgC_ha_mo", "my_doub_lit_MgC_ha_mo", "so_nor_lit_MgC_ha_mo", "so_no_lit_MgC_ha_mo", "so_doub_lit_MgC_ha_mo")
     
   } else if (partitioningoption == 2) {
     
-    con_lit  <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S1       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S2       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S3       <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S1std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare)) 
-    S2std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
-    S3std    <- matrix(data=NA, nrow=12, ncol=fir_yeare-fir_year+1, dimnames=list(c(month.name),fir_year:fir_yeare))
+    con_lit  <- 
+    S1       <- 
+    S2       <- 
+    S3       <- 
+    S1std    <-  
+    S2std    <- 
+    S3std    <- 
+    
+    tempdata = 
+    .
+    .
+    .
+    colnames(tempdata) <-
     
   }
   
+  # merge tempdata and dataresp
+  tempresp  <- sqldf("SELECT dataresp.id, dataresp.plot_code, dataresp.sub_plot, dataresp.day, dataresp.month, dataresp.year, dataresp.hour, dataresp.tempp, dataresp.chp, dataresp.vwc_percent_out FROM dataresp GROUP BY dataresp.id")
+  tsp       <- merge(tempdata, tempresp, by = 'id', all.x = TRUE) 
   
+  
+  ###############################################################################################################
+  ####################################### CHECK WITH YADVINDER: how to do disturbance correction? #########################
+  ###############################################################################################################
+  
+  
+  # disturbance correction? 
+  # correct for disturbance of soil: First look at yearly trend to see if the disturbance effect persists.  If so average for all three years
+  ## ORIGINAL VERSION:
+  #discorA = mean(colMeans(DCudA[,2:(dim(DCudA)[2])] - DCdA[,2:(dim(DCudA)[2])],na.rm=T),na.rm=T)
+  #discorAstd = mean(colMeans(DCdAstd[,2:(dim(DCdAstd)[2])],na.rm=T),na.rm=T);
+  discor = mean(colMeans(DCudA - DCdA, na.rm=T), na.rm=T) #DCudA= undisturbed, DCdA= disturbed. this comes from R control data.
+  discorstd = sqrt(DCudA^2 + DCdAstd^2) 
+  
+  # estimate rhizosphere respiration
+  
+  if (partitioningoption == 1) {
+    ## respiration under three different treatments: control, no litter and double litter.
+    tsp$rr1 = ((tsp$con_no_lit - (tsp$so_no_lit + discor)) / (tsp$con_no_lit))
+    tsp$rr1[which(tsp$rr1>1)] = NA
+    
+    tsp$rr2 = ((tsp$con_nor_lit - (tsp$so_nor_lit + discor)) / (tsp$con_nor_lit))
+    tsp$rr2[which(tsp$rr2>1)] = NA
+    
+    tsp$rr3 = ((tsp$con_doub_lit - (tsp$so_doub_lit + discor))/(tsp$con_doub_lit))
+    tsp$rr3[which(tsp$rr3>1)] = NA
+    
+    tsp$rr = mean(c(tsp$rr1, tsp$rr2, tsp$rr3), na.rm=T)
+    tsp$rr[which(tsp$rr>1)] = NA
+    tsp$rr_std = sd(c(tsp$rr1, tsp$rr2, tsp$rr3), na.rm=T)              
+    
+  } else if (partitioningoption == 2) {
+    
+    tsp$rr = ((S1-(S3+discor))/S1) # Check that this is what the new code does.
+    ...
+  
+  }
+  
+  
+  ## autotrophic root respiration:
+  rrtotresAc    = totresAc*rr
+  rrtotresAcstd = (totresAcstd*rr)/sqrt(25) # should be more generic - length(subplot)
+  
+  ## heterotrophic respiration:
+  hrtotresAc    = totresAc*(1-rr)
+  hrtotresAcstd = (totresAcstd*(1-rr))/sqrt(25)
+  
+  
+  
+  
+  
+  ###############################################################################################################
+  ####################################### CHECK WITH YADVINDER: how to estimate rhyzosphere respiration? #########################
+  ###############################################################################################################
+  
+  if (partitioningoption == 1) {
+    ## respiration under three different treatments: control, no litter and double litter.
+    rrA1 = ((con_no_litA-(So_no_litA+discorA))/(con_no_litA))
+    #rrA1[which(rrA1 < 0)] <- NA
+    rrA1[which(rrA1>1)] = NA
+    
+    rrA2 = ((con_nor_litA-(So_nor_litA+discorA))/(con_nor_litA))
+    #rrA2[which(rrA2 < 0)] <- NA
+    rrA2[which(rrA2>1)] = NA
+    
+    rrA3 = ((con_doub_litA-(So_doub_litA+discorA))/(con_doub_litA))
+    #rrA3[which(rrA3<0)] <- NA
+    rrA3[which(rrA3>1)] <- NA
+    
+    rrxc = dim(rrA1)
+    rrA    <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
+    rrAstd <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
+    for (i in 1:rrxc[1]) {
+      for (j in 1:rrxc[2]) {
+        rrA[i,j]    = mean(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
+        rrAstd[i,j] = sd(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
+      }
+    } 
+    rrA[which(rrA>1)] = NA
+  } else if (partitioningoption == 2) {
+    rrA = ((S1-(S3+discorA))/S1) # Check that this is what the new code does.
+    #rrA[which(rrA > 1)] = NA
+    # rrAstd = ....
+  }
+  
+  
+  ## autotrophic root respiration:
+  rrtotresAc    = totresAc*rrA
+  rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should be more generic - length(subplot)
+  
+  ## heterotrophic respiration:
+  hrtotresAc    = totresAc*(1-rrA)
+  hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
+  
+  
+  
+
   # average fluxes by month for total soil respiration
   n=1
   for (j in fir_year:fir_yeare) {
@@ -357,62 +482,7 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   corrsresA = exp(-0.0695*(1))
   
   
-  # convert from umol m-2 s-1 to MgC ha month
-  # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
-  # 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
-  convert = (2592000*10000*12)/(1000000*1000000)
-  totresAc = resAt*convert*corrsresA
-  totresAcstd = resAtstd*convert*corrsresA
-  
-  
-  # correct for disturbance of soil: First look at yearly trend to see if the
-  # disturbance effect persists.  If so average for all three years
-  ## ORIGINAL VERSION:
-  #discorA = mean(colMeans(DCudA[,2:(dim(DCudA)[2])] - DCdA[,2:(dim(DCudA)[2])],na.rm=T),na.rm=T)
-  #discorAstd = mean(colMeans(DCdAstd[,2:(dim(DCdAstd)[2])],na.rm=T),na.rm=T);
-  
-  discorA = mean(colMeans(DCudA - DCdA, na.rm=T), na.rm=T)
-  discorAstd = sqrt(DCudA^2 + DCdAstd^2) # !!!!! GET DCudAstd !!!!!!!!!!!
-  
-  
-  if (partitioningoption == 1) {
-    ## respiration under three different treatments: control, no litter and double litter.
-    rrA1 = ((con_no_litA-(So_no_litA+discorA))/(con_no_litA))
-    #rrA1[which(rrA1 < 0)] <- NA
-    rrA1[which(rrA1>1)] = NA
-    
-    rrA2 = ((con_nor_litA-(So_nor_litA+discorA))/(con_nor_litA))
-    #rrA2[which(rrA2 < 0)] <- NA
-    rrA2[which(rrA2>1)] = NA
-    
-    rrA3 = ((con_doub_litA-(So_doub_litA+discorA))/(con_doub_litA))
-    #rrA3[which(rrA3<0)] <- NA
-    rrA3[which(rrA3>1)] <- NA
-    
-    rrxc = dim(rrA1)
-    rrA    <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
-    rrAstd <- matrix(data = NA, nrow = rrxc[1], ncol = rrxc[2])
-    for (i in 1:rrxc[1]) {
-      for (j in 1:rrxc[2]) {
-        rrA[i,j]    = mean(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
-        rrAstd[i,j] = sd(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
-      }
-    } 
-    rrA[which(rrA>1)] = NA
-  } else if (partitioningoption == 2) {
-    rrA = ((S1-(S3+discorA))/S1) # Check that this is what the new code does.
-    #rrA[which(rrA > 1)] = NA
-    # rrAstd = ....
-  }
-  
-  
-  ## autotrophic root respiration:
-  rrtotresAc    = totresAc*rrA
-  rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should be more generic - length(subplot)
-  
-  ## heterotrophic respiration:
-  hrtotresAc    = totresAc*(1-rrA)
-  hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
+
   
   ### NEW BIT FOR DAN's PAPER ################## I AM HERE##################### 
   
@@ -492,7 +562,7 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
     Day[((i-1)*12+1):((i-1)*12+12)]   <- rep(NA,12)
   }
   
-  soilresp.data.monthly.ts <- data.frame(Year,Month,Day,
+  soilresp_data_monthly_ts <- data.frame(Year,Month,Day,
                                          c(rrtotresAc), c(rrtotresAcstd),
                                          c(hrtotresAc), c(hrtotresAcstd))
                                          #c(rrA1), 

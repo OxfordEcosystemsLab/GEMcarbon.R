@@ -122,6 +122,15 @@ names(rpart_tam) <- sub("^Min$", "min", names(rpart_tam))
 names(rpart_tam) <- sub("^Input.D$", "InputD", names(rpart_tam))
 names(rpart_tam) <- sub("^Input.F$", "InputF", names(rpart_tam))
 
+# Rename plots
+
+rpart_tam$plot_code  <- gsub("TAM-03","TAM-05", rpart_tam$plot_code, ignore.case=T)
+rpart_tam$plot_code  <- gsub("TAM-04","TAM-06", rpart_tam$plot_code, ignore.case=T)
+
+# TAM-03 = TAM-05
+# TAM-04 = TAM-06
+# TAM-09 = TAM-09
+
 # control  
 tam_ctrl_12  <- read.table("~/Desktop/data_sorting/rsoil/2012 Tam Ctrl.csv", sep=",", header=T) #2012 TAM CTRL 20150928.csv 
 tam_ctrl_13  <- read.table("~/Desktop/data_sorting/rsoil/2013 TAM CTRL 20150928.csv", sep=",", header=T)
