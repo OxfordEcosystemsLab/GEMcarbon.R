@@ -14,7 +14,10 @@
 # Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
 # TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
-
+library(zoo)
+library(sqldf)
+require(ggplot2)
+library(dplyr)
 
 flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
@@ -53,10 +56,6 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
     data_flf <- read.csv(data_flf)
   }
-  
-  library(sqldf)
-  require(ggplot2)
-  library(dplyr)
     
   # new data frame
   data_flf2 <- c()  

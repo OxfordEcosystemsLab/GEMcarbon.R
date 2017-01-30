@@ -41,9 +41,9 @@ rm.temp.outlier <- function(temp, month) {
 
 library(zoo)
 
-zoo function
-date column
-na.approx
+# zoo function
+# date column
+# na.approx
 
 # sort by collar
 # sort by date

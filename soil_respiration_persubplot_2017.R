@@ -19,13 +19,13 @@ require(ggplot2)
 
 
 ### read data for option 1:
-setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
-data.resc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
-data.resp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
-data.rest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
+# setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
+# data.resc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
+# data.resp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
+# data.rest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
 
 # data.resp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(data.resp$collar_height_cm, na.rm=T)
-data.resp$collar_height_cm[is.na(data.resp$collar_height_cm)] <- mean(data.resp$collar_height_cm, na.rm=T)
+# data.resp$collar_height_cm[is.na(data.resp$collar_height_cm)] <- mean(data.resp$collar_height_cm, na.rm=T)
 
 pressure = 1013.25
 plotname = "ESP-01"
@@ -48,8 +48,8 @@ plotit=T
 #T_ambient="Default"
 
 # read correction functions:
-source("/Users/cecile/Documents/GitHub/GEMcarbon.R/soilrespiration_auxfunctions.R")
-
+script.dir <- dirname(sys.frame(1)$ofile)
+source(paste0(script.dir,"/soilrespiration_auxfunctions.R"))
 
 soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
                             partitioningoption="Default",
@@ -123,11 +123,11 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75. 
   ts$Rs_total <- fluxcorr(flux=ts$fluxt, temp=ts$tempt, ch=ts$cht, Vd=Vd, A=A, pressure=pressure)
   
-  plot1 <- ggplot(ts, aes(x=year, y=Rs_total, na.rm=T)) +
-    geom_point(data = ts, aes(x=year, y=Rs_total), size=2, colour='orange', na.rm=T) + 
-    #theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
-    xlab("") + ylab(expression(paste(Total R[soil] flux, "(Mg C ", ha^-1, mo^-1, ")", sep=""))) +    
-  plot1
+  # plot1 <- ggplot(ts, aes(x=year, y=Rs_total, na.rm=T)) +
+  #   geom_point(data = ts, aes(x=year, y=Rs_total), size=2, colour='orange', na.rm=T) + 
+  #   #theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
+  #   xlab("") + ylab(expression(paste(Total R[soil] flux, "(Mg C ", ha^-1, mo^-1, ")", sep=""))) +    
+  # plot1
   
   # convert from umol m-2 s-1 to MgC ha month
   # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
