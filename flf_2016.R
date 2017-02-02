@@ -66,7 +66,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   }
 
   data_flf2 = subset(data_flf, plot_code == plotname)
-  data_flf2 = data_flf2 %>% rename(plot = plot_code,
+  
+  data_flf2 = data_flf2 %>% dplyr::rename(plot = plot_code,
                                    num = litterfall_trap_num,
                                    leaves = leaves_g_per_trap,
                                    twigs = twigs_g_per_trap,
@@ -75,7 +76,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
                                    brom = bromeliads_g_per_trap,
                                    epi = epiphytes_g_per_trap,
                                    other = other_g_per_trap) %>% 
-                            mutate(seeds = NA,
+                            dplyr::mutate(seeds = NA,
                                    date = as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d"))
                             # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
   
@@ -218,7 +219,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   
   # flf per ha per month (for each trap)
   data4 = data3 %>% group_by(plot, num, year, month) %>% 
-                    summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
+                    dplyr::summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
                               twigsflf_MgC_ha_month_trap = mean(twigsflf, na.rm = T),
                               flowersflf_MgC_ha_month_trap = mean(flowersflf, na.rm = T),
                               fruitsflf_MgC_ha_month_trap = mean(fruitsflf, na.rm = T),
@@ -234,7 +235,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
                               sd_epiflf = sd(epiflf, na.rm = T),
                               sd_otherflf = sd(otherflf, na.rm = T),
                               sd_totalflf = sd(totalflf, na.rm = T)) %>%
-                    rename(litterfall_trap_num = num)
+                    dplyr::rename(litterfall_trap_num = num)
           
   # calculate standard error sd/sqrt(length(unique(data3$year)))
   
