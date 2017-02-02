@@ -100,6 +100,9 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   x <- cbind(data_flf2$leaves, data_flf2$twigs, data_flf2$flowers, data_flf2$fruits, data_flf2$seeds, data_flf2$brom, data_flf2$epi, data_flf2$other)   
   data_flf2$total <- rowSums(x, na.rm = T)
   
+  # In some cases, only total litterfall is recorded
+  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litterfall_g_per_trap)
+  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litterfall_g_per_trap
   
   ### Sanity check of the inputs.
   
@@ -214,7 +217,6 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data3$totalflf   <- (((data3$total*(10000/0.25))*0.000001)*0.49)*30
   
   # flf per ha per month (for each trap)
-  
   data4 = data3 %>% group_by(plot, num, year, month) %>% 
                     summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
                               twigsflf_MgC_ha_month_trap = mean(twigsflf, na.rm = T),
