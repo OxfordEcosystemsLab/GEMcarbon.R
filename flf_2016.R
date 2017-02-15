@@ -14,6 +14,7 @@
 # Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
 # TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
 
+<<<<<<< Updated upstream
 library(zoo)
 library(sqldf)
 require(ggplot2)
@@ -48,6 +49,10 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   }
     
 }
+=======
+#flf <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
+  # ret = monthly.means.subplot or monthly.means.ts for plot averages.
+>>>>>>> Stashed changes
 
 
 flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
@@ -64,6 +69,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   if (missing(plotname)) {  # calculate for first-mentioned plot if plot not specified.  rethink whether we should really have this here...
     plotname = data_flf$plot_code[1]
   }
+<<<<<<< Updated upstream
 
   data_flf2 = subset(data_flf, plot_code == plotname)
   
@@ -96,6 +102,24 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   # data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
   # data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
   # data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
+=======
+  
+  data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
+  data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
+  data_flf2         <- data.frame(data_flf2)
+  data_flf2$month   <- data_flf$month[which(plotname==data_flf2$plot)]
+  data_flf2$day     <- data_flf$day[which(plotname==data_flf2$plot)]
+  data_flf2$date    <- as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d")  
+  data_flf2$num     <- data_flf$litterfall_trap_num[which(plotname==data_flf2$plot)]
+  data_flf2$leaves  <- data_flf$leaves_g_per_trap[which(plotname==data_flf2$plot)]   
+  data_flf2$twigs   <- data_flf$twigs_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$flowers <- data_flf$flowers_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$fruits  <- data_flf$fruits_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$seeds   <- NA # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
+  data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
+  data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
+>>>>>>> Stashed changes
   
   # Calculate total litterfall (sum of branches, leaves, flowers, fruits, seeds, Broms, Epiphs, other...):
   x <- cbind(data_flf2$leaves, data_flf2$twigs, data_flf2$flowers, data_flf2$fruits, data_flf2$seeds, data_flf2$brom, data_flf2$epi, data_flf2$other)   

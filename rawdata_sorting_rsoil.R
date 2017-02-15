@@ -407,7 +407,7 @@ dd$treatment_code_partitioning  <- NA
 dd$disturbance_code_control     <- NA
 dd$ingrowth_core                <- NA
 dd$litter_code                  <- NA
-dd$collar_number                   <- as.numeric(as.character(wrestot_eltr$col_num))
+dd$collar_number                <- as.numeric(as.character(wrestot_eltr$col_num))
 dd$replica                      <- as.numeric(as.character(wrestot_eltr$rep))  
 dd$vwc_percent_in               <- NA    
 dd$vwc_percent_out              <- wrestot_eltr$VWC  
@@ -477,7 +477,7 @@ ff$treatment_code_partitioning  <- NA
 ff$disturbance_code_control     <- NA
 ff$ingrowth_core                <- NA
 ff$litter_code                  <- NA
-ff$collar_number                   <- as.numeric(as.character(wrespar_eltr$col_num))
+ff$collar_number                <- as.numeric(as.character(wrespar_eltr$col_num))
 ff$replica                      <- as.numeric(as.character(wrespar_eltr$rep))  
 ff$vwc_percent_in               <- NA 
 ff$vwc_percent_out              <- NA 
@@ -594,6 +594,23 @@ XXX             <- sqldf("select rsoil_part_eltr.* from rsoil_part_eltr where rs
 w <- which(rsoil_part_eltr$month == '0')
 rsoil_part_eltr$month[w] <- 12
 
+rsoil_total_eltr$plot_code <- revalue(rsoil_total_eltr$plot_code, c("TAM-03" = "TAM-05", "TAM-04" = "TAM-06"))
+unique(rsoil_total_eltr$plot_code)
+
+rsoil_total_eltr$atmp_mb[which(rsoil_total_eltr$atmp_mb > 2000)] <- 0/0
+unique(rsoil_total_eltr$atmp_mb)
+
+# clean weather data
+
+w <- which(weather_09_14$air_temp_c >= '100')
+weather_09_14$air_temp_c[w] <- "NA"
+weather_09_14$air_temp_c <- as.numeric(as.character(weather_09_14$air_temp_c)) 
+
+# Weather data problem: which of these is air temp/soil temp? and what are plots 1 to 9? they all have a MAT ca.10 deg C. I am replacing them by "WAY-01"
+weather_09_14$plot_code <- revalue(weather_09_14$plot_code, c("1" = "WAY-01", "2" = "WAY-01", "3" = "WAY-01", "4" = "WAY-01", "5" = "WAY-01", "6" = "WAY-01", "7" = "WAY-01", "8" = "WAY-01", "9" = "WAY-01"))
+
+maat <- sqldf("SELECT MAX(weather_09_14.plot_code), AVG(weather_09_14.air_temp_c) FROM weather_09_14 GROUP BY plot_code")
+mast <- sqldf("SELECT MAX(weather_09_14.plot_code), AVG(weather_09_14.soil_temp_c_out) FROM weather_09_14 GROUP BY plot_code")
 
 # save files
 write.csv(rsoil_control_eltr, file="eltr_rsoil_control_dec16.csv") 
@@ -603,4 +620,18 @@ write.csv(rsoil_part_eltr, file="eltr_rsoil_part_dec16.csv")
 write.csv(rsoil_total_eltr, file="eltr_rsoil_total_dec16.csv") 
 
 write.csv(weather_09_14, file="eltr_rsoil_weather_dec16.csv") 
+
+
+
+# read in data 
+setwd("~/Github/gemcarbon_data/raw_data_ingembd")
+raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_control_dec16.csv", sep=",", header=T)
+raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
+raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_total_feb17.csv", sep=",", header=T)
+weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_weather_dec16.csv", sep=",", header=T) 
+
+
+
+
+
 

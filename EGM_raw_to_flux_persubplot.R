@@ -31,56 +31,43 @@
   source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
 
 # read in data 
-  setwd("~/Desktop/data_sorting/rsoil")
   raw_consrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_control_dec16.csv", sep=",", header=T)
   raw_parsrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
-  raw_totsrA   <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_total_dec16.csv", sep=",", header=T)
-  weather      <- read.table("~/Desktop/data_sorting/rsoil/eltr_rsoil_weather_dec16.csv", sep=",", header=T) 
-  
-# clean weather data
-  w <- which(weather$air_temp_c >= '100')
-  weather$air_temp_c[w] <- "NA"
+  raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_total_feb17.csv", sep=",", header=T)
+  weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_weather_feb17.csv", sep=",", header=T) 
   weather$air_temp_c <- as.numeric(as.character(weather$air_temp_c)) 
-  
-# Weather data problem: which of these is air temp/soil temp? and what are plots 1 to 9? they all have a MAT ca.10 deg C.
-  maat <- sqldf("SELECT AVG(weather.plot_code), AVG(weather.air_temp_c) FROM weather GROUP BY plot_code")
-  mast <- sqldf("SELECT MAX(weather.plot_code), AVG(weather.soil_temp_c_out) FROM weather GROUP BY plot_code")
-  
+  # Replace missing collar height data 
+  # with the previous or subsequent collar height, or an average of the two if they are both provided.
+  weather$ch_new <- fill.na(weather$collar_height_cm)
   
 ## TOTAL SOIL RESPIRATION
   
-  # ACJ-01 ESP-01 PAN-02 PAN-03 SPD-01 SPD-02 TAM-03 TAM-04 TAM-05 TAM-06 TAM-09 TRU-04 WAY-01
-  # TAM-03 = TAM-05
-  # TAM-04 = TAM-06
-  # TAM-09 = TAM-09
   
+  ##########################
+  #########################
+  ######################## THERE IS A PROBLEM WITH THE FILL.NA!!!!!!!!!!!!
+  ######### Notes to me: this is working fine, you can run all the datasets to estimate TOTAL soil respiration. Still a lot of NAs, could it be an issue with the collar height?
+  
+  # unique(raw_totsrA$plot_code)
+  # SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
+    
 # select a plot
-  raw_totsrA            <- subset(raw_totsrA, plot_code=="WAY-01")
+  raw_totsrA            <- subset(raw_totsrA, plot_code=="SPD-01")
   raw_totsrA$collar_num <- raw_totsrA$sub_plot                                              #### Attention!! We don't always need this. ####
-  wea_tot               <- subset(weather, plot_code=="WAY-01" | measurement_code=="TOTAL")
+  wea_tot               <- subset(weather, plot_code=="SPD-01" | measurement_code=="TOTAL")
   
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
   wea_tot$code1     <- paste(wea_tot$collar_num, wea_tot$replica, wea_tot$month, wea_tot$year, sep="_") # wea_tot$day, wea_tot$month, wea_tot$year, sep=".") # only use code 1 to merge wea_tot and raw_totsr (subplot.day.month.year is not a unique identifier).
   raw_totsrA$code1  <- paste(raw_totsrA$collar_num, raw_totsrA$replica, raw_totsrA$month, raw_totsrA$year, sep="_") # raw_totsrA$day, raw_totsrA$month, raw_totsrA$year, sep=".")
   
-  wea_tot_avg       <- sqldf("SELECT AVG(wea_tot.vwc_percent_in), AVG(wea_tot.vwc_percent_out), AVG(wea_tot.soil_temp_c_in), AVG(wea_tot.soil_temp_c_out), AVG(wea_tot.air_temp_c), AVG(wea_tot.collar_height_cm), wea_tot.code1 FROM wea_tot GROUP BY code1")
-  colnames(wea_tot_avg) <- c("vwc_percent_in","vwc_percent_out","soil_temp_c_in", "soil_temp_c_out", "air_temp_c", "collar_height_cm", "code1")
+  wea_tot_avg       <- sqldf("SELECT AVG(wea_tot.vwc_percent_in), AVG(wea_tot.vwc_percent_out), AVG(wea_tot.soil_temp_c_in), AVG(wea_tot.soil_temp_c_out), AVG(wea_tot.air_temp_c), AVG(wea_tot.ch_new), wea_tot.code1 FROM wea_tot GROUP BY code1")
+  colnames(wea_tot_avg) <- c("vwc_percent_in","vwc_percent_out","soil_temp_c_in", "soil_temp_c_out", "air_temp_c", "ch_gapfilled", "code1")
   test1             <- sqldf("select wea_tot_avg.* from wea_tot_avg where wea_tot_avg.code1 = '9_2_4_2011'")
+  test1
+  raw_totsr         <- sqldf("SELECT raw_totsrA.*, wea_tot_avg.vwc_percent_in, wea_tot_avg.vwc_percent_out, wea_tot_avg.soil_temp_c_in, wea_tot_avg.soil_temp_c_out, wea_tot_avg.air_temp_c, wea_tot_avg.ch_gapfilled FROM raw_totsrA LEFT JOIN wea_tot_avg ON raw_totsrA.code1 = wea_tot_avg.code1")
+  test2             <- sqldf("select raw_totsr.* from raw_totsr where raw_totsr.code1 = '9_2_4_2011'")
+  test2
   
-  raw_totsrB        <- sqldf("SELECT raw_totsrA.*, wea_tot_avg.vwc_percent_in, wea_tot_avg.vwc_percent_out, wea_tot_avg.soil_temp_c_in, wea_tot_avg.soil_temp_c_out, wea_tot_avg.air_temp_c, wea_tot_avg.collar_height_cm FROM raw_totsrA LEFT JOIN wea_tot_avg ON raw_totsrA.code1 = wea_tot_avg.code1")
-  test2             <- sqldf("select raw_totsrB.* from raw_totsrB where raw_totsrB.code1 = '9_2_4_2011'")
-  
-  # Replace missing collar height data with the average collar height of that collar. Above, we are grouping by collar number, replica and date. Here, we get the average over all previous measurements.
-  collar_h           <- sqldf("SELECT wea_tot.collar_number, AVG(wea_tot.collar_height_cm) FROM  wea_tot GROUP BY collar_number")
-  colnames(collar_h) <- c("collar_number","avg_collar_height")
-  
-  ################################### ATTENTION! This should be previous collar height.
-  
-  raw_totsr          <- sqldf("SELECT raw_totsrB.*, collar_h.avg_collar_height FROM raw_totsrB LEFT JOIN collar_h ON raw_totsrB.collar_number = collar_h.collar_number")
-
-  w <- which(is.na(raw_totsr$collar_height_cm))
-  raw_totsr$collar_height_cm[w] <- raw_totsr$avg_collar_height
-  #  TO DO: check this warning: number of items to replace is not a multiple of replacement length
   
   # code1 for collar_num.day.month.year, but then use collar_num and replica for codew
   # too many NAs in egm_measurement: raw_totsr$codew   <- paste(raw_totsr$egm_measurement, raw_totsr$day, raw_totsr$month, raw_totsr$year, sep=".")
@@ -96,9 +83,15 @@
   
 # Estimate missing temperature as average temperature for the plot
   w <- which(is.na(raw_totsr$air_temp_c))
+  # Replace missing air temp with soil temp.
+  raw_totsr$air_temp_c[w] <- raw_totsr$soil_temp_c_out[w]
+  # If data are still missing, replace with average air temp. #ATTENTION!! THIS IS A HACK! WHAT SHOULD WE DO WHEN WE DON"T HAVE AIR TEMP?
+  w <- which(is.na(raw_totsr$air_temp_c))
   raw_totsr$air_temp_c[w] <- t
-         
-## estimate flux for each measurement
+  raw_totsr$air_temp_c <- as.numeric(as.character(raw_totsr$air_temp_c)) 
+  
+  maat <- sqldf("SELECT raw_totsr.plot_code, AVG(raw_totsr.air_temp_c) FROM raw_totsr GROUP BY plot_code")
+
   ## Sanity checks. Plot each flux batch to check data.
  
   #### TO DO: this only shows the last plot. What's wrong? 
@@ -128,7 +121,9 @@
   #}
   #table <- data.frame(cbind(xx, yy, zz))
   #colnames(table) <- c("r2", "pvalue", "unique_code") # note: small r2 doesn't mean bad flux - small flux = small r2
-  
+
+  ## estimate flux for each measurement
+
 # get unique identifyer for each measurement
   uid <- unique(raw_totsr$codew)
   xx <- c()
@@ -137,21 +132,24 @@
   for (i in 1:length(uid)) {
     sub      <- subset(raw_totsr, subset=(raw_totsr$codew == uid[i])) 
     id       <- tail(sub$codew, n=1) 
-    ten_co2  <- tail(sub$co2ref_ppm_sec, n=10)   # Drop first two values rather than only keep last 10 values.
+    ten_co2  <- tail(sub$co2ref_ppm_sec, n=10)                                       # Drop first two values rather than only keep last 10 values.
     ten_time <- tail(sub$time, n=10)       
-    fit      <- lm(ten_co2~ten_time)
-    Co2slope <- fit$coefficients[2]      # USE SLOPE RATHER THAN DIFFERENCE OF C10-C1
+    #fit      <- lm(ten_co2~ten_time)
+    #Co2slope <- fit$coefficients[2]                                                 # USE SLOPE RATHER THAN DIFFERENCE OF C10-C1
     C10      <- tail(ten_co2, n=1)                                                   # last CO2 measurement of last 10 measurements
     C1       <- head(ten_co2, n=1)                                                   # first CO2 measurement of last 10 measurements
     t10      <- tail(ten_time, n=1)                                                  # last time step of 10 last measurements
     t1       <- head(ten_time, n=1)                                                  # first time step of 10 last measurements
     P        <- tail(sub$atmp, n=1)                                                  # ambient pressure at t10 (mb)
     Ta       <- tail(sub$air_temp_c, n=1)                                            # air temp at t10 (deg C)
+    ch       <- tail(sub$ch_gapfilled, n=1)                                          # see gap filling function fill.na() in soilrespiration_auxfinctions.r
     Vd       <- 0.0012287                                                            # m3 (constant)
     A        <- 0.00950                                                              # m2 (constant)
     Ru       <- 8.31432                                                              # J mol-1 K-1 (constant)
-    flux     <- ((C10 - C1)/(t10 - t1)) * (P/(Ta + 273.15))*(Vd/A)*((44.01*0.36)/Ru) # CO2 efflux (g CO2 m-2 h-1)
-    flux2    <- Co2slope * (P/(Ta + 273.15))*(Vd/A)*((44.01*0.36)/Ru)                # CO2 efflux (g CO2 m-2 h-1)
+    Va       <- A*(ch/100)                                             # additional volume m3
+    fl       <- ((C10 - C1)/(t10 - t1)) * (P/(Ta + 273.15))*(Vd/A)*((44.01*0.36)/Ru) # CO2 efflux (g CO2 m-2 h-1)
+    #flux2    <- Co2slope * (P/(Ta + 273.15))*(Vd/A)*((44.01*0.36)/Ru)               # CO2 efflux (g CO2 m-2 h-1)
+    flux     <- (fl*A/Vd*(Va+Vd)/A)*6.312                                            # Convert to umol m-2 s-1. Correct for collar height.
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
   }
@@ -175,8 +173,8 @@
   Restot$code1 <- NULL
   
 # save to current directory  
-  setwd("~/Desktop/data_sorting/Rflux")
-  write.csv(Restot, file="flux_total_WAY-01_09to14.csv")
+  setwd("~/Github/gemcarbon_data/raw_data_ingembd")
+  write.csv(Restot, file="flux_total_SPD01.csv")
   
     
 ## SOIL RESPIRATION CONTROL
@@ -206,11 +204,12 @@
   test2             <- sqldf("select raw_consrB.* from raw_consrB where raw_consrB.code1 = '10_1_2014'")
   
   
+  ################################### 
+  # ATTENTION! This should be previous collar height. & we do this in the next step. ditch these lines. 
+  
   # Replace missing collar height data with the average collar height of that collar. Above, we are grouping by collar number, replica and date. Here, we get the average over all previous measurements.
   collar_h            <- sqldf("SELECT wea_con.collar_number, AVG(wea_con.collar_height_cm) FROM wea_con GROUP BY collar_number")
   colnames(collar_h)  <- c("collar_number","avg_collar_height")
-  
-  ################################### ATTENTION! This should be previous collar height.
   
   raw_consrC          <- merge(raw_consrB, collar_h,  by.x = "collar_number", by.y = "collar_number", all.x=T)
   test3               <- sqldf("select raw_consrC.* from raw_consrC where raw_consrC.code1 = '10_1_2014'")
@@ -218,8 +217,9 @@
   w <- which(is.na(raw_consrC$collar_height_cm))
   raw_consrC$collar_height_cm[w] <- raw_consrC$avg_collar_height[w]
   
-  # code1 for subplot.collar_measurement.day.month.year, but then use egm_measurement for codew
+  ################################### 
   
+  # code1 for subplot.collar_measurement.day.month.year, but then use egm_measurement for codew
   
   # Collar diameter (cm)
   raw_consrC$collar_diam <- 12
@@ -287,6 +287,31 @@
     A        <- 0.00950                                                              # m2 (constant)
     Ru       <- 8.31432                                                              # J mol-1 K-1 (constant)
     flux     <- ((C10 - C1)/(t10 - t1)) * (P/(Ta + 273.15))*(Vd/A)*((44.01*0.36)/Ru) # CO2 efflux (g CO2 m-2 h-1)
+   
+    ############################# Chamber volume correction.
+    #############################
+    
+    ## Perform chamber and flux correction (Metcalfe 2009) 
+    # chamber volume correction according to Metcalfe et al (2009): Rainfor Manual Appendix II, page 75
+    # flux correction function is based on Appendix 2, RAINFOR manual
+    # see p. 75, RAINFOR manual
+    
+    fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
+      Va = A*(ch/100)        # additional volume m3
+      # initialize Variables for the for-loop: (variables are the flux variables and to specify plotname)
+      RucA <- numeric(length=length(temp))
+      RcA <- numeric(length=length(temp))
+      # correct for the new tube volume
+      for (i in 1:length(temp)) {
+        RucA[i]=(flux[i])*(pressure/1000)*(273/(temp[i]+273))*(44.01/22.41)*(Vd/A)/1000*3600
+        RcA[i]= (RucA[i]*A/Vd*(Va[i]+Vd)/A)*6.312  # convert to umol m-2 s-1 !!!!!!!!!!!!!!!!!!!!!!!!!!! Make sure our result is in this unit
+      }
+      return(RcA)
+    }
+    
+    #############################
+    #############################
+    
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
   }
