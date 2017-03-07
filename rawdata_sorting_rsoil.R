@@ -593,6 +593,8 @@ rsoil_part_eltr$egm_measurement <- as.integer(as.character(rsoil_part_eltr$egm_m
 XXX             <- sqldf("select rsoil_part_eltr.* from rsoil_part_eltr where rsoil_part_eltr.month = '0'")
 w <- which(rsoil_part_eltr$month == '0')
 rsoil_part_eltr$month[w] <- 12
+rsoil_part_eltr$treatment_code_partitioning <- mapvalues(rsoil_part_eltr$treatment_code_partitioning, from=c("SSN","M2C","ml"), to=c("so_no_lit","my_doub_lit","ml_nor_lit"))
+
 
 rsoil_total_eltr$plot_code <- revalue(rsoil_total_eltr$plot_code, c("TAM-03" = "TAM-05", "TAM-04" = "TAM-06"))
 unique(rsoil_total_eltr$plot_code)
@@ -608,14 +610,22 @@ weather_09_14$air_temp_c <- as.numeric(as.character(weather_09_14$air_temp_c))
 
 # Weather data problem: which of these is air temp/soil temp? and what are plots 1 to 9? they all have a MAT ca.10 deg C. I am replacing them by "WAY-01"
 weather_09_14$plot_code <- revalue(weather_09_14$plot_code, c("1" = "WAY-01", "2" = "WAY-01", "3" = "WAY-01", "4" = "WAY-01", "5" = "WAY-01", "6" = "WAY-01", "7" = "WAY-01", "8" = "WAY-01", "9" = "WAY-01"))
+weather_09_14$treatment_code_partitioning <- mapvalues(weather_09_14$treatment_code_partitioning, from=c("mlayer_no_lit"), to=c("ml_no_lit"))
 
 maat <- sqldf("SELECT MAX(weather_09_14.plot_code), AVG(weather_09_14.air_temp_c) FROM weather_09_14 GROUP BY plot_code")
 mast <- sqldf("SELECT MAX(weather_09_14.plot_code), AVG(weather_09_14.soil_temp_c_out) FROM weather_09_14 GROUP BY plot_code")
 
+
+
+
 # save files
 write.csv(rsoil_control_eltr, file="eltr_rsoil_control_dec16.csv") 
 
-write.csv(rsoil_part_eltr, file="eltr_rsoil_part_dec16.csv")                     
+write.csv(rsoil_part_eltr, file="eltr_rsoil_part_dec16.csv") 
+rsoil_part_eltr   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
+rsoil_part_eltr$treatment_code_partitioning <- mapvalues(rsoil_part_eltr$treatment_code_partitioning, from=c("SSN","M2C","ml"), to=c("so_no_lit","my_doub_lit","ml_nor_lit"))
+setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
+write.csv(rsoil_part_eltr, file="eltr_rsoil_part_feb17.csv")
 
 write.csv(rsoil_total_eltr, file="eltr_rsoil_total_dec16.csv") 
 

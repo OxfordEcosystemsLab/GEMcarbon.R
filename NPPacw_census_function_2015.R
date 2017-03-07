@@ -7,7 +7,22 @@
 # We then use this to estimate a scaling factor for the monthly dendrometer data (NPPcensus ha-1 yr-1 / NPPdend ha-1 yr-1).
 
 # requires one .csv file: 
-# census   <- read.csv() 
+setwd("~/Github/GEMcarbon.R/a_readyforupload_db")
+census   <- read.csv("andesplots_WFR_nov2014.csv", sep=",", header=T) 
+plotname = "SPD-02" 
+census1_year = "Default" 
+census2_year = "Default" 
+allometric_option = "Default" 
+height_correction_option = "Default"
+
+census$plot_code <- census$plot
+census$tree_tag  <- census$tag
+census$dbh       <- census$
+census$height_m
+census$density
+census$year
+census$month
+census$day
 
 ## column names required for this function:
 #plot_code

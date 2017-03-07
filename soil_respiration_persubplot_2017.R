@@ -19,27 +19,66 @@ require(ggplot2)
 
 
 ### read data for option 1:
-setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
-dataresc <- read.table("flux_control_ESP01_09to14.csv", sep=",", header=T)
+# SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
+ 
+setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
 
-dataresc$sub_plot <- dataresc$raw_consr.sub_plot
+# total
+dat1  <- read.table("flux_total_ACJ01.csv", sep=",", header=T)  
+dat2  <- read.table("flux_total_ESP01.csv", sep=",", header=T) 
+dat3  <- read.table("flux_total_PAN02.csv", sep=",", header=T)  
+dat4  <- read.table("flux_total_PAN03.csv", sep=",", header=T) 
+dat5  <- read.table("flux_total_SPD01.csv", sep=",", header=T) 
+dat6  <- read.table("flux_total_SPD02.csv", sep=",", header=T)  
+dat7  <- read.table("flux_total_TAM05.csv", sep=",", header=T)  
+dat8  <- read.table("flux_total_TAM06.csv", sep=",", header=T)  
+dat9  <- read.table("flux_total_TAM09.csv", sep=",", header=T)  
+dat10 <- read.table("flux_total_TRU04.csv", sep=",", header=T)  
+dat11 <- read.table("flux_total_WAY01.csv", sep=",", header=T) 
+datarest <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
 
-dataresp <- read.table("flux_part_ESP_01_2013.csv", sep=",", header=T)
-datarest <- read.table("flux_total_ESP01_09to14.csv", sep=",", header=T)
+# control
+dat1  <- read.table("flux_control_ACJ01.csv", sep=",", header=T)  
+dat2  <- read.table("flux_control_ESP01.csv", sep=",", header=T) 
+dat3  <- read.table("flux_control_PAN02.csv", sep=",", header=T)  
+dat4  <- read.table("flux_control_PAN03.csv", sep=",", header=T) 
+dat5  <- read.table("flux_control_SPD01.csv", sep=",", header=T) 
+dat6  <- read.table("flux_control_SPD02.csv", sep=",", header=T)  
+dat7  <- read.table("flux_control_TAM05.csv", sep=",", header=T)  
+dat8  <- read.table("flux_control_TAM06.csv", sep=",", header=T)  
+dat9  <- read.table("flux_control_TAM09.csv", sep=",", header=T)  
+dat10 <- read.table("flux_control_TRU04.csv", sep=",", header=T)  
+dat11 <- read.table("flux_control_WAY01.csv", sep=",", header=T) 
+dataresc <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
+discor1  <- read.table("disturbance_perplot_2017.csv", sep=",", header=T)
+
+# partitioning
+dat1  <- read.table("flux_part_ACJ01.csv", sep=",", header=T)  
+dat2  <- read.table("flux_part_ESP01.csv", sep=",", header=T) 
+dat3  <- read.table("flux_part_PAN02.csv", sep=",", header=T)  
+dat4  <- read.table("flux_part_PAN03.csv", sep=",", header=T) 
+dat5  <- read.table("flux_part_SPD01.csv", sep=",", header=T) 
+dat6  <- read.table("flux_part_SPD02.csv", sep=",", header=T)  
+dat7  <- read.table("flux_part_TAM05.csv", sep=",", header=T)  
+dat8  <- read.table("flux_part_TAM06.csv", sep=",", header=T)  
+dat9  <- read.table("flux_part_TAM09.csv", sep=",", header=T)  
+dat10 <- read.table("flux_part_TRU04.csv", sep=",", header=T)  
+dat11 <- read.table("flux_part_WAY01.csv", sep=",", header=T) 
+dataresp <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
 
 # dataresp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(dataresp$collar_height_cm, na.rm=T)
-dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
+#dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
 
+# Define function parameters
 pressure = 1013.25
-plotname = "ESP-01"
+plotname = "SPD-02"
 partitioningoption = 1
 elevation = "Default"
 T_ambient="Default"
 plotit=T
 
-### read data for option 2:
+### read data for option 2 (Africa).
 #setwd("/Users/Cecile/Dropbox/Carbon_Use_Efficieny_R/testing/soilresp")
-
 #dataresc <- read.table("Resconallsam.csv", sep=",", header=T)
 #dataresp <- read.table("Resparallsam.csv", sep=",", header=T)
 #datarest <- read.table("Restotallsam.csv", sep=",", header=T)
@@ -51,14 +90,103 @@ plotit=T
 #T_ambient="Default"
 
 # read correction functions:
+setwd("~/Github/GEMcarbon.R")
+source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
+
 script.dir <- dirname(sys.frame(1)$ofile)
 source(paste0(script.dir,"/soilrespiration_auxfunctions.R"))
+
 soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.means.ts", # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
                             partitioningoption="Default",
                             pressure="Default", elevation="Default", T_ambient="Default",
                             plotit=F) {
   
-  # Partitionning option 
+  
+  ## Defaults for chamber volume and tube area:
+  # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
+  Vd = 1171/1000000    # chamber volume m3
+  A = 0.0078           # tube area m2
+  
+  ## Corrections and conversions
+  # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
+  corrsresA = exp(-0.0695*(1))
+  # Convert units umol m2 s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha, 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
+  convert = (2592000*10000*12)/(1000000*1000000)
+  
+  
+  ## TOTAL SOIL RESPIRATION per subplot, Mg C / ha / yr.
+
+  datarest <- subset(datarest, plot_code == plotname)
+  # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
+  # Note: the choice of the sd_interval changes things.
+  
+  # Initialise dataframe for timeseries (ts)
+  tst <- data.frame(datarest$plot_code, datarest$sub_plot, datarest$plot_corner_code, datarest$collar_number, datarest$measurement_code, datarest$replica, datarest$year, datarest$egm_measurement, datarest$recno, datarest$day, datarest$month, datarest$hour, datarest$air_temp_c, datarest$ch_fill, datarest$flux)
+  colnames(tst) <- c("plot_code", "sub_plot", "plot_corner_code", "collar_number", "measurement_code", "replica", "year", "egm_measurement", "recno", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "flux")  
+  
+  tst$fluxt <- rm.flux.outlier(tst$flux, 4) 
+  tst$tempt <- rm.temp.outlier(tst$soil_temp_c_out, tst$month) 
+  
+  tst$date <- as.Date(paste(tst$year, tst$month, tst$day, sep="."), format="%Y.%m.%d") 
+  tst = tst[order(tst$sub_plot,tst$date),]
+
+  # Group by replica  
+  ts_total <- sqldf("SELECT tst.plot_code, tst.sub_plot, year, day, month, hour, AVG(soil_temp_c_out), AVG(collar_height_cm), AVG(fluxt), STDEV(fluxt) FROM tst GROUP BY year, month, sub_plot")
+  colnames(ts_total) <- c("plot_code", "sub_plot", "year", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "Rs_total", "Rs_total_std")  
+  ts_total$date <- as.Date(paste(ts_total$year, ts_total$month, ts_total$day, sep="."), format="%Y.%m.%d") 
+  ts_total$soil_temp_c_out <- as.numeric(as.character(ts_total$soil_temp_c_out))
+  ts_total$Rs_total <- as.numeric(as.character(ts_total$Rs_total))
+  
+  ts_total$Rs_total_MgC_ha_mo = ts_total$Rs_total*convert*corrsresA
+  ts_total$Rs_total_MgC_ha_mo_std = ts_total$Rs_total_std*convert*corrsresA
+  
+  plot <- ggplot(ts_total, aes(x = date, y = Rs_total_MgC_ha_mo, na.rm = T)) +
+          geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = ts_total$sub_plot, na.rm=T) +
+          ggtitle(plotname)
+  plot
+
+  ts_total$Rs_total  <- NULL
+  ts_total$Rs_total_std <- NULL
+  
+  #ts_total1 <- subset(ts_total, sub_plot == 1 | sub_plot == 2 | sub_plot == 3 | sub_plot == 4 | sub_plot == 5)
+  #setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
+  #write.csv(ts_total, file="ts_TAM05_Rs_total_2017.csv") 
+
+ 
+  
+  ### CONTROL SOIL RESPIRATION
+  
+  # remove outliers (> 3 SD) and NAs:
+  dataresc$fluxc <- rm.flux.outlier(dataresc$flux, sd_interval = 4)                     # Discuss sd_interval with team: it makes a big difference to the data if you use 2 sd or 3 sd.
+  dataresc$tempc <- rm.temp.outlier(dataresc$soil_temp_c_out, dataresc$month)
+  
+  # Corrections and conversions
+  
+  dataresc$Rs_control_MgC_ha_mo = dataresc$flux_umolm2sec*convert*corrsresA
+  dataresc$Rs_control_std = 0/0
+  
+  
+  control_d                 <- subset(dataresc, disturbance_code_control == "Y", select = c(plot_code, year, Rs_control_MgC_ha_mo))
+  control_ud                <- subset(dataresc, disturbance_code_control == "N", select = c(plot_code, year, Rs_control_MgC_ha_mo))
+  avg_d_yr                  <- sqldf("SELECT control_d.plot_code, AVG(Rs_control_MgC_ha_mo), STDEV(Rs_control_MgC_ha_mo) FROM control_d GROUP BY plot_code")
+  colnames(avg_d_yr)        <- c("plot_code", "disturbed_control", "disturbed_control_std")
+  avg_ud_yr                 <- sqldf("SELECT control_ud.plot_code, AVG(Rs_control_MgC_ha_mo), STDEV(Rs_control_MgC_ha_mo) FROM control_ud GROUP BY plot_code")
+  colnames(avg_ud_yr)       <- c("plot_code", "undisturbed_control", "undisturbed_control_std")
+  disturbance               <- merge(avg_d_yr, avg_ud_yr, by = "plot_code")
+  colnames(disturbance)     <- c("plot_code", "disturbed_control_MgC_ha_mo", "disturbed_control_std", "undisturbed_control_MgC_ha_mo", "undisturbed_control_std")
+  disturbance$dist_yr       <- as.numeric(as.character(disturbance$undisturbed_control_MgC_ha_mo)) - as.numeric(as.character(disturbance$disturbed_control_MgC_ha_mo))
+  disturbance$dist_yr_std   <- sqrt(as.numeric(as.character(disturbance$undisturbed_control_std))^2 + as.numeric(as.character(disturbance$disturbed_control_std))^2)
+  
+  print(disturbance)
+  
+  #setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
+  #write.csv(disturbance, file="disturbance_perplot_2017.csv")
+  
+  
+  
+  #### PARTITIONING SOIL RESPIRATION
+  
+  # Partitioning option 
   if (partitioningoption=="Default") {
     print("Warning! No partitioning option (see RAINFOR manual, p. 56) was specified.")
     print("Please specify the variable 'partitioningoption' in the function call.")
@@ -95,129 +223,6 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
     pressure <- barometric_equation_T(elevation, T_ambient)
   }
   
-  
-  ### Defaults for chamber volume and tube area:
-  # The CPY-2 defaults are Volume = 2465 cm3  Area = 170 cm2 and V/A = 1450
-  Vd = 1171/1000000    # chamber volume m3
-  A = 0.0078           # tube area m2
-  
-  ## TOTAL SOIL RESPIRATION per subplot, Mg C / ha / yr.
-
-  # remove outliers and NAs: Fluxes based on overall correction, ## Temperature and chamber correction: Temperature and Chamber height (see functions!)
-  # Note: the choice of the sd_interval changes things.
-  
-  # Initialise dataframe for timeseries (ts)
-  tst <- data.frame(datarest$plot_code, datarest$sub_plot, datarest$plot_corner_code, datarest$collar_number, datarest$measurement_code, datarest$replica, datarest$year, datarest$egm_measurement, datarest$recno, datarest$day, datarest$month, datarest$hour, datarest$soil_temp_c_out, datarest$collar_height_cm, datarest$flux)
-  colnames(tst) <- c("plot_code", "sub_plot", "plot_corner_code", "collar_number", "measurement_code", "replica", "year", "egm_measurement", "recno", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "flux")  
-  
-  tst$fluxt <- rm.flux.outlier(tst$flux, sd_interval=4) 
-  tst$tempt <- rm.temp.outlier(tst$soil_temp_c_out, tst$month) 
-  
-  tst$date <- as.Date(paste(tst$year, tst$month, tst$day, sep="."), format="%Y.%m.%d") 
-  tst = tst[order(tst$sub_plot,tst$date),]
-  
-  # Gap fill collar height
-  #sp <- unique(tst$sub_plot)
-  #xx <- c()
-
-  #for (i in 1:length(sp)) {
-  #  temp      <- subset(tst, tst$sub_plot == sp[i])
-  #  temp$newch <- fill.na(temp$collar_height_cm)
-  #  xx       <- c(xx, temp$newch)
-  #}
-
-  #tst$ch_gap_filled <- xx
-
-  # Group by replica
-  ts_total <- sqldf("SELECT tst.plot_code, tst.sub_plot, year, day, month, hour, AVG(soil_temp_c_out), AVG(ch_gap_filled), AVG(fluxt), STDEV(fluxt) FROM tst GROUP BY year, month, sub_plot")
-  colnames(ts_total) <- c("plot_code", "sub_plot", "year", "day", "month", "hour", "soil_temp_c_out", "collar_height_cm", "Rs_total", "Rs_total_std")  
-  ts_total$date <- as.Date(paste(ts_total$year, ts_total$month, ts_total$day, sep="."), format="%Y.%m.%d") 
-  ts_total$soil_temp_c_out <- as.numeric(as.character(ts_total$soil_temp_c_out))
-  
-  
-  # Corrections and conversions
-  
-  # estimation of the relative contributions of (1) surface organic litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
-  # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
-  corrsresA = exp(-0.0695*(1))
-  
-  # convert from umol m-2 s-1 to MgC ha month
-  # convert units umol m2s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha,
-  # 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
-  convert = (2592000*10000*12)/(1000000*1000000)
-  
-  ts_total$Rs_total_MgC_ha_mo = ts_total$Rs_total*convert*corrsresA
-  ts_total$Rs_total_std = ts_total$Rs_total_std*convert*corrsresA
-  
-  plot <- ggplot(ts_total, aes(x = date, y = Rs_total_MgC_ha_mo, na.rm = T)) +
-          geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = ts_total$sub_plot, na.rm=T) 
-  plot
-  
-  #ts_total1 <- subset(ts_total, sub_plot == 1 | sub_plot == 2 | sub_plot == 3 | sub_plot == 4 | sub_plot == 5)
-  setwd("~/Desktop/data_sorting/Rflux")
-  write.csv(ts_total, file="ESP01_ts_Rs_total.csv") 
- 
-
- 
-  ### CONTROL SOIL RESPIRATION
-  
-  # remove outliers (> 3 SD) and NAs:
-  dataresc$fluxc <- rm.flux.outlier(dataresc$flux, sd_interval = 4)                     # Discuss sd_interval with team: it makes a big difference to the data if you use 2 sd or 3 sd.
-  dataresc$tempc <- rm.temp.outlier(dataresc$soil_temp_c_out, dataresc$month)
-  
-  # Gap fill collar height
-  
- ################################################################
- # PROBLEM HERE 
- ################################################################
-  
-  sp <- unique(dataresc$sub_plot)
-  xx <- c()
- 
-  for (i in 1:length(sp)) {
-    temp      <- subset(dataresc, dataresc$sub_plot == sp[i])
-    temp$newch <- fill.na(temp$collar_height_cm)
-    xx       <- c(xx, temp$newch)
-  }
- 
-  dataresc$ch_gap_filled <- dataresc$collar_height_cm
- 
- 
-  ## Flux correction according to Metcalfe, RAINFOR Manual, Appendix 2, p. 75 
-  dataresc$Rs_control <- fluxcorr(flux=dataresc$fluxc, temp=dataresc$tempc, ch=dataresc$ch_gap_filled, Vd=Vd, A=A, pressure=pressure)
-  
-  # Corrections and conversions
-  
-  dataresc$Rs_control_MgC_ha_mo = dataresc$Rs_control*convert*corrsresA
-  dataresc$Rs_control_std = 0/0
-  
-  # Disturbance correction
- # correct for disturbance of soil: First look at yearly trend to see if the disturbance effect persists.  If so average for all three years
-  
-  dataresc$sub_plot[which(is.na(dataresc$sub_plot))] <- 13
- 
-  control_d   <- subset(dataresc, disturbance_code_control == "Y", select = c(sub_plot, year, Rs_control_MgC_ha_mo))
-  control_ud  <- subset(dataresc, disturbance_code_control == "N", select = c(sub_plot, year, Rs_control_MgC_ha_mo))
-  avg_d_yr    <- sqldf("SELECT control_d.sub_plot, control_d.year, AVG(Rs_control_MgC_ha_mo), STDEV(Rs_control_MgC_ha_mo) FROM control_d GROUP BY sub_plot, year")
-  colnames(avg_d_yr) <- c("sub_plot", "year", "disturbed_control", "disturbed_control_std")
-  avg_d_yr$id <- paste(avg_d_yr$sub_plot, avg_d_yr$year, sep=".") 
-  avg_ud_yr    <- sqldf("SELECT control_ud.sub_plot, control_ud.year, AVG(Rs_control_MgC_ha_mo), STDEV(Rs_control_MgC_ha_mo) FROM control_ud GROUP BY sub_plot, year")
-  colnames(avg_ud_yr) <- c("sub_plot", "year", "undisturbed_control", "undisturbed_control_std")
-  avg_ud_yr$id <- paste(avg_ud_yr$sub_plot, avg_ud_yr$year, sep=".") 
-  disturbance <- merge(avg_d_yr, avg_ud_yr, by = "id")
-  colnames(disturbance) <- c("id", "sub_plot", "year", "disturbed_Rs_control", "disturbed_control_std", "sub_plot", "year", "undisturbed_control", "undisturbed_control_std")
-  disturbance$dist_yr   <- as.numeric(as.character(disturbance$undisturbed_control)) - as.numeric(as.character(disturbance$disturbed_control))
-  disturbance$dist_yr_std   <- sqrt(as.numeric(as.character(disturbance$undisturbed_control_std))^2 + as.numeric(as.character(disturbance$disturbed_control_std))^2)
-  
-  print(disturbance)
-  
-  dist_avg    <- mean(disturbance$dist_yr, na.rm=T) 
-  dist_std    <- mean(disturbance$dist_yr_std, na.rm=T)
-  discor      <- dist_avg*convert
-  discorstd   <- dist_std*convert
-  
- 
-  #### PARTITIONING SOIL RESPIRATION
     
   # remove outliers and NAs: Flux (sd > 3), Temperature and Chamber height (see soilrespiration_aux-functions.R)
   dataresp$date <- as.Date(paste(dataresp$year, dataresp$month, dataresp$day, sep="."), format="%Y.%m.%d") 
@@ -226,18 +231,6 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   dataresp$fluxp <- rm.flux.outlier(dataresp$flux, sd_interval=4) 
   dataresp$tempp <- rm.temp.outlier(dataresp$soil_temp_c_out, dataresp$month) 
  
- # Gap fill collar height
- sp <- unique(dataresp$sub_plot)
- xx <- c()
- 
- for (i in 1:length(sp)) {
-   temp      <- subset(dataresp, dataresp$sub_plot == sp[i])
-   temp$newch <- fill.na(temp$collar_height_cm)
-   xx       <- c(xx, temp$newch)
- }
- 
- dataresp$ch_gap_filled <- xx
- 
   
   # Corrections and conversions
 
@@ -245,6 +238,9 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   dataresp$Rs_part_std = 0/0
   
   dataresp$id   <- paste(dataresp$sub_plot, dataresp$day, dataresp$month, dataresp$year, sep=".")
+  
+  discor2 <- subset(discor1, plot_code == plotname)
+  discor  <- abs(discor2$dist_yr)                       ####################### QUESTION: SOMETIMES DISTURBANCE CORRECTION IS NEGATIVE. DO WE WANT THE ABSOLUTE VALUE IN THAT CASE?
   
   ### Calculate respiration values in each year and month for the three different treatments:
   
@@ -294,15 +290,14 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   }
   
   # merge tempdata and dataresp
-  tempresp  <- sqldf("SELECT dataresp.id, dataresp.plot_code, dataresp.sub_plot, dataresp.day, dataresp.month, dataresp.year, dataresp.hour, dataresp.tempp, dataresp.ch_gap_filled, dataresp.vwc_percent_out FROM dataresp GROUP BY dataresp.id")
+  tempresp  <- sqldf("SELECT dataresp.id, dataresp.plot_code, dataresp.sub_plot, dataresp.day, dataresp.month, dataresp.year, dataresp.hour, dataresp.tempp, dataresp.collar_height_cm, dataresp.vwc_percent_out FROM dataresp GROUP BY dataresp.id")
   tsp       <- merge(tempdata, tempresp, by = 'id', all.x = TRUE) 
   
- 
   # estimate rhizosphere respiration
   # Fraction allocated to root respiration under three different treatments: control, no litter and double litter.
   if (partitioningoption == 1) {
 
-    tsp$rr1 = ((tsp$con_no_lit_MgC_ha_mo - (tsp$so_no_lit_MgC_ha_mo + discor)) / (tsp$con_no_lit_MgC_ha_mo))
+    tsp$rr1 = ((tsp$con_no_lit_MgC_ha_mo - (tsp$so_no_lit_MgC_ha_mo + (-discor))) / (tsp$con_no_lit_MgC_ha_mo))
     test <- tsp$rr1[which(tsp$rr1>1)]
     test
     tsp$rr1[which(tsp$rr1>1)] = 0/0
@@ -329,116 +324,28 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   
   }
   
+
   ## autotrophic root respiration:
   ts_total$Rs_root_MgC_ha_mo     <- ts_total$Rs_total_MgC_ha_mo*rr
-  ts_total$Rs_root_MgC_ha_mo_std <- (ts_total$Rs_total_std*rr)/sqrt(length(ts_total$Rs_total_std))
+  ts_total$Rs_root_MgC_ha_mo_std <- (ts_total$Rs_total_MgC_ha_mo_std*rr)/sqrt(length(ts_total$Rs_total_MgC_ha_mo_std))
   
   ## heterotrophic respiration:
   ts_total$Rs_het_MgC_ha_mo      <- ts_total$Rs_total_MgC_ha_mo*(1-rr)
-  ts_total$Rs_het_MgC_ha_mo_std  <- (ts_total$Rs_total_std*(1-rr))/sqrt(length(ts_total$Rs_total_std))
+  ts_total$Rs_het_MgC_ha_mo_std  <- (ts_total$Rs_total_MgC_ha_mo_std*(1-rr))/sqrt(length(ts_total$Rs_total_MgC_ha_mo_std))
   
  plota <- ggplot(ts_total, aes(x = date, y = Rs_root_MgC_ha_mo, na.rm = T)) +
    geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = "darkgrey", na.rm=T) +
    geom_point(data = ts_total, aes(x = date, y = Rs_root_MgC_ha_mo), size = 2, colour = "blue", na.rm=T) + #ts_total$sub_plot
-   geom_point(data = ts_total, aes(x = date, y = Rs_het_MgC_ha_mo), size = 2, colour = "red", na.rm=T)
- 
+   geom_point(data = ts_total, aes(x = date, y = Rs_het_MgC_ha_mo), size = 2, colour = "red", na.rm=T) +
+   ggtitle(plotname)
  plota
  
- ###################################################################################################
- ###################################################################################################
-  
-  #  estimation of the relative contributions of (1) surface organic litter, (2) roots, (3) mycorrhizae and (4) soil organic matter to total soil respiration
-  # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
-  corrsresA = exp(-0.0695*(1))
+ # Save file
+ setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
+ write.csv(ts_total, file="ts_xxx_Rs_part_2017.csv")
+ 
+  # Return a timeseries
+ return(ts_total)
 
-  
-  # fill gaps
-  rrAfg = colMeans(t(rrA), na.rm=T)
-  
-  for (i in 1:12) {
-    for (j in 1:(fir_yeare-fir_year+1)) {
-      if (is.na(rrA[i,j]) & !is.na(totresAc[i,j])) {
-        if (!is.na(rrAfg[i])) {
-          rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i]
-          rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i])
-          hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i])
-          hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i])
-        } else if (i == 12) {
-          rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i-1]
-          rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i-1])
-          hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i-1])
-          hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i-1])
-        } else {
-          rrtotresAc[i,j]    = totresAc[i,j]*rrAfg[i+1]
-          rrtotresAcstd[i,j] = (totresAcstd[i,j]*rrAfg[i+1])
-          hrtotresAc[i,j]    = totresAc[i,j]*(1-rrAfg[i+1])
-          hrtotresAcstd[i,j] = totresAcstd[i,j]*(1-rrAfg[i+1])
-        }
-      }    
-    }
-  }
-  
-  
-  ### Relevant Data Output: totres, hrtotres
-  ###  Build data frame with time series structure
-  
-  ##Restructure the data (according to time series structure):
-  Year  <- NULL
-  Month <- NULL
-  Day   <- NULL
-  
-  for (i in 1:dim(totresAc)[2]) {
-    Year[((i-1)*12+1):((i-1)*12+12)]  <- (rep(c(fir_year:fir_yeare)[i],12))
-    Month[((i-1)*12+1):((i-1)*12+12)] <- (1:12)
-    Day[((i-1)*12+1):((i-1)*12+12)]   <- rep(NA,12)
-  }
-  
-  soilresp_data_monthly_ts <- data.frame(Year,Month,Day,
-                                         c(rrtotresAc), c(rrtotresAcstd),
-                                         c(hrtotresAc), c(hrtotresAcstd))
-                                         #c(rrA1), 
-                                         #c(MrA1), 
-                                         #c(OMrA1), 
-                                         #c(RlnlA), 
-                                         #c(RldlA))
-  
-  colnames(soilresp.data.monthly.ts) <- c("year","month","day",  
-                                          "auto_totres_MgC_ha_mo","auto_totres_std",
-                                          "hetero_totres_MgC_ha_mo","hetero_totres_std")
-                                          #"root_res_MgC_ha_mo",
-                                          #"mycorrhizal_res_MgC_ha_mo", 
-                                          #"soil_organic_matter_res_MgC_ha_mo", 
-                                          #"som_nolitter_res_MgC_ha_mo", 
-                                          #"som_doublelitter_res_MgC_ha_mo")
-  
-  
-  ## Plotroutine, triggered by argument 'plotit=T'
-  if (plotit == T) {
-    ## Time representation of Dates as character in the vector 'dates':
-    dates <- c()
-    for (i in 1:length(Year)) {
-      dates[i] <- as.character(strptime(paste(as.character(Year[i]),as.character(Month[i]),as.character(15),sep="-"),
-                                        format="%Y-%m-%d"))
-    }
-    
-    x11()
-    par(mfrow = c(2,1))
-    par(mar = c(4,4,0.5,0.5))
-    plot(x = strptime(dates, format = "%Y-%m-%d"), y = soilresp.data.monthly.ts$rrtotresAc, 
-         type = 'l',lwd = 2,
-         xlab = "Years", ylab = "Total Respiration [Units]")
-    
-    plot(x = strptime(dates, format = "%Y-%m-%d"), y = soilresp.data.monthly.ts$hrtotresAc, 
-         type = 'l',lty=1,
-         xlab = "Years", ylab="Heterotrophic Soil Respiration [Units]")
-  }
-  
-  # Get values for each tube rather than average
-  
-  # Return either monthly means (ret="monthly.means") as time series or matrix  
-  switch(ret,
-         monthly.means.matrix = {return(soilresp.data.monthly.matrix)},
-         monthly.means.ts     = {return(soilresp.data.monthly.ts)}
-  )
-  
+ 
 }

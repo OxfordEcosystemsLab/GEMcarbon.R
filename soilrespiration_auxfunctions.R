@@ -9,8 +9,9 @@
 # Add SD per subplot / measurement
 
 ## new flux correction based on overall fluxes:
-rm.flux.outlier <- function(flux_overall, sd_interval=3) {
-  outliers = mean(flux_overall,na.rm=T) + 3*sd(flux_overall,na.rm=T)
+rm.flux.outlier <- function(flux_overall, sd_interval) {
+  flux_overall[which(flux_overall == "-Inf")] <- NA
+  outliers = mean(flux_overall,na.rm=T) + sd_interval*sd(flux_overall,na.rm=T)
   flux_overall[which(flux_overall < 0)] <- 0
   flux_overall[which(flux_overall > outliers)] <- NA
   return(flux_overall)
