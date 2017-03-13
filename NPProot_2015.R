@@ -126,7 +126,8 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
   }
 }
   
-NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = T, ret = "monthly.means.ts") {
+NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = F, ret = "monthly.means.ts") {
+  # If stock measurements aren't removed, they're used as the beginning of the first interval (otherwise assumed to be 90 days)
 
   library(sqldf)
   require(ggplot2)
@@ -148,7 +149,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
       stock_meas = rep(F, nrow(data))
       stock_meas[data$is_stock %in% "y"] = T
       data <- data[!stock_meas,]
-  }
+  } 
   
   if(nrow(data) == 0) { return(NA) }
   
@@ -183,6 +184,10 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$this_core <- (paste(as.character(data$year),as.character(data$month),as.character(data$day),as.character(data$ingrowth_core_num), sep="-"))
 
   data = transform(data, persist_id = paste(plotname, ingrowth_core_num, sep="_"))
+  if (! remove_stock_meas) {
+      # need to keep track of which measurements are stocks if we don't remove them initially
+      stock_meas = data[data$is_stock %in% "y", c("persist_id", plotname, ingrowth_core_num, year, month, day)]
+  }
   
   uid <- unique(data$this_core)
   xx <- c()
@@ -304,12 +309,20 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     c_time <- as.POSIXlt(data4$date)
     c_time <- rev(c_time)
     tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
+browser()
     data4$interval <- c(90, tt)  # I add 90 days as first collection interval. You can change this.
     data4$monthlyNPProot    <- (as.numeric(data4$threemonthlyNPProot)/data4$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
     data4$monthlyNPProot_se <- ((as.numeric(data4$threemonthlyNPProot_sd)/sqrt(16))/data4$interval) * 30 
     # (mean(data4$monthlyNPProot, na.rm=T))*12
     # (mean(data4$monthlyNPProot_se, na.rm=T))*12
 
+    if (! remove_stock_meas) {
+        # remove the first measurement from all tubes if the stock measurement wasn't removed initially
+        
+        # match measurements
+        # remove measurements
+    }
+    
   # 3 monthly data divided by collection interval per tube
     data4_pertube = data4_pertube %>% 
                     group_by(persist_id) %>% arrange(persist_id, date) %>% 

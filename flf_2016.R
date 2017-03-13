@@ -102,8 +102,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data_flf2$total <- rowSums(x, na.rm = T)
   
   # In some cases, only total litterfall is recorded
-  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litterfall_g_per_trap)
-  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litterfall_g_per_trap
+  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litter_g_per_trap)
+  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litter_g_per_trap
   
   ### Sanity check of the inputs.
   
