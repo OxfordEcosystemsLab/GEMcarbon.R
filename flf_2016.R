@@ -52,10 +52,14 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
 
 flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
   # ret = monthly.means.subplot or monthly.means.ts for plot averages.
-  
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
     data_flf <- read.csv(data_flf)
   }
+    
+  # some data was getting imported in the wrong format
+  data_flf$fruits_g_per_trap = as.numeric(data_flf$fruits_g_per_trap)
+  data_flf$seeds_g_per_trap = as.numeric(as.character(data_flf$seeds_g_per_trap))
+  data_flf$day = as.integer(as.character(data_flf$day))
     
   # new data frame
   data_flf2 <- c()  
@@ -102,8 +106,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data_flf2$total <- rowSums(x, na.rm = T)
   
   # In some cases, only total litterfall is recorded
-  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litterfall_g_per_trap)
-  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litterfall_g_per_trap
+  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litter_g_per_trap)
+  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litter_g_per_trap
   
   ### Sanity check of the inputs.
   

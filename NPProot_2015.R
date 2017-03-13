@@ -37,6 +37,54 @@
 # quality_code                
 # comments   
 
+# get script location in order to find functions.r
+# from http://stackoverflow.com/questions/1815606/rscript-determine-path-of-the-executing-script
+  # script.dir <- try(dirname(sys.frame(1)$ofile), silent = T)
+  # if (class(script.dir) == "try-error") {
+  #   script.dir = "."
+  # }
+  
+  # initial.options <- commandArgs(trailingOnly = FALSE)
+  # file.arg.name <- "--file="
+  # script.name <- sub(file.arg.name, "", initial.options[grep(file.arg.name, initial.options)])
+  # script.basename <- dirname(script.name)
+  
+  script.dir <- function() {
+    getSrcDirectory(script.dir);
+  }
+  
+source(paste(script.dir(), "functions.r", sep = "/"))
+
+ic_column_types = c(
+  "plot_code" = "character",
+  "year" = "integer",
+  "month" = "integer",
+  "day" = "integer",
+  "ingrowth_core_num" = "integer",
+  "is_stock" = "logical",
+  "ingrowth_core_litterfall_g" = "numeric",
+  "soil_humidity_pcnt" = "numeric",
+  "soil_temperature_c" = "numeric",
+  "ol_layer_depth_cm" = "numeric",
+  "ml_layer_depth_cm" = "numeric",
+  "time_step" = "integer",
+  "time_step_minutes" = "integer",
+  "ol_under_2mm_g" = "numeric",
+  "ol_above_2mm_g" = "numeric",
+  "ml_under_2mm_g" = "numeric",
+  "ml_above_2mm_g" = "numeric",
+  "ol_2to3_mm_g" = "numeric",
+  "ml_2to3_mm_g" = "numeric",
+  "ol_3to4_mm_g" = "numeric",
+  "ml_3to4_mm_g" = "numeric",
+  "ol_4to5_mm_g" = "numeric",
+  "ml_4to5_mm_g" = "numeric",
+  "ol_above_5mm_g" = "numeric",
+  "ml_above_5mm_g" = "numeric",
+  "quality_code" = "factor",
+  "comments" = "character"
+)
+
 plotit = F
 
 # Set exponent of curve for when models will not fit the data
@@ -84,6 +132,7 @@ calc_roots <- function(core_data, root_type, plotname, tx = c(10,20,30,40), mins
   return(tot_roots)
 }
 
+
 NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
                        
                        #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")) {
@@ -93,6 +142,10 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
   } else {
       data.ic = datafile # data.frame passed in directly
   }
+
+  # set column datatypes as defined above
+    data.ic = set_df_coltypes(data.ic, ic_column_types)
+  
   output = list()
   first_run = T
   pb = txtProgressBar(max = length(unique(data.ic$plot_code)), style = 3); i = 0
@@ -129,7 +182,7 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
 NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = T, ret = "monthly.means.ts") {
 
   library(sqldf)
-  require(ggplot2)
+  library(ggplot2)
   library(scales)
   library(nlme)
   library(dplyr)
@@ -304,6 +357,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     c_time <- as.POSIXlt(data4$date)
     c_time <- rev(c_time)
     tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
+browser()
     data4$interval <- c(90, tt)  # I add 90 days as first collection interval. You can change this.
     data4$monthlyNPProot    <- (as.numeric(data4$threemonthlyNPProot)/data4$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
     data4$monthlyNPProot_se <- ((as.numeric(data4$threemonthlyNPProot_sd)/sqrt(16))/data4$interval) * 30 
