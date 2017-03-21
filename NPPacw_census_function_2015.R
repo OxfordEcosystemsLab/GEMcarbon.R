@@ -8,21 +8,13 @@
 
 # requires one .csv file: 
 setwd("~/Github/GEMcarbon.R/a_readyforupload_db")
-census   <- read.csv("andesplots_WFR_nov2014.csv", sep=",", header=T) 
-plotname = "SPD-02" 
-census1_year = "Default" 
-census2_year = "Default" 
+census   <- read.csv("formattedcensus_TAM05_Mar17.csv", sep=",", header=T) 
+
+plotname = "TAM-05" 
+census1_year = "2005" 
+census2_year = "2006" 
 allometric_option = "Default" 
 height_correction_option = "Default"
-
-census$plot_code <- census$plot
-census$tree_tag  <- census$tag
-census$dbh       <- census$
-census$height_m
-census$density
-census$year
-census$month
-census$day
 
 ## column names required for this function:
 #plot_code
@@ -34,7 +26,7 @@ census$day
 #month
 #day
 
-NPPacw_census <- function(census, plotname, census1_year="Default", census2_year="Default", allometric_option="Default", height_correction_option="Default") {
+NPPacw_census <- function(census, plotname, census1_year="Default", census2_year="Default", allometric_option="Default", height_correction_option="Default", ret = "npp_pertree") {
   
   # load libraries
   library(sqldf)
@@ -151,14 +143,12 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
     } else if (allometrix == 5) {
       bm <- Chave2014(diax=dbh_tree, density=den_tree, height=h_tree)
     }
-      
-    ## TO DO ## error treatment remains to be done!
-    # Unit conversions are not carried out in allometricEquations.R
-    # print(bm)
-    # print(ii)
+    
+    # use this for debugging: print(bm) # print(ii)
     cen$agC[ii] <- (bm)*(1/(2.1097*1000)) # convert kg to Mg=1/1000=10 and convert to carbon = 47.8%
   }
   
+  ## TO DO ## error treatment remains to be done!
   ## TO DO ## ADD TERHI's HEIGHT PROPAGATION CORRECTION
    
   ## find global start and end month:
@@ -179,21 +169,32 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   census_interval <- as.numeric(difftime(end_date, start_date, units="days"))
   
   # (AG carbon.2 - AG carbon.1) / census_interval
-  agC_1         <- subset(cen, cen$year == census1_year, select = c(plot_code, tree_tag, year, month, day, agC))
-  agC_2         <- subset(cen, cen$year == census2_year, select = c(plot_code, tree_tag, year, month, day, agC))
+  agC_1         <- subset(cen, cen$year == census1_year, select = c(plot_code, tree_tag, dbh, year, month, day, agC))
+  agC_2         <- subset(cen, cen$year == census2_year, select = c(plot_code, tree_tag, dbh, year, month, day, agC))
   #agC_1$uid     <- paste(agC_1$tree_tag, agC_1$year, agC_1$month, agC_1$day, sep=".") 
   #agC_2$uid     <- paste(agC_2$tree_tag, agC_2$year, agC_2$month, agC_2$day, sep=".")
-  npp           <- sqldf("SELECT agC_1.plot_code, agC_1.tree_tag, agC_1.year, agC_1.month, agC_1.agC , agC_2.agC FROM agC_1 JOIN agC_2 ON agC_1.tree_tag = agC_2.tree_tag")
-  colnames(npp) <- c("plot_code", "tree_tag", "year", "month", "agC.1", "agC.2")
-  npp_day       <- (npp$agC.2-npp$agC.1) / census_interval
-  NPPacw_MgC_ha_yr <- (sum(npp_day, na.rm=T))*365 
-  NPPacw_MgC_ha_yr_se <- sd(npp_day, na.rm=T)/length(cen$tree_tag)
+  npp           <- sqldf("SELECT agC_1.plot_code, agC_1.tree_tag, agC_2.dbh, agC_2.year, agC_2.month, agC_1.agC , agC_2.agC FROM agC_1 JOIN agC_2 ON agC_1.tree_tag = agC_2.tree_tag")
+  colnames(npp) <- c("plot_code", "tree_tag", "dbh", "year", "month", "agC.1", "agC.2")
+  npp$npp_day       <- (npp$agC.2-npp$agC.1) / census_interval
+  npp$NPPpertree_MgC_ha_yr <- npp$npp_day*365
   
-  # Talbot census correction function
+  xx <- (sum(npp$NPPpertree_MgC_ha_yr, na.rm=T))
+  xx
+  
+  # OR get an annual value for the entire plot by summing all trees in the plot 
+  NPPacw_MgC_ha_yr <- (sum(npp$npp_day, na.rm=T))*365 
+  NPPacw_MgC_ha_yr_se <- sd(npp$npp_day, na.rm=T)/length(cen$tree_tag)
+  
+  # TO DO !!! Talbot census correction function
   NPPcorr = NPPacw_MgC_ha_yr + (0.0091 * NPPacw_MgC_ha_yr) * (census_interval/365)
   annual <- data.frame(NPPacw_MgC_ha_yr, NPPacw_MgC_ha_yr_se)
   
-return(annual)
+  write.csv(npp, file="NPPpertree_TAM05_Mar1017.csv")
+  
+switch(ret,
+       npp_pertree = {return(npp)},
+       NPP_perha = {return(annual)}
+       )
 }
 
 # w=which(!is.na(data$biomass.2003) & !is.na(data$biomass.2007)) # id surviving trees to estimate biomass growth

@@ -21,7 +21,20 @@ require(ggplot2)
 ### read data for option 1:
 # SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
  
-setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
+setwd("~/Github/gemcarbon_data/processed_ts_2017") #/soil_respiration_flux
+
+# (1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB)
+dataresc  <- read.table("Resconall_cd.txt", sep="", header=T) 
+colnames(dataresc) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
+
+dataresp  <- read.table("Resparall_cd.txt", sep="", header=T)  
+colnames(dataresp) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
+
+datarest  <- read.table("Restotall_cd.txt", sep="", header=T)  
+colnames(datarest) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
+revalue(datarest$plot_code, c("1" = "WAY-01", "2" = "ESP-01", "3" = "SPD-01", "4" = "SPD-02")) #, "5" = "TAM-05", "6" = "TAM-06", "7" = "TAM-09", "N" = "NA"))
+
+codew  flux_umolm2sec	plot_code	sub_plot	measurement_code	treatment_code_partitioning	egm_measurement	day	month	year	hour	soil_temp_c_out	vwc_percent_out	collar_height_cm
 
 # total
 dat1  <- read.table("flux_total_ACJ01.csv", sep=",", header=T)  
