@@ -636,12 +636,31 @@ write.csv(weather_09_14, file="eltr_rsoil_weather_dec16.csv")
 # read in data 
 setwd("~/Github/gemcarbon_data/raw_data_ingembd")
 raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_control_dec16.csv", sep=",", header=T)
-raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_part_dec16.csv", sep=",", header=T) 
+raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_part_feb17.csv", sep=",", header=T) 
 raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_total_feb17.csv", sep=",", header=T)
-weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_weather_dec16.csv", sep=",", header=T) 
+weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_weather_feb17.csv", sep=",", header=T) 
 
+# Add TAM 2014-2015
+Soil_respiration_component_ingrowthcore_weather_data_2015-2016.csv
 
+# Bolivia: KEN-01 (A control) & KEN-02 (B burnt)
+setwd("~/Github/gemcarbon_data/raw_data_ingembd")
+raw_con_ken <- read.table("Kenya_resp_comp_all_weather.csv")
+raw_par_ken <- read.table("Kenya_resp_comp_all_weather.csv")
+raw_tot_ken <- read.table("Kenya_resp_comp_all_weather.csv")
+weather_ken <- read.table("Kenya_resp_comp_all_weather.csv")
 
+Pontos  Pare	Tipo de medida	
+1	A	Solo nao perturbada	plantado
+2	A	Solo pertubada	excabado
+3	B	Solo nao perturbada	plantado
+4	B	Solo pertubada	excabado
+5	C	Solo nao perturbada	plantado
+6	C	Solo pertubada	excabado
+7	D	Solo nao perturbada	plantado
+8	D	Solo pertubada	excabado
+9	E	Solo nao perturbada	plantado
+10	E	Solo pertubada	excabado
 
 
 

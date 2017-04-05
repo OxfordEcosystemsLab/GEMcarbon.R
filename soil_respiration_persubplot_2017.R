@@ -18,24 +18,24 @@ library(sqldf)
 require(ggplot2)
 
 
-### read data for option 1:
-# SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
- 
+### read data (option 1):
+
+# South America data. These are flux data from the PED papers. INFO MISSING. GO BACK TO RAW DATA? 
+# plot_code: 1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB
 setwd("~/Github/gemcarbon_data/processed_ts_2017") #/soil_respiration_flux
-
-# (1=BolA, 2=BolB, 3=Iq1, 4=Iq2, 5=TangA, 6=TangB)
 dataresc  <- read.table("Resconall_cd.txt", sep="", header=T) 
-colnames(dataresc) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
-
+colnames(dataresc) <- c("year", "month", "plot_code", "area", "replica", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
 dataresp  <- read.table("Resparall_cd.txt", sep="", header=T)  
-colnames(dataresp) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
-
+colnames(dataresp) <- c("year", "month", "plot_code", "area", "replica", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
 datarest  <- read.table("Restotall_cd.txt", sep="", header=T)  
-colnames(datarest) <- c("year", "month", "plot_code", "area", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
-revalue(datarest$plot_code, c("1" = "WAY-01", "2" = "ESP-01", "3" = "SPD-01", "4" = "SPD-02")) #, "5" = "TAM-05", "6" = "TAM-06", "7" = "TAM-09", "N" = "NA"))
+colnames(datarest) <- c("year", "month", "plot_code", "area", "replica", "CO2", "t_air", "vwc", "depth_cm", "DCO2")
+revalue(datarest$plot_code, c("1" = "KEN-01", "2" = "KEN-02", "3" = "ALP-01", "4" = "ALP-30", "5" = "TAN-01", "6" = "TAN-02")) 
 
-codew  flux_umolm2sec	plot_code	sub_plot	measurement_code	treatment_code_partitioning	egm_measurement	day	month	year	hour	soil_temp_c_out	vwc_percent_out	collar_height_cm
+# info we need: codew  flux_umolm2sec	plot_code	sub_plot	measurement_code	treatment_code_partitioning	egm_measurement	day	month	year	hour	soil_temp_c_out	vwc_percent_out	collar_height_cm
 
+# Elevation Transect data
+# SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
+setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
 # total
 dat1  <- read.table("flux_total_ACJ01.csv", sep=",", header=T)  
 dat2  <- read.table("flux_total_ESP01.csv", sep=",", header=T) 
@@ -43,8 +43,8 @@ dat3  <- read.table("flux_total_PAN02.csv", sep=",", header=T)
 dat4  <- read.table("flux_total_PAN03.csv", sep=",", header=T) 
 dat5  <- read.table("flux_total_SPD01.csv", sep=",", header=T) 
 dat6  <- read.table("flux_total_SPD02.csv", sep=",", header=T)  
-dat7  <- read.table("flux_total_TAM05.csv", sep=",", header=T)  
-dat8  <- read.table("flux_total_TAM06.csv", sep=",", header=T)  
+dat7  <- read.table("flux_total_TAM05_2017.csv", sep=",", header=T) 
+dat8  <- read.table("flux_total_TAM06_2017.csv", sep=",", header=T)  
 dat9  <- read.table("flux_total_TAM09.csv", sep=",", header=T)  
 dat10 <- read.table("flux_total_TRU04.csv", sep=",", header=T)  
 dat11 <- read.table("flux_total_WAY01.csv", sep=",", header=T) 
@@ -57,8 +57,8 @@ dat3  <- read.table("flux_control_PAN02.csv", sep=",", header=T)
 dat4  <- read.table("flux_control_PAN03.csv", sep=",", header=T) 
 dat5  <- read.table("flux_control_SPD01.csv", sep=",", header=T) 
 dat6  <- read.table("flux_control_SPD02.csv", sep=",", header=T)  
-dat7  <- read.table("flux_control_TAM05.csv", sep=",", header=T)  
-dat8  <- read.table("flux_control_TAM06.csv", sep=",", header=T)  
+dat7  <- read.table("flux_control_TAM05_2017.csv", sep=",", header=T)  
+dat8  <- read.table("flux_control_TAM06_2017.csv", sep=",", header=T)  
 dat9  <- read.table("flux_control_TAM09.csv", sep=",", header=T)  
 dat10 <- read.table("flux_control_TRU04.csv", sep=",", header=T)  
 dat11 <- read.table("flux_control_WAY01.csv", sep=",", header=T) 
@@ -80,11 +80,11 @@ dat11 <- read.table("flux_part_WAY01.csv", sep=",", header=T)
 dataresp <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
 
 # dataresp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(dataresp$collar_height_cm, na.rm=T)
-#dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
+# dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
 
 # Define function parameters
 pressure = 1013.25
-plotname = "SPD-02"
+plotname = "TAM-06"
 partitioningoption = 1
 elevation = "Default"
 T_ambient="Default"
@@ -163,7 +163,7 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   
   #ts_total1 <- subset(ts_total, sub_plot == 1 | sub_plot == 2 | sub_plot == 3 | sub_plot == 4 | sub_plot == 5)
   #setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
-  #write.csv(ts_total, file="ts_TAM05_Rs_total_2017.csv") 
+  #write.csv(ts_total, file="ts_TAM06_Rs_total_2017.csv") 
 
  
   
@@ -350,12 +350,13 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
    geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = "darkgrey", na.rm=T) +
    geom_point(data = ts_total, aes(x = date, y = Rs_root_MgC_ha_mo), size = 2, colour = "blue", na.rm=T) + #ts_total$sub_plot
    geom_point(data = ts_total, aes(x = date, y = Rs_het_MgC_ha_mo), size = 2, colour = "red", na.rm=T) +
+   ylim(0, 4.5) +
    ggtitle(plotname)
  plota
  
  # Save file
  setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
- write.csv(ts_total, file="ts_xxx_Rs_part_2017.csv")
+ write.csv(ts_total, file="ts_TAM-06_Rs_part_2017.csv")
  
   # Return a timeseries
  return(ts_total)

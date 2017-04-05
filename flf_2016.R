@@ -2,11 +2,7 @@
 # This function uses data to calculate NPP from fine litterfall.
 
 ## Read-in data:
-setwd("~/Github/gemcarbon_data/raw_data_ingembd/")
-data_flf <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_flf_2006to2014.csv", sep=",", header=T)
 
-# define parameters
-plotname = "TAM-05"
 
 # this is what we have in db:
 # names(data_flf) <- c("plot_code", "year","month", "day","litterfall_trap_num", "litterfall_trap_size_m2","leaves_g_per_trap","twigs_g_per_trap","flowers_g_per_trap","fruits_g_per_trap",
@@ -14,13 +10,11 @@ plotname = "TAM-05"
 
 # plotsize = 1 ha  ### TO DO: Different plot size is not an option yet. 
 
-# Attention!! In some plots, data is collected twice a month (L. 92 : multiply by 2 because collected twice a month). In other plots, data are collected monthly. So do not multiply by 2.
-# TO DO: We need to change this to divide by the collection time interval rather than *2 for collected twice a month!!
-
 library(zoo)
 library(sqldf)
 require(ggplot2)
 library(dplyr)
+library(plyr)
 
 flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   
@@ -82,33 +76,15 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
                                    other = other_g_per_trap) %>% 
                             dplyr::mutate(seeds = NA,
                                    date = as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d")) 
-                            # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
-  
-  
-  # data_flf2$plot    <- data_flf$plot_code[which(plotname==data_flf$plot_code)]
-  # data_flf2$year    <- data_flf$year[which(plotname==data_flf2$plot)]
-  # data_flf2         <- data.frame(data_flf2)
-  # data_flf2$month   <- data_flf$month[which(plotname==data_flf2$plot)]
-  # data_flf2$day     <- data_flf$day[which(plotname==data_flf2$plot)]
-  # data_flf2$date    <- as.Date(paste(data_flf2$year, data_flf2$month, data_flf2$day, sep="."), format="%Y.%m.%d")  
-  # data_flf2$num     <- data_flf$litterfall_trap_num[which(plotname==data_flf2$plot)]
-  # data_flf2$leaves  <- data_flf$leaves_g_per_trap[which(plotname==data_flf2$plot)]   
-  # data_flf2$twigs   <- data_flf$twigs_g_per_trap[which(plotname==data_flf2$plot)]
-  # data_flf2$flowers <- data_flf$flowers_g_per_trap[which(plotname==data_flf2$plot)]
-  # data_flf2$fruits  <- data_flf$fruits_g_per_trap[which(plotname==data_flf2$plot)]
-  # data_flf2$seeds   <- NA # add a column for seeds and replace with : data_flf$seeds[which(plotname==data_flf2$plot)]
-  # data_flf2$brom    <- data_flf$bromeliads_g_per_trap[which(plotname==data_flf2$plot)]
-  # data_flf2$epi     <- data_flf$epiphytes_g_per_trap[which(plotname==data_flf2$plot)]
-  # data_flf2$other   <- data_flf$other_g_per_trap[which(plotname==data_flf2$plot)]
-
-  
+                            
+ 
   # Calculate total litterfall (sum of branches, leaves, flowers, fruits, seeds, Broms, Epiphs, other...):
   x <- cbind(data_flf2$leaves, data_flf2$twigs, data_flf2$flowers, data_flf2$fruits, data_flf2$seeds, data_flf2$brom, data_flf2$epi, data_flf2$other)   
   data_flf2$total <- rowSums(x, na.rm = T)
   
   # In some cases, only total litterfall is recorded
-  total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litterfall_g_per_trap)
-  data_flf2[total_only,]$total = data_flf2[total_only,]$total_litterfall_g_per_trap
+  #total_only = data_flf2$total == 0 & ! is.na(data_flf2$total_litterfall_g_per_trap)
+  #data_flf2[total_only,]$total = data_flf2[total_only,]$total_litterfall_g_per_trap
   
   ### Sanity check of the inputs.
   
@@ -173,6 +149,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
       ff            <- c(ff, bepi)
       gg            <- c(gg, bother)
       hh            <- c(hh, btotal)
+      
+      print(xx)
 
     } else {  
       # print(paste("row number:", i))
@@ -185,7 +163,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
       }
     }
   }
-  error_df_g <<- error_df
+  error_df_g <<- error_df # assigning to global variable outside the function.
   print(paste(nrow(error_df), "errors in the data.  See error_df_g."))
   data2 <- data.frame(cbind(xx, yy, aa, bb, cc, dd, ee, ff, gg, hh))
   colnames(data2) <- c("id", "meas_int_days", "bleavesflf_g_trap_day", "btwigs", "bflowers", "bfruits", "bbrom", "bepi", "bother", "btotal")
@@ -275,58 +253,35 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data5$se_totalflf   <- data5$sd_totalflf/sqrt(length(unique(data3$num)))
   
   
-  # TO DO: PLOT ROUTINE NEEDS WORK. DOESN'T work at the moment.
-  
   ## Plotroutine, triggered by argument 'plotit=T' 
   data5$date      <- strptime(paste(as.character(data5$year), as.character(data5$month), as.character(15), sep="-"), format="%Y-%m-%d")
-  data5$date <- as.POSIXct(data5$date)
+  data5$date      <- as.POSIXct(data5$date)
   data5$yearmonth <- as.yearmon(data5$date)
   
   if (plotit==T) {
     top <- data5$totalflf_MgC_ha_month + data5$sd_totalflf
     data5$date <- as.Date(data5$date)
     plot1 <- ggplot(data = data5, aes(x = date, y = totalflf_MgC_ha_month, na.rm = T)) +
-                    geom_line(linetype = 'solid', colour = 'black', size = 1) +
-                    geom_ribbon(data = data5, aes(ymin = totalflf_MgC_ha_month - sd_totalflf, ymax = totalflf_MgC_ha_month + sd_totalflf), alpha = 0.2) +
-                    scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +            
-                    scale_colour_grey() + 
-                    theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
-                    ylim(0, max(top, na.rm = T)) +                          
+                    geom_point(colour = data5$year, size = 1.5) +
                     xlab("") + ylab(expression(paste("Total fine litterfall (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-                    theme_classic(base_size = 15, base_family = "") + 
-                    theme(legend.position="left") +
-                    theme(panel.border = element_rect(fill = NA, colour = "black", size = 1)) 
-                    #theme(legend.title=element_blank()) + theme(legend.key = element_blank())   
+                    ylim(0, max(top, na.rm = T)) +  
+                    ggtitle(plotname)                        
+                  
+    top <- data5$twigsflf_MgC_ha_month+data5$sd_twigsflf
+    plot2 <- ggplot(data = data5, aes(x = date, y = twigsflf_MgC_ha_month, na.rm = T)) +
+                    geom_point(colour = "navy", size = 1.5) +
+                    geom_point(aes(x = date, y = leavesflf_MgC_ha_month), colour = "seagreen", size = 1.5) +              
+                    xlab("") + ylab(expression(paste("Fine litterfall components \n leaves & twigs (MgC ",ha^-1, mo^-1, ")", sep=""))) +
+                    ylim(0, max(top, na.rm = T))
     
-    top <- data5$branchflfAs+data5$branchflfAsstd
-    plot2 <- ggplot(data = data5, aes(x=date, y=branchflfAs, na.rm=T)) +
-                    geom_line(linetype='solid', colour='black', size=1) +
-                    geom_ribbon(data = data5, aes(ymin=branchflfAs-branchflfAsstd , ymax=branchflfAs+branchflfAsstd), alpha=0.2) +
-                    geom_line(data = data5, aes(x=date, y=leafflfAs, na.rm=T), linetype='dotted', colour='black', size=1) +
-                    geom_ribbon(data = data5, aes(ymin=leafflfAs-leafflfAsstd, ymax=leafflfAs+leafflfAsstd), alpha=0.2) +
-                    scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +  
-                    scale_colour_grey() + 
-                    theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
-                    ylim(0, max(top, na.rm=T)) +                          
-                    xlab("") + ylab(expression(paste("Fine litterfall components (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-                    theme_classic(base_size = 15, base_family = "") + 
-                    theme(legend.position="left") +
-                    theme(panel.border = element_rect(fill = NA, colour = "black", size = 1)) 
+    top <- data5$fruitsflf_MgC_ha_month  + data5$sd_fruitsflf
+    plot3 <- ggplot(data = data5, aes(x = date, y = fruitsflf_MgC_ha_month, na.rm = T)) +
+                    geom_point(colour = "deeppink4", size = 1.5) +
+                    geom_point(aes(x = date, y = flowersflf_MgC_ha_month), colour = "red2", size = 1.5) +              
+                    xlab("") + ylab(expression(paste("Fine litterfall components \n fruit & flowers (MgC ",ha^-1, mo^-1, ")", sep=""))) +
+                    ylim(0, max(top, na.rm = T))
     
-    top <- data5$flowerflfAs + data5$flowerflfAsstd
-    plot3 <- ggplot(data = data5, aes(x=date, y=flowerflfAs, na.rm=T)) +
-                    geom_line(linetype='solid', colour='black', size=1) +
-                    geom_ribbon(data = data5, aes(ymin=flowerflfAs-flowerflfAsstd , ymax=flowerflfAs+flowerflfAsstd), alpha=0.2) +
-                    geom_line(data = data5, aes(x=date, y=fruitflfAs, na.rm=T), linetype='dotted', colour='black', size=1) +
-                    geom_ribbon(data = data5, aes(ymin=fruitflfAs-fruitflfAsstd, ymax=fruitflfAs+fruitflfAsstd), alpha=0.2) +
-                    scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +  
-                    scale_colour_grey() + 
-                    theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
-                    ylim(0, max(top, na.rm=T)) +                          
-                    xlab("") + ylab(expression(paste("Fine litterfall components (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-                    theme_classic(base_size = 15, base_family = "") + 
-                    theme(legend.position="left") +
-                    theme(panel.border = element_rect(fill = NA, colour = "black", size = 1)) 
+    # geom_ribbon(data = data5, aes(ymin=twigsflf_MgC_ha_month-sd_twigsflf , ymax=twigsflf_MgC_ha_month+sd_twigsflf), alpha=0.2) +
     
     fig <- grid.arrange(plot1, plot2, plot3, ncol=1, nrow=3)
   }
