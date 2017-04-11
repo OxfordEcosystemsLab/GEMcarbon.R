@@ -14,21 +14,19 @@ census <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",",
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
 census_ACJ01A <- read.table("census_ACJ_01.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 wd_chave      <- read.table("wsg.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-  
-# Function wood density from Ken Feeley (2008)
 
-# ACJ-01
-# add wood density
-# get wood density from William Farfan's census data 2015, or from Chave's database.
-census$WD14 <- census$WD.14
-
-# convert all characters to capitals (some are caps some are not in the family column)
-census_ACJ01A = as.data.frame(sapply(census_ACJ01A, toupper)) 
-census = as.data.frame(sapply(census, toupper)) 
-
+# get wood density from William Farfan's census data 2015, or from Chave's database. Or use Function wood density from Ken Feeley (2008)
+census$WD14 <- census$WD.14   
+census = as.data.frame(sapply(census, toupper)) # convert all characters to capitals
 wd_farfan <- sqldf("SELECT family, genus, specie, AVG(WD14) FROM census GROUP BY family, genus") #, specie
 colnames(wd_farfan) <- c("family", "genus", "species", "wdensity")
-  
+
+plotname = "SPD-01"
+
+###############  ACJ-01
+
+census_ACJ01A = as.data.frame(sapply(census_ACJ01A, toupper)) 
+
 #### How do we keep all tree tags from census_ACJ01_0, and have NA as WD14 for those that don't have AND census_ACJ01_0.species = wd.specie? See Ken's function!!!
 census_ACJ01 <- sqldf("SELECT census_ACJ01A.*, wd_farfan.wdensity FROM census_ACJ01A JOIN wd_farfan ON census_ACJ01A.Family = wd_farfan.family AND census_ACJ01A.genus = wd_farfan.genus") 
 
@@ -42,24 +40,19 @@ census_ACJ01$DBH.1   <- (as.numeric(as.character(census_ACJ01$D..2013.1)))/10
 census_ACJ01$DBH.2   <- (as.numeric(as.character(census_ACJ01$D..2014.2)))/10 
 census_ACJ01$DBH.3   <- (as.numeric(as.character(census_ACJ01$D..2015.1)))/10 
 
-sapply(census_ACJ01, class)
-
-# check the number of distinct tags in each df
-sqldf("select count(1) from (select distinct tag from census_ACJ01)")
-sqldf("select count(1) from census_ACJ01")
-
+#################
 
 #***********************************************************
 #******************* Clean census data *********************
 #***********************************************************
 
 # choose a plot
-data <- subset(census, plot=="WAY-01") 
+data <- subset(census, plot==plotname) 
 
 # define start and end date:
-date_1 <- as.character("2003/09/24") # These dates are in William's original file andesplots_WFR_nov2014.xlx 
-date_2 <- as.character("2007/07/6") 
-date_3 <- as.character("2011/11/24") 
+date_1 <- as.character("2006/08/30") # These dates are in William's original file andesplots_WFR_nov2014.xlx 
+date_2 <- as.character("2008/09/07") 
+date_3 <- as.character("NA") 
 date_1 <- as.Date(format(strptime(date_1, format="%Y/%m/%d")))
 date_2 <- as.Date(format(strptime(date_2, format="%Y/%m/%d")))
 date_3 <- as.Date(format(strptime(date_3, format="%Y/%m/%d")))
@@ -74,7 +67,7 @@ data[,c("DBH.1", "DBH.2", "DBH.3", "DBH.4", "DBH.5", "WD14")] <- as.numeric(as.c
 str(data)
 
 # Visualise data: normal distribution of dbhgrowth per year by diameter class
-data$dbh_growth_yr <-  data$DBH.2 - data$DBH.1/census_interval_yrs_1  
+data$dbh_growth_yr <-  (data$DBH.2 - data$DBH.1) / census_interval_yrs_1  
 gr_sd <- sd(data$dbh_growth_yr, na.rm=T)
 plot1 <- ggplot(data=data, aes(x=DBH.1, y=dbh_growth_yr, na.rm=T)) +
                geom_point() +
@@ -148,8 +141,6 @@ data[is.na(data)] <- NA
 #***********************************************************
 
 eltrcensus <- data
-# column names should be
-# ("plot", "sp", "tag", "dbh", "height", "density", "year", "month", "day", "plot_code")
 
 # Add dates to eltrcensus.
 # 1st census
@@ -161,10 +152,10 @@ for (ii in 1:(length(eltrcensus$plot))) {  # length(eltrcensus$plot) is equivale
   monthtmp = NA
   daytmp   = NA
   # cat("At row",i,"=",eltrcensus$plot[i]) # this is to print the number of row and the value in that row
-  if (as.character(eltrcensus$plot[ii]) == "ACJ-01") {
-    yeartmp  = 2013
-    monthtmp = 03
-    daytmp   = 15  
+  if (as.character(eltrcensus$plot[ii]) == plotname) {
+    yeartmp  = 2006
+    monthtmp = 08
+    daytmp   = 30
   }
   
   yearDAP1  = c(yearDAP1,yeartmp)
@@ -184,10 +175,10 @@ for (ii in 1:(length(eltrcensus$plot))) {  #length(eltrcensus$plot) is equivalen
   monthtmp = NA
   daytmp   = NA
   # cat("At row",i,"=",eltrcensus$plot[i]) this is to print the number of row and the value in that row
-  if (as.character(eltrcensus$plot[ii]) == "ACJ-01") {
-    yeartmp  = 2014
-    monthtmp = 03
-    daytmp   = 15
+  if (as.character(eltrcensus$plot[ii]) == plotname) {
+    yeartmp  = 2008
+    monthtmp = 09
+    daytmp   = 07
   }
   
   yearDAP2  = c(yearDAP2,yeartmp)
@@ -207,10 +198,10 @@ for (ii in 1:(length(eltrcensus$plot))) {  #length(eltrcensus$plot) is equivalen
   monthtmp = NA
   daytmp   = NA
   # cat("At row",i,"=",eltrcensus$plot[i]) this is to print the number of row and the value in that row
-  if (as.character(eltrcensus$plot[ii]) == "ACJ-01") {
-    yeartmp  = 2015
-    monthtmp = 03
-    daytmp   = 15  
+  if (as.character(eltrcensus$plot[ii]) == plotname) {
+    yeartmp  = NA
+    monthtmp = NA
+    daytmp   = NA  
   }
   
   yearDAP3  = c(yearDAP3,yeartmp)
@@ -221,22 +212,27 @@ for (ii in 1:(length(eltrcensus$plot))) {  #length(eltrcensus$plot) is equivalen
   colnames(datesDAP3) <- c("year", "month", "day", "plot")
 }
 
+eltrcensus$height <- eltrcensus$mean.H  
+eltrcensus$density <- eltrcensus$WD14
+
+
 eltrcen1 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.1, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP1)
 eltrcen2 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.2, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP2)
 eltrcen3 <- data.frame(plot_code=eltrcensus$plot, tree_tag=eltrcensus$tag, dbh=eltrcensus$DBH.3, height_m=eltrcensus$height, density=eltrcensus$density, datesDAP3) 
 #eltrcen4 <- ...
 
-census <- rbind(eltrcen1, eltrcen2, eltrcen3)
+census <- rbind(eltrcen1, eltrcen2) #, eltrcen3
 census$height_m <- as.numeric(census$height_m)
-sapply(census, class)
-#write.csv(census, file="testdata_WAY01_Jan1015.csv")
+census$plot <- NULL
+str(census)
+write.csv(census, file="test_SPD01_Mar1017.csv")
 
 # get functions
-setwd("/Users/cecile/GitHub/GEMcarbon.R") 
+setwd("~/Github/GEMcarbon.R") 
 dir()
 Sys.setlocale('LC_ALL','C') 
-source("NPPacw_census_function_2014.R")
-source("largetreebiomass_census.R")
+source("NPPacw_census_function_2015.r")
+source("largetreebiomass_census.r")
 source("allometric_equations_2014.R")
 
 # run function for each plot (3 4 5 6 7 1 2 = TRU-03 TRU-04 TRU-07 TRU-08 WAY-01 SPD-01 SPD-02)

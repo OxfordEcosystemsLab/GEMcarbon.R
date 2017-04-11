@@ -10,6 +10,7 @@
 # 5. your new .csv files will be in the directory you specify.
 # 7. Run the soilrespiration.R function
 
+
 # load packages
   library(sqldf)
   require(ggplot2)
@@ -27,10 +28,9 @@
    
   # Replace missing collar height data 
   # with the previous or subsequent collar height, or an average of the two if they are both provided.
-  weather$ch_new <- fill.na(weather$collar_height_cm)
+  weather$ch_new     <- fill.na(weather$collar_height_cm)
   weather$air_temp_c <- as.numeric(as.character(weather$air_temp_c))
-  weather$year <- revalue(as.character(weather$year), c("11" = "2011", "12" = "2012", "13" = "2013"))
-  weather$year <- as.numeric(as.character(weather$year))
+  weather$year       <- as.numeric(as.character(weather$year))
   
   
 ################### TOTAL SOIL RESPIRATION
@@ -137,7 +137,7 @@
     t1       <- head(ten_time, n=1)                                                  # first time step of 10 last measurements
     P        <- tail(sub$atmp, n=1)                                                  # ambient pressure at t10 (mb)
     Ta       <- tail(sub$air_temp_c, n=1)                                            # air temp at t10 (deg C)
-    ch       <- tail(sub$ch_fill, n=1)                                          # see gap filling function fill.na() in soilrespiration_auxfinctions.r
+    ch       <- tail(sub$ch_fill, n=1)                                               # see gap filling function fill.na() in soilrespiration_auxfinctions.r
     Vd       <- 0.0012287                                                            # m3 (constant)
     A        <- 0.00950                                                              # m2 (constant)
     Ru       <- 8.31432                                                              # J mol-1 K-1 (constant)
@@ -147,14 +147,14 @@
     flux     <- (fl*A/Vd*(Va+Vd)/A)*6.312                                            # Convert to umol m-2 s-1. Correct for collar height.
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
+    print(xx)
   }
   rownames(xx) <- NULL
   rownames(yy) <- NULL
   
   Res <- data.frame(cbind(xx, yy))
   colnames(Res) <- c("codew", "flux_umolm2sec")
-  
-# TO DO: have a look at how Khoon calculates this. 
+ 
   
 # Check for duplicates
   any(duplicated(Res$codew))
@@ -168,8 +168,8 @@
   Restot$code1 <- NULL
   
 # save to current directory  
-  setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
-  write.csv(Restot, file="flux_total_TAM06.csv")
+  setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
+  write.csv(Restot, file="flux_total_TAM06_2017.csv")
 
   
 
@@ -179,9 +179,9 @@
   
   ## contol soil respiration 
 # select a plot
-  raw_consrAA  <- subset(raw_consrA, plot_code == "ACJ-01") 
+  raw_consrAA  <- subset(raw_consrA, plot_code == "TAM-06") 
   raw_consrBB  <- subset(raw_consrAA, measurement_code=="CTRL")
-  X            <- subset(weather, plot_code == "ACJ-01")
+  X            <- subset(weather, plot_code == "TAM-06")
   wea_con      <- subset(X, measurement_code=="CTRL")
   
 # Define unique identifiers
@@ -283,6 +283,7 @@
     flux     <- (fl*A/Vd*(Va+Vd)/A)*6.312                                            # Convert to umol m-2 s-1. Correct for collar height.
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
+    print(xx)
   }
   rownames(xx) <- NULL
   rownames(yy) <- NULL
@@ -305,12 +306,12 @@
   any(duplicated(ResCON$codew))
   ResCON$codew[which(duplicated(ResCON$codew))]
   
-  plot <- ggplot(ResCON) + geom_point(aes(x=year, y=flux, colour=factor(collar_number)))
+  plot <- ggplot(ResCON) + geom_point(aes(x=year, y=flux_umolm2sec, colour=factor(collar_number)))
   plot 
   
   # save to current directory 
-  setwd("~/Github/gemcarbon_data/processed_data/soil_respiration_flux")
-  write.csv(ResCON, file="flux_control_ACJ01.csv")
+  setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
+  write.csv(ResCON, file="flux_control_TAM06_2017.csv")
   
   
 ################# SOIL RESPIRATION PARTITIONNING
@@ -328,8 +329,8 @@
   # Mineral layer respiration - ML = 10
   
   # select a plot: SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 TRU-04 PAN-02 PAN-03 TAM-05 TAM-06 TAM-09
-  raw_parsrA <- subset(raw_parsrA, plot_code=="TAM-09")
-  wea_part   <- subset(weather, plot_code=="TAM-09" | measurement_code=="PART")
+  raw_parsrA <- subset(raw_parsrA, plot_code=="TAM-06")
+  wea_part   <- subset(weather, plot_code=="TAM-06" | measurement_code=="PART")
   
   # Replace missing air temp with soil temp. #ATTENTION!! THIS IS A HACK! WHAT SHOULD WE DO WHEN WE DON'T HAVE AIR TEMP?
   w <- which(is.na(wea_part$air_temp_c))
@@ -430,6 +431,7 @@
     flux     <- (fl*A/Vd*(Va+Vd)/A)*6.312                                            # Convert to umol m-2 s-1. Correct for collar height.
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
+    print(xx)
   }
   rownames(xx) <- NULL
   rownames(yy) <- NULL
@@ -454,7 +456,7 @@
   
 # save to current directory  
   setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
-  write.csv(ResPAR, file="flux_part_TAM09.csv")
+  write.csv(ResPAR, file="flux_part_TAM06_2017.csv")
   
   
   ## style guide on how to lay out R code: http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml#indentation 
