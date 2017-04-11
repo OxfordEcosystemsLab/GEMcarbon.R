@@ -7,25 +7,26 @@ require(ggplot2)
 require(sqldf)
 require(lubridate)
 
-setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
-census_TRU04 <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+#plot_code;tree_tag;date; all dbh; NPP per tree for each time interval.
+
+setwd("~/Github/GEMcarbon.R/a_readyforupload_db")
+census <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan")
 census_ACJ01A <- read.table("census_ACJ_01.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-wd_chave      <- read.table("wsg.txt", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+wd_chave      <- read.table("wsg.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
   
 # Function wood density from Ken Feeley (2008)
-
 
 # ACJ-01
 # add wood density
 # get wood density from William Farfan's census data 2015, or from Chave's database.
-census_TRU04$WD14 <- census_TRU04$WD.14
+census$WD14 <- census$WD.14
 
 # convert all characters to capitals (some are caps some are not in the family column)
 census_ACJ01A = as.data.frame(sapply(census_ACJ01A, toupper)) 
-census_TRU04 = as.data.frame(sapply(census_TRU04, toupper)) 
+census = as.data.frame(sapply(census, toupper)) 
 
-wd_farfan <- sqldf("SELECT family, genus, specie, AVG(WD14) FROM census_TRU04 GROUP BY family, genus") #, specie
+wd_farfan <- sqldf("SELECT family, genus, specie, AVG(WD14) FROM census GROUP BY family, genus") #, specie
 colnames(wd_farfan) <- c("family", "genus", "species", "wdensity")
   
 #### How do we keep all tree tags from census_ACJ01_0, and have NA as WD14 for those that don't have AND census_ACJ01_0.species = wd.specie? See Ken's function!!!
@@ -53,12 +54,12 @@ sqldf("select count(1) from census_ACJ01")
 #***********************************************************
 
 # choose a plot
-data <- subset(census_ACJ01, plot=="ACJ-01") 
+data <- subset(census, plot=="WAY-01") 
 
 # define start and end date:
-date_1 <- as.character("2013/03/15") # don't know - get from William
-date_2 <- as.character("2014/03/15") #15 de Marzo 2014
-date_3 <- as.character("2015/03/15") #15 de Marzo 2015
+date_1 <- as.character("2003/09/24") # These dates are in William's original file andesplots_WFR_nov2014.xlx 
+date_2 <- as.character("2007/07/6") 
+date_3 <- as.character("2011/11/24") 
 date_1 <- as.Date(format(strptime(date_1, format="%Y/%m/%d")))
 date_2 <- as.Date(format(strptime(date_2, format="%Y/%m/%d")))
 date_3 <- as.Date(format(strptime(date_3, format="%Y/%m/%d")))
@@ -67,17 +68,21 @@ census_interval_yrs_1 <- census_interval_1/365
 census_interval_2 <- as.numeric(difftime(date_3, date_2, units="days"))
 census_interval_yrs_2 <- census_interval_2/365
 
+# Make sure the data type are correct
+
+data[,c("DBH.1", "DBH.2", "DBH.3", "DBH.4", "DBH.5", "WD14")] <- as.numeric(as.character(unlist(data[,c("DBH.1", "DBH.2", "DBH.3", "DBH.4", "DBH.5", "WD14")])))
+str(data)
 
 # Visualise data: normal distribution of dbhgrowth per year by diameter class
-data$dbh_growth_yr <- (data$DBH.2 - data$DBH.1)/census_interval_yrs_1  
+data$dbh_growth_yr <-  data$DBH.2 - data$DBH.1/census_interval_yrs_1  
 gr_sd <- sd(data$dbh_growth_yr, na.rm=T)
 plot1 <- ggplot(data=data, aes(x=DBH.1, y=dbh_growth_yr, na.rm=T)) +
                geom_point() +
                ylim(-10, 10) +
                ggtitle(data$plot)
-plot1               
-# use this plot to decide your cut off point for annual growth in cm and replace below.
+plot1     
 
+# use this plot to decide your cut off point for annual growth in cm and replace below.
 
 # TO DO: should we correct for changing POM?
 

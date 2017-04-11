@@ -1,28 +1,21 @@
-## These functions are required for running the soilrespiration-program!
+#
+# Functions required for running the soil_respiration_2015 & soil_respiration_persubplot_2017 scripts.
 # Sebastian Sippel, 06.12.2013
-# Last edited: Cicile Girardin, 01.03.2015 
+# Last edited: Cecile Girardin, 01.02.2017
 
-## remove flux outliers: CURRENTLY NOT IMPLEMENTED; DUE TO OVERALL FLUX CORRECTION (see below)!
-#rm.flux.outlier <- function(flux, sd_interval=3) {
-#  outliers = mean(flux,na.rm=T)+sd_interval*sd(flux,na.rm=T);
-#  flux[which(flux < 0)] <- 0;
-#  flux[which(flux > outliers)] <- NA
-#  return(flux)
-#}
 
-# Add a SPIKE DETECTION FUNCTION
+# TO DO: Add a SPIKE DETECTION FUNCTION
 # Get the SD of mean of 2 points before and 2 points after, to detect spikes in data.
 # Add SD per subplot / measurement
 
 ## new flux correction based on overall fluxes:
-rm.flux.outlier <- function(flux_overall, sd_interval=3) {
-  outliers = mean(flux_overall,na.rm=T) + 3*sd(flux_overall,na.rm=T)
+rm.flux.outlier <- function(flux_overall, sd_interval) {
+  flux_overall[which(flux_overall == "-Inf")] <- NA
+  outliers = mean(flux_overall,na.rm=T) + sd_interval*sd(flux_overall,na.rm=T)
   flux_overall[which(flux_overall < 0)] <- 0
   flux_overall[which(flux_overall > outliers)] <- NA
   return(flux_overall)
 }
-
-# Add a spike detection function
 
 ## remove temperature outlier:
 rm.temp.outlier <- function(temp, month) {
@@ -38,49 +31,49 @@ rm.temp.outlier <- function(temp, month) {
 }
 
 
-#######################################SORT THIS OUT!! ########################################################################
-###############################################################################################################################
 
-## remove ch outlier:
+## The following function is used to fill missing collar heights.
+# Replace NAs in a vector with the average of the surrounding values.
+# In the special cases of NAs at the start or end, simply use the prev/next value.
 
-library(zoo)
+fill.na <- function(vect) {
 
-ts$date <- as.Date(paste(ts$year, ts$month, ts$day, sep="."), format="%Y.%m.%d") 
-
-ts = ts[order(ts$date),]
-temp <- zoo(ts)
-temp <- zoo(subset(ts, sub_plot ==1, select = c(date, cht1)))
-index(temp) <- temp$date
-na.approx(temp)
-
-
-ch = tst$cht1 
-sub_plot = tst$sub_plot
-month = tst$month
-
-fill.ch.na <- function(ch, sub_plot, month) {
-  xch <- NULL
-  for (i in 1:25) {
-    for (j in 1:12) {
-      xch[i] <-mean(ch[which(sub_plot == i & month == j)], na.rm=T)
-      ch[which(is.na(ch) & sub_plot == i & month == j)] <- xch[i]
+  prev_num <- 0/0                                            # Keep track of the previous CH to use for averages after an NA block
+  na_count <- 0                                              # Count how many NAs we have in an NA block
+  length_vect <- length(vect)
+  
+  for (i in 1:length_vect) {
+  
+    current_num <- vect[i]                                    # Get the current CH value
+    
+    if (is.na(current_num)) {                                # If CH is NA
+      na_count <- na_count + 1                              # If the current CH is an NA then simply increment the NA counter and move to the next row
+    } else {                                                # CH is not NA
+      if (na_count > 0) {                                   # The 'if' block below is the special bit that effectively replaces the NAs with averages
+        if (is.na(prev_num)) {
+          prev_num <- current_num                             # The special case where we have NAs to start
+        }
+        average_num <- (prev_num + current_num) / 2          # Get the average of the CHs before and after the NA block
+        for (j in 1:na_count) {
+          vect[i-j] <- average_num
+        }
+        na_count <- 0                                       # Reset the NA counter
+      }
+      prev_num <- current_num                                 # Keep track of the CH that comes before an NA block
     }
   }
-  return(ch)
-  
-  #xch=mean(ch,na.rm=T)  ## mean of ch over all plot! This should be the ch for that collar for the month before.
-  #ch[which(is.na(ch))] <- xch
-  #return(ch)
+  if (na_count > 0) {
+    for (i in 1:na_count) {
+      vect[length_vect-i+1] <- prev_num
+    }
+  }
+  return(vect)
 }
-
-
 
 #xch=mean(ch,na.rm=T)  ## mean of ch over all plot! This should be the ch for that collar for the month before.
 #ch[which(is.na(ch))] <- xch
 #return(ch)
 
-###############################################################################################################################
-###############################################################################################################################
 # ch=ch-1 in cm. This eliminates the overlap between the collar and the adaptor.
 
 ## Perform chamber and flux correction (Metcalfe 2009) 
@@ -100,9 +93,17 @@ fluxcorr <- function(flux, temp, ch, Vd, A, pressure) {
   for (i in 1:length(temp)) {
     RucA[i]=(flux[i])*(pressure/1000)*(273/(temp[i]+273))*(44.01/22.41)*(Vd/A)/1000*3600
     RcA[i]= (RucA[i]*A/Vd*(Va[i]+Vd)/A)*6.312  # convert to umol m-2 s-1
+  if (na_count > 0) {                               # Take into account a block of NAs at the end of the data
+    for (j in 1:na_count) {
+      vect[length_vect-j+1] <- prev_num
+    }
   }
-  return(RcA)
+  return(vect)
 }
+}   
+
+# TO DO: flag up if difference between measurements > 3cm
+# TO DO: ch=ch-1 in cm. This eliminates the overlap between the collar and the adaptor.
 
 
 ## Temperature-dependent version of the barometric equation: 
@@ -117,11 +118,8 @@ barometric_equation_T <- function(elevation, temp) {
   return(P)
 }
 
-
 ## Temperature-independent version of the barometric equation (see e.g. Wikipedia):
 barometric_equation <- function(elevation) {
   P=1013.25*(1-0.0065*elevation/288.15)^5.255  # in hPa Adapt lapse rate to your region.
   return(P)
 }
-
-
