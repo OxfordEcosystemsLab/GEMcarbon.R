@@ -21,13 +21,11 @@ library(plyr)
 flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   
   # the following lines are to ensure each column is in the correct format
-  
-  #script.dir <- function() {
-  #  getSrcDirectory(script.dir);
-  #}
-  #source(paste(script.dir(), "functions_temp.r", sep = "/"))
-  
-  source("~/Github/GEMcarbon.R/functions_temp.r") 
+      script.dir <- function() {
+        getSrcDirectory(script.dir);
+      }
+      source(paste(script.dir(), "functions.r", sep = "/"))
+
   
   flf_column_types = c(
     "plot_code" = "character",
@@ -112,8 +110,10 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   
 }
 
-flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
+flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, verbose = T) {   # add plotsize=1   
   # ret = monthly.means.subplot or monthly.means.ts for plot averages.
+  # verbose = print out unique id's for debugging or otherwise
+    
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
     data_flf <- read.csv(data_flf)
   }
@@ -220,7 +220,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
       gg            <- c(gg, bother)
       hh            <- c(hh, btotal)
       
-      print(xx)
+      if (verbose) print(xx)
 
     } else {  
       # print(paste("row number:", i))
