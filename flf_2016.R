@@ -16,7 +16,72 @@ require(ggplot2)
 library(dplyr)
 library(plyr)
 
+
+
 flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
+  
+  # the following lines are to ensure each column is in the correct format
+  
+  #script.dir <- function() {
+  #  getSrcDirectory(script.dir);
+  #}
+  #source(paste(script.dir(), "functions_temp.r", sep = "/"))
+  
+  source("~/Github/GEMcarbon.R/functions_temp.r") 
+  
+  flf_column_types = c(
+    "plot_code" = "character",
+    "year" = "integer",
+    "month" = "integer",
+    "day" = "integer",
+    "litterfall_trap_num" = "Factor",
+    "litterfall_trap_size_m2" = "numeric",
+    "leaves_g_per_trap" = "numeric",
+    "twigs_g_per_trap" = "numeric",
+    "flowers_g_per_trap" = "numeric",
+    "fruits_g_per_trap" = "numeric",
+    "seeds_g_per_trap" = "numeric",
+    "bromeliads_g_per_trap" = "numeric",
+    "epiphytes_g_per_trap" = "numeric",
+    "other_g_per_trap" = "numeric",
+    "palm_leaves_g_per_trap" = "numeric",
+    "palm_flower_g_per_trap" = "numeric",
+    "palm_fruit_g_per_trap" = "numeric",
+    "total_litter_g_per_trap" = "numeric",
+    "quality_code" = "factor",
+    "comments" = "character"
+  )
+  
+  flfend_column_types = c(
+    "leavesflf_MgC_ha_month" = "numeric",
+    "twigsflf_MgC_ha_month" = "numeric",
+    "flowersflf_MgC_ha_month" = "numeric",
+    "fruitsflf_MgC_ha_month" = "numeric",
+    "bromflf_MgC_ha_month" = "numeric",
+    "epiflf_MgC_ha_month" = "numeric",
+    "otherflf_MgC_ha_month" = "numeric",
+    "totalflf_MgC_ha_month" = "numeric",
+    "sd_leavesflf" = "numeric",
+    "sd_twigsflf" = "numeric",
+    "sd_flowersflf" = "numeric",
+    "sd_fruitsflf" = "numeric",
+    "sd_bromflf" = "numeric",
+    "sd_epiflf" = "numeric",
+    "sd_otherflf" = "numeric",
+    "sd_totalflf" = "numeric",
+    "se_leavesflf" = "numeric",
+    "se_twigsflf" = "numeric",
+    "se_flowersflf" = "numeric",
+    "se_fruitsflf" = "numeric",
+    "se_bromflf" = "numeric",
+    "se_epiflf" = "numeric",
+    "se_otherflf" = "numeric",
+    "se_totalflf" = "numeric"
+  )
+  
+  
+  # set column datatypes as defined above # TO DO; this doesn't work. Error: attempt to apply non-function.
+  # data_flf = set_df_coltypes(data_flf, flf_column_types)
   
   if (class(data_flf) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
     data_flf <- read.csv(data_flf)
@@ -44,7 +109,7 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   } else { # return results concatenated across plots
     return(output_concat)
   }
-    
+  
 }
 
 flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) {   # add plotsize=1   
@@ -165,14 +230,14 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   }
   error_df_g <<- error_df # assigning to global variable outside the function.
   print(paste(nrow(error_df), "errors in the data.  See error_df_g."))
-  data2 <- data.frame(cbind(xx, yy, aa, bb, cc, dd, ee, ff, gg, hh))
+  data2 <- data.frame(xx, yy, aa, bb, cc, dd, ee, ff, gg, hh)
   colnames(data2) <- c("id", "meas_int_days", "bleavesflf_g_trap_day", "btwigs", "bflowers", "bfruits", "bbrom", "bepi", "bother", "btotal")
   
   # get day, month, year from data_flf2
   
-  data3 <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data_flf2 ON data2.id = data_flf2.codew") 
-  
-  # OR you can set the data type in your sqldf("...", method = c("character", "numeric", "numeric", "numeric"))
+  #data3 <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data_flf2 ON data2.id = data_flf2.codew") 
+  data_flf2$id <- data_flf2$codew
+  data3 <- merge(data_flf2, data2, by = "id")
   
   data3$leavesflf_g_trap_day <- as.numeric(as.character(data3$bleavesflf_g_trap_day))
   data3$meas_int_days        <- as.numeric(as.character(data3$meas_int_days))
@@ -233,15 +298,34 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   
   # flf per ha per month (average of all the traps)
   
-  data5            <- sqldf("SELECT plot, year, month, 
-                            AVG(leavesflf_MgC_ha_month), AVG(twigsflf), AVG(flowersflf), AVG(fruitsflf), AVG(bromflf), AVG(epiflf), AVG(otherflf), AVG(totalflf),  
-                            STDEV(leavesflf_MgC_ha_month), STDEV(twigsflf), STDEV(flowersflf), STDEV(fruitsflf), STDEV(bromflf), STDEV(epiflf), STDEV(otherflf), STDEV(totalflf)
-                            FROM data3 GROUP BY plot, year, month")
+  data5 = data3 %>% group_by(plot, year, month) %>% 
+    dplyr::summarize(leavesflf_MgC_ha_month = mean(leavesflf_MgC_ha_month, na.rm = T),
+                     twigsflf_MgC_ha_month = mean(twigsflf, na.rm = T),
+                     flowersflf_MgC_ha_month = mean(flowersflf, na.rm = T),
+                     fruitsflf_MgC_ha_month = mean(fruitsflf, na.rm = T),
+                     bromflf_MgC_ha_month = mean(bromflf, na.rm = T),
+                     epiflf_MgC_ha_month = mean(epiflf, na.rm = T),
+                     otherflf_MgC_ha_month = mean(otherflf, na.rm = T),
+                     totalflf_MgC_ha_month = mean(totalflf, na.rm = T),
+                     sd_leavesflf = sd(leavesflf_MgC_ha_month, na.rm = T),
+                     sd_twigsflf = sd(twigsflf, na.rm = T),
+                     sd_flowersflf = sd(flowersflf, na.rm = T),
+                     sd_fruitsflf = sd(fruitsflf, na.rm = T),
+                     sd_bromflf = sd(bromflf, na.rm = T),
+                     sd_epiflf = sd(epiflf, na.rm = T),
+                     sd_otherflf = sd(otherflf, na.rm = T),
+                     sd_totalflf = sd(totalflf, na.rm = T)) 
   
-  colnames(data5)  <- c("plot", "year", "month","leavesflf_MgC_ha_month", "twigsflf_MgC_ha_month", "flowersflf_MgC_ha_month", "fruitsflf_MgC_ha_month", "bromflf_MgC_ha_month", "epiflf_MgC_ha_month", "otherflf_MgC_ha_month", "totalflf_MgC_ha_month", "sd_leavesflf", "sd_twigsflf", "sd_flowersflf", "sd_fruitsflf", "sd_bromflf", "sd_epiflf", "sd_otherflf", "sd_totalflf") # Note: SD is 0 if we only have a year's worth of data!
+  #data5            <- sqldf("SELECT plot, year, month, 
+                            #AVG(leavesflf_MgC_ha_month), AVG(twigsflf), AVG(flowersflf), AVG(fruitsflf), AVG(bromflf), AVG(epiflf), AVG(otherflf), AVG(totalflf),  
+                            #STDEV(leavesflf_MgC_ha_month), STDEV(twigsflf), STDEV(flowersflf), STDEV(fruitsflf), STDEV(bromflf), STDEV(epiflf), STDEV(otherflf), STDEV(totalflf)
+                            #FROM data3 GROUP BY plot, year, month")
+  #colnames(data5)  <- c("plot_code", "year", "month","leavesflf_MgC_ha_month", "twigsflf_MgC_ha_month", "flowersflf_MgC_ha_month", "fruitsflf_MgC_ha_month", "bromflf_MgC_ha_month", "epiflf_MgC_ha_month", "otherflf_MgC_ha_month", "totalflf_MgC_ha_month", 
+                        #"sd_leavesflf", "sd_twigsflf", "sd_flowersflf", "sd_fruitsflf", "sd_bromflf", "sd_epiflf", "sd_otherflf", "sd_totalflf") # Note: SD is 0 if we only have a year's worth of data!
   
   
   # calculate standard error sd/sqrt(length(unique(data3$year)))
+  data5[data5=="-Inf"] <- NaN
   
   data5$se_leavesflf  <- data5$sd_leavesflf/sqrt(length(unique(data3$num)))
   data5$se_twigsflf   <- data5$sd_twigsflf/sqrt(length(unique(data3$num))) 
@@ -252,6 +336,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data5$se_otherflf   <- data5$sd_otherflf/sqrt(length(unique(data3$num))) 
   data5$se_totalflf   <- data5$sd_totalflf/sqrt(length(unique(data3$num)))
   
+  # set column datatypes as defined above
+  # data5 = set_df_coltypes(data5, flfend_column_types)
   
   ## Plotroutine, triggered by argument 'plotit=T' 
   data5$date      <- strptime(paste(as.character(data5$year), as.character(data5$month), as.character(15), sep="-"), format="%Y-%m-%d")
@@ -259,27 +345,27 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
   data5$yearmonth <- as.yearmon(data5$date)
   
   if (plotit==T) {
-    top <- data5$totalflf_MgC_ha_month + data5$sd_totalflf
+    #top <- data5$totalflf_MgC_ha_month + data5$sd_totalflf
     data5$date <- as.Date(data5$date)
     plot1 <- ggplot(data = data5, aes(x = date, y = totalflf_MgC_ha_month, na.rm = T)) +
                     geom_point(colour = data5$year, size = 1.5) +
                     xlab("") + ylab(expression(paste("Total fine litterfall (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-                    ylim(0, max(top, na.rm = T)) +  
+                    #ylim(0, max(top, na.rm = T)) +  
                     ggtitle(plotname)                        
                   
-    top <- data5$twigsflf_MgC_ha_month+data5$sd_twigsflf
+    #top <- data5$twigsflf_MgC_ha_month+data5$sd_twigsflf
     plot2 <- ggplot(data = data5, aes(x = date, y = twigsflf_MgC_ha_month, na.rm = T)) +
                     geom_point(colour = "navy", size = 1.5) +
                     geom_point(aes(x = date, y = leavesflf_MgC_ha_month), colour = "seagreen", size = 1.5) +              
-                    xlab("") + ylab(expression(paste("Fine litterfall components \n leaves & twigs (MgC ",ha^-1, mo^-1, ")", sep=""))) +
-                    ylim(0, max(top, na.rm = T))
+                    xlab("") + ylab(expression(paste("Fine litterfall components \n leaves & twigs (MgC ",ha^-1, mo^-1, ")", sep=""))) #+
+                    #ylim(0, max(top, na.rm = T))
     
-    top <- data5$fruitsflf_MgC_ha_month  + data5$sd_fruitsflf
+    #top <- data5$fruitsflf_MgC_ha_month  + data5$sd_fruitsflf
     plot3 <- ggplot(data = data5, aes(x = date, y = fruitsflf_MgC_ha_month, na.rm = T)) +
                     geom_point(colour = "deeppink4", size = 1.5) +
                     geom_point(aes(x = date, y = flowersflf_MgC_ha_month), colour = "red2", size = 1.5) +              
-                    xlab("") + ylab(expression(paste("Fine litterfall components \n fruit & flowers (MgC ",ha^-1, mo^-1, ")", sep=""))) +
-                    ylim(0, max(top, na.rm = T))
+                    xlab("") + ylab(expression(paste("Fine litterfall components \n fruit & flowers (MgC ",ha^-1, mo^-1, ")", sep=""))) #+
+                    #ylim(0, max(top, na.rm = T))
     
     # geom_ribbon(data = data5, aes(ymin=twigsflf_MgC_ha_month-sd_twigsflf , ymax=twigsflf_MgC_ha_month+sd_twigsflf), alpha=0.2) +
     
