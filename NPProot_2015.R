@@ -153,6 +153,7 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
       
     this_output = NPProot_ic_oneplot(datafile, thisplot, ...)
     if (class(this_output) == "logical" & is.na(this_output)) {
+        warnring(paste("Skipping plot", thisplot, ".  Perhaps only stock measurements?"))
         next() # likely no rows after removing stock measurements
     }
     output[[thisplot]] = this_output
