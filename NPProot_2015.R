@@ -352,7 +352,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
 
   # split out into per-tube summaries here ####
-    data4_pertube <- sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, AVG(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
+    data4_pertube <- sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, SUM(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
     colnames(data4_pertube) <- c("persist_id", "year", "month", "day", "threemonthlyNPProot")
     data4_pertube$year = sub("^(\\d\\d)$", "20\\1", data4_pertube$year) # make 2-digit years into 4-digit years.  Assume 20xx.
     data4_pertube$d     <- as.character(paste(data4_pertube$month, data4_pertube$day, data4_pertube$year, sep="/")) 
@@ -381,7 +381,12 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     
     data4_pertube$tubenum = sub("^.*_(.*)$", "\\1", data4_pertube$persist_id)
     data3$tubenum = sub("^.*_(.*)$", "\\1", data3$persist_id)
-    
+
+    # record previous meas in each row for data3 so we know the period for which the measurement is referring
+        data3 = data3 %>% group_by(persist_id) %>%
+                          mutate(date = as.Date(sprintf("%d-%2d-%2d", year, month, day))) %>%
+                          arrange(date) %>%
+                          mutate(prev_meas = lag(date))
     if (! remove_stock_meas) {
       # remove the first measurement from all tubes if the stock measurement wasn't removed initially
       stock_meas_times = unique(with(stock_meas, paste(year, month, day)))

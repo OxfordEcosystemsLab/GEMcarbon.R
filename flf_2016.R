@@ -231,6 +231,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F) { 
                               epiflf_MgC_ha_month_trap = mean(epiflf, na.rm = T),
                               otherflf_MgC_ha_month_trap = mean(otherflf, na.rm = T),
                               totalflf_MgC_ha_month_trap = mean(totalflf, na.rm = T),
+                              interval = - mean(meas_int_days, na.rm = T),
                               sd_leavesflf = sd(leavesflf_MgC_ha_month, na.rm = T),
                               sd_twigsflf = sd(twigsflf, na.rm = T),
                               sd_flowersflf = sd(flowersflf, na.rm = T),
