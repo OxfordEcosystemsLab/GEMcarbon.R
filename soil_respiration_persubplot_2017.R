@@ -1,4 +1,4 @@
-### Function Soil respiration:
+ ### Function Soil respiration:
 # This function calculates soil respiration and uses input data specified in the RAINFOR-GEM manual.
 # Based on matlab code developed by Chris Doughty, 2011.
 # Last edited: Cecile Girardin, 10.09.2015
@@ -43,12 +43,12 @@ dat3  <- read.table("flux_total_PAN02.csv", sep=",", header=T)
 dat4  <- read.table("flux_total_PAN03.csv", sep=",", header=T) 
 dat5  <- read.table("flux_total_SPD01.csv", sep=",", header=T) 
 dat6  <- read.table("flux_total_SPD02.csv", sep=",", header=T)  
-dat7  <- read.table("flux_total_TAM05_2017.csv", sep=",", header=T) 
-dat8  <- read.table("flux_total_TAM06_2017.csv", sep=",", header=T)  
-dat9  <- read.table("flux_total_TAM09.csv", sep=",", header=T)  
+dat7  <- read.table("flux_total_TAM05_mar17.csv", sep=",", header=T) 
+dat8  <- read.table("flux_total_TAM06_mar17.csv", sep=",", header=T)  
+dat9  <- read.table("flux_total_TAM09_mar17.csv", sep=",", header=T)  
 dat10 <- read.table("flux_total_TRU04.csv", sep=",", header=T)  
 dat11 <- read.table("flux_total_WAY01.csv", sep=",", header=T) 
-datarest <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
+datarest <- dat9 #rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
 
 # control
 dat1  <- read.table("flux_control_ACJ01.csv", sep=",", header=T)  
@@ -57,13 +57,13 @@ dat3  <- read.table("flux_control_PAN02.csv", sep=",", header=T)
 dat4  <- read.table("flux_control_PAN03.csv", sep=",", header=T) 
 dat5  <- read.table("flux_control_SPD01.csv", sep=",", header=T) 
 dat6  <- read.table("flux_control_SPD02.csv", sep=",", header=T)  
-dat7  <- read.table("flux_control_TAM05_2017.csv", sep=",", header=T)  
-dat8  <- read.table("flux_control_TAM06_2017.csv", sep=",", header=T)  
-dat9  <- read.table("flux_control_TAM09.csv", sep=",", header=T)  
+dat7  <- read.table("flux_control_TAM05_mar17.csv", sep=",", header=T)  
+dat8  <- read.table("flux_control_TAM06_mar17.csv", sep=",", header=T)  
+dat9  <- read.table("flux_control_TAM09_mar17.csv", sep=",", header=T)  
 dat10 <- read.table("flux_control_TRU04.csv", sep=",", header=T)  
 dat11 <- read.table("flux_control_WAY01.csv", sep=",", header=T) 
-dataresc <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
-discor1  <- read.table("disturbance_perplot_2017.csv", sep=",", header=T)
+dataresc <- dat9 #rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
+discor1  <-  read.table("disturbance_perplot_2017.csv", sep=",", header=T)
 
 # partitioning
 dat1  <- read.table("flux_part_ACJ01.csv", sep=",", header=T)  
@@ -72,19 +72,19 @@ dat3  <- read.table("flux_part_PAN02.csv", sep=",", header=T)
 dat4  <- read.table("flux_part_PAN03.csv", sep=",", header=T) 
 dat5  <- read.table("flux_part_SPD01.csv", sep=",", header=T) 
 dat6  <- read.table("flux_part_SPD02.csv", sep=",", header=T)  
-dat7  <- read.table("flux_part_TAM05.csv", sep=",", header=T)  
-dat8  <- read.table("flux_part_TAM06.csv", sep=",", header=T)  
-dat9  <- read.table("flux_part_TAM09.csv", sep=",", header=T)  
+dat7  <- read.table("flux_part_TAM05_mar17.csv", sep=",", header=T)  
+dat8  <- read.table("flux_part_TAM06_mar17.csv", sep=",", header=T)  
+dat9  <- read.table("flux_part_TAM09_mar17.csv", sep=",", header=T)  
 dat10 <- read.table("flux_part_TRU04.csv", sep=",", header=T)  
 dat11 <- read.table("flux_part_WAY01.csv", sep=",", header=T) 
-dataresp <- rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
+dataresp <- dat9 #rbind(dat1, dat2, dat3, dat4, dat5, dat6, dat7, dat8, dat9, dat10, dat11) 
 
 # dataresp$collar_height_cm has a lot of NAs, I am replacing NAs by mean(dataresp$collar_height_cm, na.rm=T)
 # dataresp$collar_height_cm[is.na(dataresp$collar_height_cm)] <- mean(dataresp$collar_height_cm, na.rm=T)
 
 # Define function parameters
 pressure = 1013.25
-plotname = "TAM-06"
+plotname = "TAM-09"
 partitioningoption = 1
 elevation = "Default"
 T_ambient="Default"
@@ -346,17 +346,17 @@ soilrespiration <- function(datarest,dataresp,dataresc, plotname, ret="monthly.m
   ts_total$Rs_het_MgC_ha_mo      <- ts_total$Rs_total_MgC_ha_mo*(1-rr)
   ts_total$Rs_het_MgC_ha_mo_std  <- (ts_total$Rs_total_MgC_ha_mo_std*(1-rr))/sqrt(length(ts_total$Rs_total_MgC_ha_mo_std))
   
- plota <- ggplot(ts_total, aes(x = date, y = Rs_root_MgC_ha_mo, na.rm = T)) +
-   geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = "darkgrey", na.rm=T) +
-   geom_point(data = ts_total, aes(x = date, y = Rs_root_MgC_ha_mo), size = 2, colour = "blue", na.rm=T) + #ts_total$sub_plot
-   geom_point(data = ts_total, aes(x = date, y = Rs_het_MgC_ha_mo), size = 2, colour = "red", na.rm=T) +
-   ylim(0, 4.5) +
+ plota <- ggplot(ts_total, aes(x = date, y = Rs_het_MgC_ha_mo, na.rm = T)) +
+   #geom_point(data = ts_total, aes(x = date, y = Rs_total_MgC_ha_mo), size = 2, colour = "darkgrey", na.rm=T) +
+   #geom_point(data = ts_total, aes(x = date, y = Rs_root_MgC_ha_mo), size = 2, colour = "blue", na.rm=T) + #ts_total$sub_plot
+   geom_point(data = ts_total, aes(x = date, y = Rs_het_MgC_ha_mo), size = 2, colour = "darkgreen", na.rm=T) +
+   ylim(0, 2.5) + 
    ggtitle(plotname)
  plota
  
  # Save file
  setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_soil_respiration")
- write.csv(ts_total, file="ts_TAM-06_Rs_part_2017.csv")
+ write.csv(ts_total, file="ts_TAM09_Rs_part_may17.csv")
  
   # Return a timeseries
  return(ts_total)

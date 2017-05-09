@@ -8,35 +8,6 @@
 # ATTENTION!! Make sure that 1st timestep is always followed by timesteps 2,3,4 in that order.
 # Note: options have been obviated in leiu of pasing in timesteps
 
-# STOCKS: delete stocks data, we are only dealing with NPP here.
-
-# colnames in database:
-# plot_code                  
-# year                        
-# month                         
-# day                         
-# ingrowth_core_num           
-# is_stock_yn                 
-# ingrowth_core_litterfall_g  
-# soil_humidity_pcnt          
-# soil_temperature_c          		
-# ol_layer_depth_cm	    
-# ml_layer_depth_cm	    
-# time_step                   
-# time_step_minutes           
-# ol_under_2mm_g                         
-# ml_under_2mm_g                           
-# ol_2to3_mm_g	            
-# ml_2to3_mm_g	            
-# ol_3to4_mm_g	            
-# ml_3to4_mm_g	           
-# ol_4to5_mm_g	
-# ml_4to5_mm_g	           
-# ol_above_5mm_g	            
-# ml_above_5mm_g	           
-# quality_code                
-# comments   
-
 # get script location in order to find functions.r
 # from http://stackoverflow.com/questions/1815606/rscript-determine-path-of-the-executing-script
   # script.dir <- try(dirname(sys.frame(1)$ofile), silent = T)
@@ -103,14 +74,19 @@ extrapolate_failed_model <- function(cum, tx, b, mins = 100) {
   cum_tot = a * mins^b
   return(cum_tot)
 }
-
-calc_roots <- function(core_data, root_type, plotname, tx = c(10,20,30,40), mins = 100, logmodel = T) {
+  
+calc_roots <- function(core_data, root_type, plotname, tx = c("txa", "txb", "txc"), mins = 100, logmodel = T) {  
   # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
   this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"])
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
+  
+  # define cumulative time steps
+  tx = switch(tx, txa = c(10,20,30,40),
+                  txb = c(5,10,15),
+                  txc = c(5,10,15,20))
+  
   if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
     cumdata      <- tail(core_data[,root_type], n=length(tx)) # cumulative values for that diameter class
-    #tx           <- c(10,20,30,40)           # cumulative time steps in minutes WE SHOULD USE data.ic$time_step_cum
     cum          <- cumsum(cumdata)
     if(cum[1] == 0) {                       # make sure we find some roots in first sample.  Otherwise, log models blow up.
       tot_roots = extrapolate_failed_model(cum, tx, this_exponent, mins = mins)
@@ -133,9 +109,11 @@ calc_roots <- function(core_data, root_type, plotname, tx = c(10,20,30,40), mins
 }
 
 
+
 NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
                        
-                       #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")) {
+    #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")
+  
   ret_type = match.arg(ret_type)
   if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
       data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
@@ -153,7 +131,7 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
       
     this_output = NPProot_ic_oneplot(datafile, thisplot, ...)
     if (class(this_output) == "logical" & is.na(this_output)) {
-        warnring(paste("Skipping plot", thisplot, ".  Perhaps only stock measurements?"))
+        warning(paste("Skipping plot", thisplot, ".  Perhaps only stock measurements?"))
         next() # likely no rows after removing stock measurements
     }
     output[[thisplot]] = this_output
@@ -179,8 +157,11 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
     return(list("three_monthly" = three_monthly, "three_monthly_pertube" = three_monthly_pertube, "all_times_and_tubes" = all_times_and_tubes))
   }
 }
+ 
+  # TO DO: RUN THIS ON ITS OWN FIRST
   
-NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = F, ret = "monthly.means.ts") {
+NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = F, ret = "monthly.means.ts", tx) {  
+  
   # If stock measurements aren't removed, they're used as the beginning of the first interval (otherwise assumed to be 90 days)
 
   library(sqldf)
@@ -218,9 +199,14 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$ml_3to4   <- data$ml_3to4_mm_g 	           
   data$ml_4to5   <- data$ml_4to5_mm_g 	                    
   data$ml_above5 <- data$ml_above_5mm_g 
-  data$time_step_cum <- data$time_step*data$time_step_minutes # get cumulative time step
   
-  ## TO DO: We should add sanity checks for the input data here.
+  # Do we need this? Or can we assume each dataset has a single timestep pattern?
+  # data$time_step_cum <- data$time_step*data$time_step_minutes 
+  # data$time_step_cum <- THIS NEEDS WORK. HOW TO GET CUMULATIVE TIMESTEP IF YOU DON'T HAVE BOTH COLUMNS??
+  #if (!is.na(data$time_step) & data$time_step_minutes != 5 & data$time_step_minutes != 15), 
+  #then (data$time_step_cum <- data$time_step*10) 
+  #if {is.na(data$time_step) & !is.na(time_step_minutes)}
+  #then (data$time_step_cum <- data$time_step_minutes)
   
   # Replace NAs by 0
   
@@ -235,7 +221,10 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$ml_4to5[is.na(data$ml_4to5)]     <- 0                  
   data$ml_above5[is.na(data$ml_above5)] <- 0
   
-  data$this_core <- (paste(as.character(data$year),as.character(data$month),as.character(data$day),as.character(data$ingrowth_core_num), sep="-"))
+  # Replace NAs in days by 1
+  data$day[is.na(data$day)] <- 1  # TO DO. ATTENTION. THIS IS WRONG. WE SHOULD REPLACE BY THE PREVIOUS DAY.
+  
+  data$this_core <- (paste(as.character(data$year), as.character(data$month), as.character(data$day), as.character(data$ingrowth_core_num), as.character(data$is_stock), sep="-"))
 
   data = transform(data, persist_id = paste(plotname, ingrowth_core_num, sep="_"))
   if (! remove_stock_meas) {
@@ -243,6 +232,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
       stock_meas = data[data$is_stock %in% "y", c("persist_id", "plot_code", "ingrowth_core_num", "year", "month", "day")]
       stock_meas = stock_meas[!duplicated(stock_meas),]
   }
+  
   
   uid <- unique(data$this_core)
   xx <- c()
@@ -257,31 +247,25 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   ii <- c()
   jj <- c()
   
+  
   for (i in 1:length(uid)) {
     sub          <- subset(data, subset=(data$this_core == uid[i]))
     id           <- tail(sub$this_core, n=1) 
     
-    #ol_under2
-    tot_olunder2 = calc_roots(sub, "ol_under2", plotname)
-    #ol_2to3
-    tot_ol2to3 = calc_roots(sub, "ol_2to3", plotname)
-    #ol_3to4
-    tot_ol3to4 = calc_roots(sub, "ol_3to4", plotname)
-    #ol_4to5
-    tot_ol4to5 = calc_roots(sub, "ol_4to5", plotname)
-    #ol_above5
-    tot_olabove5 = calc_roots(sub, "ol_above5", plotname)
-    #ml_under2 
-    tot_mlunder2 = calc_roots(sub, "ml_under2", plotname)
-    #ml_2to3
-    tot_ml2to3 = calc_roots(sub, "ml_2to3", plotname)
-    #ml_3to4
-    tot_ml3to4 = calc_roots(sub, "ml_3to4", plotname)
-    #ml_4to5
-    tot_ml4to5 = calc_roots(sub, "ml_4to5", plotname)
-    #ml_above5
-    tot_mlabove5 = calc_roots(sub, "ml_above5", plotname)
-   
+    # order by time_step
+    # THIS IS WHERE WE SHOULD REPLACE MISSING DAYS: sub$day[is.na(sub$day)] <- sub$day - 1 
+    
+    tot_olunder2  = calc_roots(sub, "ol_under2", plotname, tx) #ol_under2
+    tot_ol2to3    = calc_roots(sub, "ol_2to3", plotname, tx) #ol_2to3
+    tot_ol3to4    = calc_roots(sub, "ol_3to4", plotname, tx) #ol_3to4
+    tot_ol4to5    = calc_roots(sub, "ol_4to5", plotname, tx) #ol_4to5
+    tot_olabove5  = calc_roots(sub, "ol_above5", plotname, tx) #ol_above5
+    tot_mlunder2  = calc_roots(sub, "ml_under2", plotname, tx) #ml_under2
+    tot_ml2to3    = calc_roots(sub, "ml_2to3", plotname, tx) #ml_2to3
+    tot_ml3to4    = calc_roots(sub, "ml_3to4", plotname, tx) #ml_3to4
+    tot_ml4to5    = calc_roots(sub, "ml_4to5", plotname, tx) #ml_4to5
+    tot_mlabove5  = calc_roots(sub, "ml_above5", plotname, tx) #ml_above5
+    
     xx       <- rbind(xx, id) # use this
     # yy       <- rbind(yy, persist_id) # use this
     aa       <- rbind(aa, tot_olunder2) # use this
@@ -296,7 +280,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     jj       <- rbind(jj, tot_mlabove5)
   }
   
-  data2a <- data.frame(cbind(xx, as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), as.numeric(as.character(jj))))
+  data2a <- data.frame(cbind(as.character(xx), as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), as.numeric(as.character(jj))))
   colnames(data2a) <- c("this_core", "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5")
     
   # data2 <- data.frame(cbind(xx, as.numeric(as.character(aa)))) 
@@ -337,36 +321,46 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     # Please note: there is a discrepancy between here and the RAINFOR manual (2.3, pp. 47), because the assumption there is 45% in the top 30 cm of the soil.
     
     # sum total carbon from roots (diameter ~ 14cm, depth ~ 30cm)
-      data3$ciric = (3.14*tubed^2) # surface area m2
-      data3$volic = data3$ciric*depic
+      data3$ciric    = (3.14*tubed^2) # surface area m2
+      data3$volic    = data3$ciric*depic
       data3$rootztot[is.na(data3$rootztot)] = 0 
-      data3$totaic = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
+      data3$totaic   = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
       data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
-                                                                   
+      data3$d        = as.character(paste(data3$month, data3$day, data3$year, sep="/")) 
+      data3$date     = as.Date(data3$d, "%m/%d/%Y")
+
   # convert to MgC / ha / month per plot ####
     data3[data3 == 0] <- NA
-    data4 <- sqldf("SELECT data3.year, data3.month, data3.day, AVG(data3.ic_MgCha), STDEV(data3.ic_MgCha) FROM data3 GROUP BY data3.month")
-    colnames(data4) <- c("year", "month", "day", "threemonthlyNPProot", "threemonthlyNPProot_sd")
-    data4$year = sub("^(\\d\\d)$", "20\\1", data4$year) # make 2-digit years into 4-digit years.  Assume 20xx.
-    data4$d     <- as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
-    data4$date  <- as.Date(data4$d, "%m/%d/%Y")
-    data4 <- sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
+  
+    #data4 <- sqldf("SELECT data3.year, data3.month, data3.day, AVG(data3.ic_MgCha), STDEV(data3.ic_MgCha) FROM data3 GROUP BY data3.month")
+    #colnames(data4) <- c("year", "month", "day", "threemonthlyNPProot", "threemonthlyNPProot_sd")
+    #data4$year = sub("^(\\d\\d)$", "20\\1", data4$year) # make 2-digit years into 4-digit years.  Assume 20xx.
 
+    data4 = data3 %>% group_by(year, month) %>% 
+                      dplyr::summarize(day = mean(day, na.rm = T),
+                                       threemonthlyNPProot = mean(ic_MgCha, na.rm = T), 
+                                       threemonthlyNPProot_sd = sd(ic_MgCha, na.rm = T), 
+                                       date = max(date))
+    data4       = data.frame(data4)
+    data4$d     = as.character(paste(data4$month, data4$day, data4$year, sep="/")) 
+    data4$date  = as.Date(data4$d, "%m/%d/%Y")
+    data4       = sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
+  
   # split out into per-tube summaries here ####
-    data4_pertube <- sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, SUM(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
-    colnames(data4_pertube) <- c("persist_id", "year", "month", "day", "threemonthlyNPProot")
-    data4_pertube$year = sub("^(\\d\\d)$", "20\\1", data4_pertube$year) # make 2-digit years into 4-digit years.  Assume 20xx.
-    data4_pertube$d     <- as.character(paste(data4_pertube$month, data4_pertube$day, data4_pertube$year, sep="/")) 
-    data4_pertube$date  <- as.Date(data4_pertube$d, "%m/%d/%Y")
-    data4_pertube <- sqldf("SELECT data4_pertube.* FROM data4_pertube ORDER BY data4_pertube.persist_id, data4_pertube.year, data4_pertube.month, data4_pertube.day ASC")
+    data4_pertube       = sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, SUM(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
+    colnames(data4_pertube) = c("persist_id", "year", "month", "day", "threemonthlyNPProot")
+    data4_pertube$year  = sub("^(\\d\\d)$", "20\\1", data4_pertube$year) # make 2-digit years into 4-digit years.  Assume 20xx.
+    data4_pertube$d     = as.character(paste(data4_pertube$month, data4_pertube$day, data4_pertube$year, sep="/")) 
+    data4_pertube$date  = as.Date(data4_pertube$d, "%m/%d/%Y")
+    data4_pertube       = sqldf("SELECT data4_pertube.* FROM data4_pertube ORDER BY data4_pertube.persist_id, data4_pertube.year, data4_pertube.month, data4_pertube.day ASC")
   
   # 3 monthly data divided by collection interval. Get collection interval: 
-    c_time <- as.POSIXlt(data4$date)
-    c_time <- rev(c_time)
-    tt <- difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
-    data4$interval <- c(90, tt)  # I add 90 days as first collection interval. You can change this.
-    data4$monthlyNPProot    <- (as.numeric(data4$threemonthlyNPProot)/data4$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
-    data4$monthlyNPProot_se <- ((as.numeric(data4$threemonthlyNPProot_sd)/sqrt(16))/data4$interval) * 30 
+    c_time = as.POSIXlt(data4$date)
+    c_time = rev(c_time)
+    tt = difftime(c_time[1:(length(c_time)-1)] , c_time[2:length(c_time)]) # this gets the collection interval 
+    data4$interval = c(90, tt)  # I add 90 days as first collection interval. You can change this.
+    data4$monthlyNPProot    = (as.numeric(data4$threemonthlyNPProot)/data4$interval) * 30 # TO DO: We should change this to the number of days in that month. need a loop.
+    data4$monthlyNPProot_se = ((as.numeric(data4$threemonthlyNPProot_sd)/sqrt(16))/data4$interval) * 30 
     # (mean(data4$monthlyNPProot, na.rm=T))*12
     # (mean(data4$monthlyNPProot_se, na.rm=T))*12
     
@@ -407,7 +401,7 @@ if (plotit==T) {
   
   top <- data4$monthlyNPProot + data4$monthlyNPProot_se
   plot1 <- ggplot(data=data4, aes(x=date, y=monthlyNPProot, na.rm=T)) +
-           geom_line(linetype='solid', colour='black', size=1) +
+           geom_point(colour='black', size=2) +
            geom_ribbon(data=data4, aes(ymin=monthlyNPProot-monthlyNPProot_se, ymax=monthlyNPProot+monthlyNPProot_se), alpha=0.2) +
            scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +            
            scale_colour_grey() + 

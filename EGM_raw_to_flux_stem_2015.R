@@ -72,7 +72,7 @@ Rstem_temp <- read.table("Rstem_temp_PAN03_2013_2014.csv", header=TRUE, sep=",",
 raw <- raw[!(is.na(raw$co2ref_ppm)),]
 
 # Add air temperature (temp), volumetric water content (vwc), and chamber depth (depth) to the raw control data (raw_consr)
-  wea$code1     <- paste(wea$sub_plot, wea$day, wea$month, wea$year, sep=".") # only use code 1 to merge wea and raw (subplot.day.month.year is not a unique identifier).
+  wea$code1   <- paste(wea$sub_plot, wea$day, wea$month, wea$year, sep=".") # only use code 1 to merge wea and raw (subplot.day.month.year is not a unique identifier).
   raw$code1   <- paste(raw$sub_plot, raw$day, raw$month, (2000+raw$year), sep=".")
   raw         <- sqldf("SELECT raw.*, wea.soil_temp, wea.vwc, wea.collar_depth FROM raw JOIN  wea  ON raw.code1 = wea.code1")
  

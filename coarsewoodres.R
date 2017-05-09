@@ -48,7 +48,7 @@ usenewfluxcor=T
 
   yearw = dataw$year
   monthw = dataw$month
-  plotw = dataw$plot
+  plotw = dataw$plot_code
   transw = dataw$transect  
   decompw  = dataw$decomposition_class
   dryweight = colMeans(t(data.frame(dataw$dry_weight_1,dataw$dry_weight_2)),na.rm=T)
@@ -73,11 +73,11 @@ for (i in 1:length(plotw)) {
         lengthA[n] = lenw[i]/100   #%convert cm to m;;
         volA[n] = 3.142 * (diameterA[n] / 2)^2 * lengthA[n]   #%m3
         surface_areaA[n] = (2 * 3.142 * ((diameterA[n] / 2)^2)) + (2 * 3.142 * (diameterA[n] / 2) * lengthA[n])
-        dryweightA[n] = dryweight[i];
-        decompA[n] = decompw[i];
-        monthwA[n] = monthw[i];
-        yearwA[n] = yearw[i];
-        n=n+1;
+        dryweightA[n] = dryweight[i]
+        decompA[n] = decompw[i]
+        monthwA[n] = monthw[i]
+        yearwA[n] = yearw[i]
+        n=n+1
     }
 }
 

@@ -20,18 +20,25 @@
   setwd("~/Github/GEMcarbon.R")
   source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
 
-# read in data 
-  raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_control_dec16.csv", sep=",", header=T)
-  raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_part_feb17.csv", sep=",", header=T) 
-  raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_total_feb17.csv", sep=",", header=T)
-  weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/eltr_rsoil_weather_feb17.csv", sep=",", header=T) 
-   
+# read in data
+  # SA
+  raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/eltr_rsoil_control_mar17.csv", sep=",", header=T)
+  raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/eltr_rsoil_part_mar17.csv", sep=",", header=T) 
+  raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/eltr_rsoil_total_mar17.csv", sep=",", header=T)
+  weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/eltr_rsoil_weather_mar17.csv", sep=",", header=T) 
+ 
+  # AFR 
+  raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/XXX.csv", sep=",", header=T)
+  raw_parsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/LPG_PART.csv", sep=",", header=T)
+  raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/LPG_TOT.csv", sep=",", header=T)
+  weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/XXX.csv", sep=",", header=T) 
+  
+  
   # Replace missing collar height data 
   # with the previous or subsequent collar height, or an average of the two if they are both provided.
   weather$ch_new     <- fill.na(weather$collar_height_cm)
   weather$air_temp_c <- as.numeric(as.character(weather$air_temp_c))
   weather$year       <- as.numeric(as.character(weather$year))
-  
   
 ################### TOTAL SOIL RESPIRATION
   
@@ -39,8 +46,8 @@
   # SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 PAN-02 PAN-03 TRU-04 TAM-05 TAM-06 TAM-09
     
 # select a plot
-  raw_totsrA            <- subset(raw_totsrA, plot_code=="TAM-06")
-  wea_tot               <- subset(weather, plot_code=="TAM-06" | measurement_code=="TOTAL")
+  raw_totsrA            <- subset(raw_totsrA, plot_code=="TAM-09")
+  wea_tot               <- subset(weather, plot_code=="TAM-09" | measurement_code=="TOTAL")
   
 # replace missing collar_num by sub_plot
   w <- which(is.na(raw_totsrA$collar_num))
@@ -169,7 +176,7 @@
   
 # save to current directory  
   setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
-  write.csv(Restot, file="flux_total_TAM06_2017.csv")
+  write.csv(Restot, file="flux_total_TAM09_mar17.csv")
 
   
 
@@ -179,9 +186,9 @@
   
   ## contol soil respiration 
 # select a plot
-  raw_consrAA  <- subset(raw_consrA, plot_code == "TAM-06") 
+  raw_consrAA  <- subset(raw_consrA, plot_code == "TAM-09") 
   raw_consrBB  <- subset(raw_consrAA, measurement_code=="CTRL")
-  X            <- subset(weather, plot_code == "TAM-06")
+  X            <- subset(weather, plot_code == "TAM-09")
   wea_con      <- subset(X, measurement_code=="CTRL")
   
 # Define unique identifiers
@@ -311,7 +318,7 @@
   
   # save to current directory 
   setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
-  write.csv(ResCON, file="flux_control_TAM06_2017.csv")
+  write.csv(ResCON, file="flux_control_TAM09_mar17.csv")
   
   
 ################# SOIL RESPIRATION PARTITIONNING
@@ -329,8 +336,8 @@
   # Mineral layer respiration - ML = 10
   
   # select a plot: SPD-02 SPD-01 ESP-01 WAY-01 ACJ-01 TRU-04 PAN-02 PAN-03 TAM-05 TAM-06 TAM-09
-  raw_parsrA <- subset(raw_parsrA, plot_code=="TAM-06")
-  wea_part   <- subset(weather, plot_code=="TAM-06" | measurement_code=="PART")
+  raw_parsrA <- subset(raw_parsrA, plot_code=="TAM-09")
+  wea_part   <- subset(weather, plot_code=="TAM-09" | measurement_code=="PART")
   
   # Replace missing air temp with soil temp. #ATTENTION!! THIS IS A HACK! WHAT SHOULD WE DO WHEN WE DON'T HAVE AIR TEMP?
   w <- which(is.na(wea_part$air_temp_c))
@@ -382,7 +389,6 @@
   #  par(op)
   #}
   
-  
   ## Linear fit, estimate r2 quality check. 
   umea <- unique(raw_parsr$codew)
   xx <- c()
@@ -403,10 +409,23 @@
   colnames(table) <- c("r2", "pvalue", "unique_code") 
   table
   
+  
+  #########################
+  ## AFRICA SHORTCUT
+  #raw_parsr <- subset(raw_parsrA, plot_code=="LPG-01" & treatment_code_partitioning=="all_no_lit_root_my")
+  #raw_parsr$codew <- paste(raw_parsr$collar_number, raw_parsr$treatment_code_partitioning, raw_parsr$litter_code, raw_parsr$replica, raw_parsr$Day, raw_parsr$Month, raw_parsr$year, sep=".")
+  #raw_parsr$air_temp_c <- 25
+  #raw_parsr$ch_fill <- 5
+  #########################
+  
+  
+  
   # get unique identifyer for each measurement
   uid <- unique(raw_parsr$codew)
   xx <- c()
   yy <- c()
+  
+  i = c(1:2)
   
   for (i in 1:length(uid)) {
     sub      <- subset(raw_parsr, subset=(raw_parsr$codew == uid[i])) 
@@ -432,6 +451,7 @@
     xx       <- rbind(xx, id)
     yy       <- rbind(yy, flux)
     print(xx)
+    print(yy)
   }
   rownames(xx) <- NULL
   rownames(yy) <- NULL
@@ -443,6 +463,17 @@
   head(Res)
   
   
+  #########################
+  ## AFRICA SHORTCUT
+  #Res$collar_number = unlist(strsplit(Res$codew, "[.]"))[[1]] 
+  #Res$treatment_code_partitioning = unlist(strsplit(Res$codew, "[.]"))[[2]]
+  #Res$litter_code = unlist(strsplit(Res$codew, "[.]"))[[3]]
+  #Res$replica = unlist(strsplit(Res$codew, "[.]"))[[4]]
+  #Res$Day = unlist(strsplit(Res$codew, "[.]"))[[5]]
+  #Res$Month = unlist(strsplit(Res$codew, "[.]"))[[6]]
+  #Res$year = unlist(strsplit(Res$codew, "[.]"))[[7]]
+  #########################
+  
 # build the new data frame 
   
   xx <- sqldf("SELECT raw_parsr.codew, raw_parsr.plot_code, raw_parsr.sub_plot, raw_parsr.measurement_code, raw_parsr.treatment_code_partitioning, MAX(raw_parsr.egm_measurement), MAX(raw_parsr.day), MAX(raw_parsr.month), MAX(raw_parsr.year), MAX(raw_parsr.hour), MAX(raw_parsr.soil_temp_c_out), MAX(raw_parsr.vwc_percent_out), MAX(raw_parsr.ch_new) FROM raw_parsr GROUP BY raw_parsr.codew")
@@ -450,13 +481,13 @@
   ResPAR <- merge(Res, xx,  by.x = "codew", by.y = "codew", all.x=TRUE)
   head(ResPAR)
   
-  #plot <- ggplot(ResPAR) + geom_point(aes(x=year, y=flux_umolm2sec, colour=factor(treatment_code_partitioning)))
-  #plot 
+  plot <- ggplot(ResPAR) + geom_point(aes(x=year, y=flux_umolm2sec, colour=factor(treatment_code_partitioning)))
+  plot 
   
   
 # save to current directory  
   setwd("~/Github/gemcarbon_data/processed_ts_2017/soil_respiration_flux")
-  write.csv(ResPAR, file="flux_part_TAM06_2017.csv")
+  write.csv(ResPAR, file="flux_part_TAM09_mar17.csv")
   
   
   ## style guide on how to lay out R code: http://google-styleguide.googlecode.com/svn/trunk/Rguide.xml#indentation 

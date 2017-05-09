@@ -1,5 +1,5 @@
-setwd("~/Github/gemcarbon_data/raw_data_ingembd/")
-stem_resp <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/stem_resp_27th March.csv", sep=",", header=T)
+# This code estimates stem respiration per tree collar. It does not scale to the whole surface of the tree yet.
+# Cécile Girardin 02/05/2017.
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
@@ -8,101 +8,54 @@ setwd("~/Github/GEMcarbon.R")
 source("allometric_equations_2014.R")
 
 
-# sort out plot_codes
-
-stem_resp$plot_code <- revalue(stem_resp$plot_code, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "TOWER" = "SAF-05", "DC2" = "DAN-05", "Danum Carbon 1" = "DAN-04", "Danum Carbon 2" = "DAN-05", "LOP-01" = "LPG-01","TU4" = "TRU-04"))
-unique(stem_resp$plot_code)
-
-SAF-05 SAF-03 SAF-01 SAF-02 MLA-02 MLA-01 SAF-04 E DAN-05 DAN-04 PAN-01 PAN-02 PAN-03 LPG-01 IVI-01 IVI-02 TAM-09 TAM-06 TAM-05 SPD-02 SPD-01 ACJ-01
-ESP-01 TRU-04 WAY-01 KEN-02 KEN-01
-
-# SEA plot_codes from Terhi 03/04/2017
-#B North               SAF-02
-#B South               SAF-01
-#E                     SAF-03
-#LF                    SAF-04
-#Tower                 SAF-05
-#Belian (in Maliau)    MLA-01
-#Seraya (in Maliau)    MLA-02
-#Danum Carbon 1  (DC1) DAN-04
-#Danum Carbon 2  (DC2) DAN-05
-
-
- 
-#####################################################################################
-
-
-plotname = "LPG-01"
-collardiameter=12
-collarheight=5
-T_ambient= "Default"
-  
-# Mean annual soil temperature
-
-matALP11 <- 25.2	
-matALP30 <- 25.2	
-matTAM   <- 24.4 # TAM-05 -06 -09	
-matTON01 <- 20.7	
-matSPD02 <- 18.8	
-matSPD01 <- 17.4	
-matTRU07 <- 17.4	
-matTRU08 <- 18	
-matTRU04 <- 13.5	
-matTRU03 <- 11.8
-matWAY01 <- 11.8
-matESP01 <- 13.1
-
-												
-
-stemrespiration <- function(stem_resp, plotname, ret="monthly.means.ts", collardiameter=12, collarheight=5, # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
+stemrespiration <- function(stem_resp, plotname, ret = c("monthly.means.ts", "list"), collardiameter=12, collarheight=5, # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
                             pressure="Default", elevation="Default", T_ambient="Default",
                             plotit=T) {
 # select a plot
-data1   <- subset(stem_resp, plot_code==plotname)
+data1 = subset(stem_resp, plot_code==plotname)
+
+# These parameters should be numeric:
+data1$co2ref_ppm_sec <- as.numeric(as.character(data1$co2ref_ppm_sec))
+data1$time           <- as.numeric(as.character(data1$time))
+data1$atmp_mb        <- as.numeric(as.character(data1$atmp_mb))
+length(is.na(data1$time))
+length(is.na(data1$co2ref_ppm_sec))
 
 # Collar diameter and height (cm)
-data1$collar_diam   <- collardiameter
-data1$collar_height <- collarheight
+data1$collar_diam   = collardiameter
+data1$collar_height = collarheight
 
 # air temperature (deg C)
-
 
 if (T_ambient=="Default") {
   print("WARNING! Mean annual air temperature was not specified, Default = 25 deg C")
   T_ambient <- 25
 }
 
-data1$air_temp_c <- T_ambient
-
+data1$air_temp_c = T_ambient
 
 # Estimate missing temperature as average temperature for the plot
-#w <- which(is.na(raw_totsr$air_temp_c))
+# w <- which(is.na(raw_totsr$air_temp_c))
 # Replace missing air temp with soil temp.
-#raw_totsr$air_temp_c[w] <- raw_totsr$soil_temp_c_out[w]
+# raw_totsr$air_temp_c[w] <- raw_totsr$soil_temp_c_out[w]
 # If data are still missing, replace with average air temp. #ATTENTION!! THIS IS A HACK! WHAT SHOULD WE DO WHEN WE DON"T HAVE AIR TEMP?
-#w <- which(is.na(raw_totsr$air_temp_c))
-#raw_totsr$air_temp_c[w] <- t
-#raw_totsr$air_temp_c <- as.numeric(as.character(raw_totsr$air_temp_c)) 
+# w <- which(is.na(raw_totsr$air_temp_c))
+# raw_totsr$air_temp_c[w] <- t
+# raw_totsr$air_temp_c <- as.numeric(as.character(raw_totsr$air_temp_c)) 
 
 # Estimate missing atmospheric pressure whith temperature-dependent version of the barometric equation (see soilrespiration_auxfunctions)
-t <- mean(as.numeric(data1$air_temp_c), na.rm=T) 
-w <- which(is.na(data1$atmp_mb))
-data1$atmp_mb[w] <- barometric_equation_T(elevation=0, temp=t)
-
-
-# TIME SHOULD BE NUMERIC in dataset!!
-data1$time <- as.numeric(as.character(data1$time))
-length(is.na(data1$time))
+t = mean(as.numeric(data1$air_temp_c), na.rm=T) 
+w = which(is.na(data1$atmp_mb))
+data1$atmp_mb[w] = barometric_equation_T(elevation=0, temp=t)
 
 ## Corrections and conversions
 # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
 tempcorr = exp(-0.0695*(1))
 # Convert units umol m2 s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha, 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
-convert = (2592000*10000*12)/(1000000*1000000)
+convert  = (2592000*10000*12)/(1000000*1000000)
 
 # unique identifyer for each measurement: tree_tag, replica, date 
-data1$codew   <- paste(data1$tree_tag, data1$replica, data1$day, data1$month, data1$year, sep=".")
-
+data1$codew <- paste(data1$tree_tag, data1$replica, data1$day, data1$month, data1$year, sep=".")
 
 ## estimate flux for each measurement
 
@@ -134,35 +87,54 @@ for (i in 1:length(uid)) {
   flux     <- (fl*A/Vd*(Va+Vd)/A)*6.312                                            # Convert to umol m-2 s-1. Correct for collar height.
   xx       <- rbind(xx, id)
   yy       <- rbind(yy, flux)
-  print(xx)
+  print(yy)
 }
 rownames(xx) <- NULL
 rownames(yy) <- NULL
 yy           <- as.numeric(as.character(yy)) ## WHY IS THIS AS FACTOR??
 
-Res                 <- cbind.data.frame(xx, yy)
-colnames(Res)       <- c("codew", "flux_umolm2sec")
-Res$flux_MgChamonth <- Res$flux_umolm2sec*convert*tempcorr
+Res                   <- cbind.data.frame(xx, yy)
+colnames(Res)         <- c("codew", "flux_umolm2sec")
+Res$flux_MgC_ha_month <- Res$flux_umolm2sec*convert*tempcorr
+
 
 # Check for duplicates
-any(duplicated(Res$codew))
-Res$codew[which(duplicated(Res$codew))]
+# any(duplicated(Res$codew))
+# Res$codew[which(duplicated(Res$codew))]
 
 # build the new data frame
-tsstem                 <- sqldf("SELECT Res.*, data1.* FROM Res LEFT JOIN data1 ON Res.codew = data1.codew GROUP BY Res.codew")
-tsstem$flux_MgChamonth <- rm.flux.outlier(tsstem$flux_MgChamonth, 4) 
-tsstem$date            <- as.Date(paste(tsstem$year, tsstem$month, tsstem$day, sep="."), format="%Y.%m.%d") 
-tsstem                 <- tsstem[order(tsstem$sub_plot,tsstem$date),]
+tsstem                   <- sqldf("SELECT Res.*, data1.* FROM Res LEFT JOIN data1 ON Res.codew = data1.codew GROUP BY Res.codew")
+# tsstem <- merge(Res, data1, by = "codew", all.x=T)
+
+tsstem$flux_MgC_ha_month    <- rm.flux.outlier(tsstem$flux_MgC_ha_month, 4)
+w = which(tsstem$flux_MgC_ha_month == 0)
+tsstem$flux_MgC_ha_month[w] <- NA
+tsstem$date                 <- as.Date(paste(tsstem$year, tsstem$month, tsstem$day, sep="."), format="%Y.%m.%d") 
+tsstem                      <- tsstem[order(tsstem$sub_plot,tsstem$date),]
+tsstem$codew                <- NULL
+
+# Mean R stem per month per plot, average of all the collars - still no scaling to the tree surface area!
+avg_rs_sa = tsstem %>% group_by(plot_code, year, month) %>% 
+                        dplyr::summarize(plotavg_MgC_ha_month = mean(flux_MgC_ha_month, na.rm = T), 
+                                         plotavg_MgC_ha_month_sd = sd(flux_MgC_ha_month, na.rm = T), 
+                                         date = max(date))
+avg_rs_sa = data.frame(avg_rs_sa)
+
 
 # plot all stem respiration measurements
-plot <- ggplot(tsstem, aes(x = date, y = flux_MgChamonth, na.rm = T)) +
-        geom_point(data = tsstem, aes(x = date, y = flux_MgChamonth), size = 2, colour = tsstem$year, na.rm=T) +
+if (plotit==T) {
+plot <- ggplot(tsstem, aes(x = date, y = flux_MgC_ha_month, na.rm = T)) +
+        geom_point(data = tsstem, aes(x = date, y = flux_MgC_ha_month), size = 2, colour = "darkgreen", na.rm=T) +
         ggtitle(plotname)
 plot
+}
 
-# save to current directory  
-setwd("~/Github/gemcarbon_data/processed_ts_2017")
-write.csv(tsstem, file="stem_flux_TAM09_2017.csv")
+# return("monthly.ts.percollar" = tsstem)
+
+switch(ret,
+       monthly.ts.percollar = {return(tsstem)},
+       monthly.means.ts = {return(avg_rs_sa)}
+)
 
 }
 
@@ -206,8 +178,6 @@ write.csv(tsstem, file="stem_flux_TAM09_2017.csv")
 #  plot(aa$co2, aa$time, main = paste("code:", head(aa$codew, 1)), xlab="time", ylab="CO2 (micro mol s-1? ppm?)")
 #  par(op)
 #}
-
-
 
 
 

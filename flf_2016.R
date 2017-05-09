@@ -271,7 +271,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   data3$totalflf   <- (((data3$total*(10000/0.25))*0.000001)*0.49)*30
   
   # flf per ha per month (for each trap)
-  data4 = data3 %>% group_by(plot, num, year, month) %>% 
+  data4 = data3 %>% group_by(plot, num, year, month) 
                     dplyr::summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
                               twigsflf_MgC_ha_month_trap = mean(twigsflf, na.rm = T),
                               flowersflf_MgC_ha_month_trap = mean(flowersflf, na.rm = T),
