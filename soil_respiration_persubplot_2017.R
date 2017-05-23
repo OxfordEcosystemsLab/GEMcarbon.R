@@ -12,6 +12,9 @@
 # plotit: logical (T/F), plot a quick graphical summary of the data?
 # User has to specify either elevation or pressure.
 
+## TO DO: have a switch, so that you can either choose to get het / aut respiration per subplot, based on Rs_total from each subplot (i.e. the way it is estimated here), 
+# OR just spit out het / aut respitation for the subplots we measure them in. No scaling.
+
 
 #load packages
 library(sqldf)

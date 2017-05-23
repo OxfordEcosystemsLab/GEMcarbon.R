@@ -59,8 +59,7 @@ ic_column_types = c(
 plotit = F
 
 # Set exponent of curve for when models will not fit the data
-mean_exponents = c("Default" = 0.22,
-                   "ACJ-01" = 0.22)
+mean_exponents = c("Default" = 0.22)
 
 solve_for_a <- function(cum, tx, b) {
   # Fit the curve through the final
@@ -75,15 +74,16 @@ extrapolate_failed_model <- function(cum, tx, b, mins = 100) {
   return(cum_tot)
 }
   
-calc_roots <- function(core_data, root_type, plotname, tx = c("txa", "txb", "txc"), mins = 100, logmodel = T) {  
+calc_roots <- function(core_data, root_type, plotname, tx, mins = 100, logmodel = T) {  #, tx = c("txa", "txb", "txc")
   # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
   this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"])
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
+  tx = time_step
   # define cumulative time steps
-  tx = switch(tx, txa = c(10,20,30,40),
-                  txb = c(5,10,15),
-                  txc = c(5,10,15,20))
+  #tx = switch(tx, txa = c(10,20,30,40),
+  #                txb = c(5,10,15),
+  #                txc = c(5,10,15,20))
   
   if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
     cumdata      <- tail(core_data[,root_type], n=length(tx)) # cumulative values for that diameter class
