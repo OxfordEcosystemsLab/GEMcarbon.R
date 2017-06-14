@@ -74,16 +74,12 @@ extrapolate_failed_model <- function(cum, tx, b, mins = 100) {
   return(cum_tot)
 }
   
-calc_roots <- function(core_data, root_type, plotname, tx, mins = 100, logmodel = T) {  #, tx = c("txa", "txb", "txc")
+calc_roots <- function(core_data, root_type, plotname, mins = 100, logmodel = T, tx) {  
   # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
   this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"])
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
-  tx = time_step
-  # define cumulative time steps
-  #tx = switch(tx, txa = c(10,20,30,40),
-  #                txb = c(5,10,15),
-  #                txc = c(5,10,15,20))
+  tx = sub$time_step_cum
   
   if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
     cumdata      <- tail(core_data[,root_type], n=length(tx)) # cumulative values for that diameter class
@@ -158,7 +154,7 @@ NPProot_ic <- function(datafile, ..., ret_type = c("concat", "list")) {
   }
 }
  
-  # TO DO: RUN THIS ON ITS OWN FIRST
+  # TO TEST: RUN THIS ON ITS OWN FIRST
   
 NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor = "Default", tubed = 0.07, remove_stock_meas = F, ret = "monthly.means.ts", tx) {  
   
@@ -200,13 +196,6 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$ml_4to5   <- data$ml_4to5_mm_g 	                    
   data$ml_above5 <- data$ml_above_5mm_g 
   
-  # Do we need this? Or can we assume each dataset has a single timestep pattern?
-  # data$time_step_cum <- data$time_step*data$time_step_minutes 
-  # data$time_step_cum <- THIS NEEDS WORK. HOW TO GET CUMULATIVE TIMESTEP IF YOU DON'T HAVE BOTH COLUMNS??
-  #if (!is.na(data$time_step) & data$time_step_minutes != 5 & data$time_step_minutes != 15), 
-  #then (data$time_step_cum <- data$time_step*10) 
-  #if {is.na(data$time_step) & !is.na(time_step_minutes)}
-  #then (data$time_step_cum <- data$time_step_minutes)
   
   # Replace NAs by 0
   
@@ -220,6 +209,14 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data$ml_3to4[is.na(data$ml_3to4)]     <- 0           
   data$ml_4to5[is.na(data$ml_4to5)]     <- 0                  
   data$ml_above5[is.na(data$ml_above5)] <- 0
+  
+  # Cumulative time step
+  data$time_step_cum <- data$time_step*data$time_step_minutes 
+  #if (!is.na(data$time_step) & data$time_step_minutes != 5 & data$time_step_minutes != 15), 
+  #then (data$time_step_cum <- data$time_step*10) 
+  #if {is.na(data$time_step) & !is.na(time_step_minutes)}
+  #then (data$time_step_cum <- data$time_step_minutes)
+  
   
   # Replace NAs in days by 1
   data$day[is.na(data$day)] <- 1  # TO DO. ATTENTION. THIS IS WRONG. WE SHOULD REPLACE BY THE PREVIOUS DAY.
@@ -252,28 +249,27 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     sub          <- subset(data, subset=(data$this_core == uid[i]))
     id           <- tail(sub$this_core, n=1) 
     
-    # order by time_step
     # THIS IS WHERE WE SHOULD REPLACE MISSING DAYS: sub$day[is.na(sub$day)] <- sub$day - 1 
     
-    tot_olunder2  = calc_roots(sub, "ol_under2", plotname, tx) #ol_under2
-    tot_ol2to3    = calc_roots(sub, "ol_2to3", plotname, tx) #ol_2to3
-    tot_ol3to4    = calc_roots(sub, "ol_3to4", plotname, tx) #ol_3to4
-    tot_ol4to5    = calc_roots(sub, "ol_4to5", plotname, tx) #ol_4to5
-    tot_olabove5  = calc_roots(sub, "ol_above5", plotname, tx) #ol_above5
-    tot_mlunder2  = calc_roots(sub, "ml_under2", plotname, tx) #ml_under2
-    tot_ml2to3    = calc_roots(sub, "ml_2to3", plotname, tx) #ml_2to3
-    tot_ml3to4    = calc_roots(sub, "ml_3to4", plotname, tx) #ml_3to4
-    tot_ml4to5    = calc_roots(sub, "ml_4to5", plotname, tx) #ml_4to5
-    tot_mlabove5  = calc_roots(sub, "ml_above5", plotname, tx) #ml_above5
+    tot_olunder2  = calc_roots(sub, "ol_under2", plotname) #ol_under2
+    tot_ol2to3    = calc_roots(sub, "ol_2to3", plotname) #ol_2to3
+    tot_ol3to4    = calc_roots(sub, "ol_3to4", plotname) #ol_3to4
+    tot_ol4to5    = calc_roots(sub, "ol_4to5", plotname) #ol_4to5
+    tot_olabove5  = calc_roots(sub, "ol_above5", plotname) #ol_above5
+    tot_mlunder2  = calc_roots(sub, "ml_under2", plotname) #ml_under2
+    tot_ml2to3    = calc_roots(sub, "ml_2to3", plotname) #ml_2to3
+    tot_ml3to4    = calc_roots(sub, "ml_3to4", plotname) #ml_3to4
+    tot_ml4to5    = calc_roots(sub, "ml_4to5", plotname) #ml_4to5
+    tot_mlabove5  = calc_roots(sub, "ml_above5", plotname) #ml_above5
     
     xx       <- rbind(xx, id) # use this
     # yy       <- rbind(yy, persist_id) # use this
-    aa       <- rbind(aa, tot_olunder2) # use this
+    aa       <- rbind(aa, tot_olunder2) 
     bb       <- rbind(bb, tot_ol2to3)
     cc       <- rbind(cc, tot_ol3to4)
     dd       <- rbind(dd, tot_ol4to5)
     ee       <- rbind(ee, tot_olabove5)
-    ff       <- rbind(ff, tot_mlunder2) # use this
+    ff       <- rbind(ff, tot_mlunder2) 
     gg       <- rbind(gg, tot_ml2to3)
     hh       <- rbind(hh, tot_ml3to4)
     ii       <- rbind(ii, tot_ml4to5)

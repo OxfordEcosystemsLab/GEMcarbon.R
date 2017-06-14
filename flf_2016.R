@@ -182,7 +182,6 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   gg              <- c()
   hh              <- c()
   
-    
   for (i in 1:length(data_flf2$num)) { 
     sub       <- subset(data_flf2, subset=(data_flf2$codeb == uid[i]))
     if(length(sub$codeb) > 1) {
@@ -240,7 +239,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   
   # get day, month, year from data_flf2
   
-  #data3 <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data_flf2 ON data2.id = data_flf2.codew") 
+  #data3a <- sqldf("SELECT data_flf2.*, data2.* FROM data2 JOIN data_flf2 ON data2.id = data_flf2.codew") 
   data_flf2$id <- data_flf2$codew
   data3 <- merge(data_flf2, data2, by = "id")
   
@@ -270,8 +269,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   data3$otherflf   <- (((data3$other*(10000/0.25))*0.000001)*0.49)*30
   data3$totalflf   <- (((data3$total*(10000/0.25))*0.000001)*0.49)*30
   
-  # flf per ha per month (for each trap)
-  data4 = data3 %>% group_by(plot, num, year, month) 
+  # flf per ha per month (for each trap) 
+  data4 = data3 %>% group_by(plot, num, year, month) %>%
                     dplyr::summarize(leavesflf_MgC_ha_month_trap = mean(leavesflf_MgC_ha_month, na.rm = T),
                               twigsflf_MgC_ha_month_trap = mean(twigsflf, na.rm = T),
                               flowersflf_MgC_ha_month_trap = mean(flowersflf, na.rm = T),
@@ -305,8 +304,8 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   # flf per ha per month (average of all the traps)
   
   data5 = data3 %>% group_by(plot, year, month) %>% 
-    dplyr::summarize(leavesflf_MgC_ha_month = mean(leavesflf_MgC_ha_month, na.rm = T),
-                     twigsflf_MgC_ha_month = mean(twigsflf, na.rm = T),
+                    dplyr::summarize(leavesflf_MgC_ha_month = mean(leavesflf_MgC_ha_month, na.rm = T),
+                                     twigsflf_MgC_ha_month = mean(twigsflf, na.rm = T),
                      flowersflf_MgC_ha_month = mean(flowersflf, na.rm = T),
                      fruitsflf_MgC_ha_month = mean(fruitsflf, na.rm = T),
                      bromflf_MgC_ha_month = mean(bromflf, na.rm = T),
