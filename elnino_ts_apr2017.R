@@ -379,11 +379,9 @@ fig3c
 
 ### IC ###
 
-## TO DO: Change timesteps!!!!!!!!!!!!!!!!!!!
-
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/NPProot_2015.R")
-rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_11April.csv", sep=",", header=T)
+rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_7June.csv", sep=",", header=T)
 # ic_all_7June
 
 # re-name plots
@@ -395,22 +393,11 @@ rawic1[rawic1 == 'NA'] <- NA
 w = which(rawic1$is_stock == "y")
 rawic = rawic1[-w,]
 
-# fill in missing time_step values
-# w = which(is.na(rawic$time_step) & !is.na(rawic$time_step_minutes))
-# rawic$time_step[w] = (rawic$time_step_minutes[w]/10)
-# length(rawic$time_step[w])
-
-rawic1$ <- NULL
-rawic1$ <- NULL
-rawic1$ <- NULL
-rawic1$ <- NULL
-
-
 # get rid of duplicated rows
 #data_ic1 <- rawic2[!duplicated(rawic2),] # OR data_ic <- unique(rawic2[ , 1:3]))
 
 datafile <- rawic
-plotname <- "ACJ-01"
+plotname <- "TAM-05"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 
@@ -420,7 +407,6 @@ ret_type = "list"
 
 datafile = set_df_coltypes(datafile, ic_column_types)
  
-####### SORT OUT TIME STEPS. Where to put tx = c("txa", "txb", "txb")
 
 ts_ic_2017_sa <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22"), ret_type = "list")) 
 # working: "ACJ-01" "ESP-01" "WAY-01" "SPD-01" "SPD-02" "TAM-05" "TAM-06" "TAM-09" "TRU-04" 
@@ -442,7 +428,7 @@ ts_ic_2017_sea <- NPProot_ic(subset(datafile, plot_code %in% c("DAN-04", "DAN-05
 # For all of sea, check - time_step = 1, 1, 1 & time_step_minutes = 10, 10, 10
 
 # Testing
-ic_test <- NPProot_ic(subset(datafile, plot_code %in% c("ACJ-01"), ret_type = "list"))
+ic_test <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05"), ret_type = "list"))
 datafile <- subset(rawic, plot_code %in% c("ACJ-01"))
 head(datafile, 10)
 
@@ -745,3 +731,71 @@ dkog = (subset(rstemafr, plot_code %in% c("KOG-02", "KOG-03", "KOG-04", "KOG-05"
 dsaf = (subset(rstemsea, plot_code %in% c("SAF-01", "SAF-02", "SAF-03", "SAF-04", "SAF-05"))) 
 ddan = (subset(rstemsea, plot_code %in% c("DAN-04", "DAN-05"))) 
 dmla = (subset(rstemsea, plot_code %in% c("MLA-01", "MLA-02"))) 
+
+
+
+#######################################
+########## NPPstem CENSUS #############
+#######################################
+
+# NPPacw_census() : a function to calculate annual NPPacw from census data for trees >10 cm.
+
+require(ggplot2)
+require(sqldf)
+require(lubridate)
+
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
+census_TRU04A <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db/acj_pan_2015")
+census_ACJ01 <- read.table("census_ACJ_01.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+census_PAN02 <- read.table("census_PAN_02.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+census_PAN03 <- read.table("census_PAN_03.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+wd_chave      <- read.table("wsg.txt", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+wsg           <- census_TRU04A
+
+#(...)
+
+# get functions
+setwd("/Users/cecile/GitHub/GEMcarbon.R") 
+dir()
+Sys.setlocale('LC_ALL','C') 
+source("NPPacw_census_function_2015.R")
+source("allometric_equations_2014.R")
+
+# Run the function for the plot level census. Default allometric equation is Chave et al. 2005 
+tam05a  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", height_correction_option="Default", census1_year=2013, census2_year=2014)
+tam05b  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", height_correction_option="Default", census1_year=2014, census2_year=2015)
+
+
+#######################################
+########## NPPdendrometers ############
+#######################################
+setwd("/Users/cecile/GitHub/GEMcarbon.R/") 
+source("~/Github/GEMcarbon.R/allometric_equations_2014.R")
+source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")
+source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2015.r")
+
+setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd/stem_npp")
+NPPdend_all <- read.table("dendro_all_14June.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+dbh_census  <- read.table("formattedcensus_TAM06_Mar17.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+  
+# STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
+# STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
+# STEP 3. at the end of "NPPacw_dendro_function_2014.R", you use the function "NPPacw_census" to get an annual value of NPPACW from census data. L 198. Make sure you have the correct parameters in that function (plot name & census years)
+
+#TAM-05
+
+dendrometer = NPPdend_all
+census = dbh_census
+plotname = "TAM-06"     
+allometric_option = "Default"
+height_correction_option = "Default"
+census_year = 2005
+plotit=F
+dtam05 <- NPPacw_dendro(census, dendrometer, plotname = "TAM-05", allometric_option="Default", height_correction_option="Default", census_year = 2005)
+
+# save dendrometer data in MgC / tree / day
+setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(npp_tree, file="ts_dendrometers_tam05_15June17.csv")
+
+

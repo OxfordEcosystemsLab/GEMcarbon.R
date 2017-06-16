@@ -153,36 +153,12 @@ for (ii in 1:length(dend$tree_tag)) {
   # NPPacw per tree: substact bm(t) - bm(t+1) / (t)-(t+1)
   # 1. Tree above ground Carbon stock difference
 
-  dend$agCdiff    <- ave(dend$agC, dend$plot_code, FUN = function(x) c(NA, diff(x)))
+  #dend$agCdiff    <- ave(dend$agC, dend$plot_code, FUN = function(x) c(NA, diff(x)))
 
   # 2. Date difference
 
 #pb = txtProgressBar(max = length(unique(dend$tree_tag)), style = 3); i = 0
 
-first_run = T
-for (ii in 1:length(dend$tree_tag)) {  
-  thistree  <- which(dend$tree_tag == dend$tree_tag[ii])
-  agC       <- dend$agC[thistree]
-  tag       <- dend$tree_tag[thistree]
-  agCdiff   <- dend$agCdiff[thistree]
-  year      <- dend$year[thistree]
-  month     <- dend$month[thistree]
-  plot_code <- dend$plot_code[thistree]
-  datediff  <- rbind(0/0, data.frame(diff(as.matrix(dend$date[thistree])))) #datediff <- data.frame(0/0, difftime(tail(dend$date[thistree], -1), head(dend$date[thistree], -1), units="days"))
-  w         <- cbind (plot_code, tag, year, month, agC, agCdiff, datediff)
-    if (first_run) {
-      npp_tree <- w
-      first_run = F
-    } else {
-      npp_tree <- rbind (npp_tree, w)
-    }
-  #ii = ii + 1
-  #setTxtProgressBar(pb, ii)
-  print(ii)
-}
-#close(pb)
-
-##############################################################################
 uid             <- unique(dend$tree_tag)
 aa              <- c()
 bb              <- c()
@@ -196,7 +172,8 @@ for (ii in 1:length(dend$tree_tag)) {
   thistree  <- which(dend$tree_tag == dend$tree_tag[ii])
   agC       <- dend$agC[thistree]
   tag       <- dend$tree_tag[thistree]
-  agCdiff   <- dend$agCdiff[thistree]
+  #agCdiff   <- dend$agCdiff[thistree]
+  agCdiff   <- ave(dend$agC[thistree], FUN = function(x) c(NA, diff(x)))
   year      <- dend$year[thistree]
   month     <- dend$month[thistree]
   plot_code <- dend$plot_code[thistree]
