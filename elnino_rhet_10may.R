@@ -240,8 +240,8 @@
   setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/")
   
   # SEA RHET
-  soil_resp_sea  <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)
-  Res <- subset(soil_resp_sea, soil_resp_sea$Quality == 1 & soil_resp_sea$Collar_type == "C3")
+  soil_resp_sea  <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)
+  Res <- subset(soil_resp_sea, soil_resp_sea$Quality == 1 & soil_resp_sea$Collar_type == c("C3", "Total"))
   Res$plot_code <- Res$Plot
   Res$plot_code <- revalue(Res$plot_code, c("Tower" = "SAF-05","E" = "SAF-03","B South" = "SAF-01","B North" = "SAF-02","Belian" =  "MLA-01","Seraya" = "MLA-02","LF" = "SAF-04","DC1" = "DAN-04","DC2" = "DAN-05"))
   write.csv(Res, file="ts_rhet_sea_may17.csv")

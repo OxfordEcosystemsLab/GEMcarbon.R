@@ -6,7 +6,6 @@ library(sqldf)
 library(plyr)
 
 ## Soil respiration
-
 setwd("~/Desktop/data_sorting/rsoil/Rs_db_csv")
 list.files()
 rcontrol_kos        <- read.table("~/Desktop/data_sorting/rsoil/Rs_db_csv/clean_controlresp_kos_Dec2014.csv", sep=",", header=T)
@@ -662,5 +661,470 @@ Pontos  Pare	Tipo de medida
 9	E	Solo nao perturbada	plantado
 10	E	Solo pertubada	excabado
 
+# AFRICA
+setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rpart/BOB/")
+list.files()
+library(data.table) 
+
+# PART
+aa   <- read.table("BOB-01_PART_2014_06_23.csv", sep=",", header=T)
+aa$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#aa <- data.frame(aa[myvars])
+
+bb   <- read.table("BOB-01_PART_2014_07_02.csv", sep=",", header=T)
+bb$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#bb <- data.frame(bb[myvars])
+
+cc   <- read.table("BOB-01_PART_2014_08_06.csv", sep=",", header=T)
+cc$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#cc <- data.frame(cc[myvars])
+
+dd   <- read.table("BOB-01_PART_2014_09_25.csv", sep=",", header=T)
+dd$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#dd <- data.frame(dd[myvars])
+
+ee   <- read.table("BOB-01_PART_2014_10_12.csv", sep=",", header=T) 
+ee$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ee <- data.frame(ee[myvars])
+
+ff   <- read.table("BOB-01_PART_2014_11_11.csv", sep=",", header=T) 
+ff$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ff <- data.frame(ff[myvars])
+
+gg   <- read.table("BOB-01_PART_2014_12_17.csv", sep=",", header=T) 
+gg$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#gg <- data.frame(gg[myvars])
+
+hh   <- read.table("BOB-01_PART_2015_01_29.csv", sep=",", header=T)
+hh$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#hh <- data.frame(hh[myvars])
+
+ii   <- read.table("BOB-01_PART_2015_02_25.csv", sep=",", header=T) 
+ii$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ii <- data.frame(ii[myvars])
+
+jj   <- read.table("BOB-01_PART_2015_03_10.csv", sep=",", header=T) 
+jj$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#jj <- data.frame(jj[myvars])
+
+kk   <- read.table("BOB-01_PART_2015_04_14.csv", sep=",", header=T) 
+kk$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#kk <- data.frame(kk[myvars])
+
+ll   <- read.table("BOB-01_PART_2015_05_13.csv", sep=",", header=T)
+ll$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ll <- data.frame(ll[myvars])
+
+mm   <- read.table("BOB-01_PART_2015_07_02.csv", sep=",", header=T) 
+mm$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#mm <- data.frame(mm[myvars])
+#colnames(mm) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+nn   <- read.table("BOB-01_PART_2015_08_11.csv", sep=",", header=T) 
+nn$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#nn <- data.frame(nn[myvars])
+#colnames(nn) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+oo   <- read.table("BOB-01_PART_2015_09_08.csv", sep=",", header=T) 
+oo$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#oo <- data.frame(oo[myvars])
+#colnames(oo) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+pp   <- read.table("BOB-01_PART_2015_10_06.csv", sep=",", header=T)
+pp$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#pp <- data.frame(pp[myvars])
+#colnames(pp) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+
+qq   <- read.table("BOB-01_PART_2015_10_29.csv", sep=",", header=T) 
+qq$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#qq <- data.frame(qq[myvars])
+#colnames(qq) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+rr   <- read.table("BOB-01_PART_2015_12_29.csv", sep=",", header=T) 
+rr$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#rr <- data.frame(rr[myvars])
+#colnames(rr) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+ss   <- read.table("BOB-01_PART_2016_01_21.csv", sep=",", header=T) 
+ss$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ss <- data.frame(ss[myvars])
+#colnames(ss) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+tt   <- read.table("BOB-01_PART_2016_02_26.csv", sep=",", header=T)
+tt$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#tt <- data.frame(tt[myvars])
+#colnames(tt) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+uu   <- read.table("BOB-01_PART_2016_03_31.csv", sep=",", header=T) 
+uu$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#uu <- data.frame(uu[myvars])
+#colnames(uu) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+vv   <- read.table("BOB-02_PART_2014_06_03.csv", sep=",", header=T) 
+vv$Year="2014"
+vv$Subplot="NA"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#vv <- data.frame(vv[myvars])
+
+ww   <- read.table("BOB-02_PART_2014_06_30.csv", sep=",", header=T) 
+ww$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ww <- data.frame(ww[myvars])
+
+xx   <- read.table("BOB-02_PART_2014_08_05.csv", sep=",", header=T)
+xx$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#xx <- data.frame(xx[myvars])
+
+yy   <- read.table("BOB-02_PART_2014_09_23.csv", sep=",", header=T) 
+yy$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#yy <- data.frame(yy[myvars])
+
+zz   <- read.table("BOB-02_PART_2014_10_09.csv", sep=",", header=T) 
+zz$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#zz <- data.frame(zz[myvars])
+
+aaa  <- read.table("BOB-02_PART_2014_11_11.csv", sep=",", header=T) 
+aaa$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#aaa <- data.frame(aaa[myvars])
+
+bbb   <- read.table("BOB-02_PART_2014_12_08.csv", sep=",", header=T)
+bbb$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#bbb <- data.frame(bbb[myvars])
+
+ccc   <- read.table("BOB-02_PART_2015_01_15.csv", sep=",", header=T) 
+ccc$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ccc <- data.frame(ccc[myvars])
+
+ddd   <- read.table("BOB-02_PART_2015_02_11.csv", sep=",", header=T) 
+ddd$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ddd <- data.frame(ddd[myvars])
+
+eee   <- read.table("BOB-02_PART_2015_03_11.csv", sep=",", header=T) 
+eee$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#eee <- data.frame(eee[myvars])
+
+fff   <- read.table("BOB-02_PART_2015_04_28.csv", sep=",", header=T)
+fff$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#fff <- data.frame(fff[myvars])
+
+ggg   <- read.table("BOB-02_PART_2015_05_12.csv", sep=",", header=T) 
+ggg$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ggg <- data.frame(ggg[myvars])
+
+hhh   <- read.table("BOB-02_PART_2015_06_02.csv", sep=",", header=T) 
+hhh$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#hhh <- data.frame(hhh[myvars])
+#colnames(hhh) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+iii   <- read.table("BOB-02_PART_2015_07_22.csv", sep=",", header=T) 
+iii$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#iii <- data.frame(iii[myvars])
+#colnames(iii) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+jjj  <- read.table("BOB-02_PART_2015_08_27.csv", sep=",", header=T)
+jjj$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#jjj <- data.frame(jjj[myvars])
+#colnames(jjj) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+kkk  <- read.table("BOB-02_PART_2015_09_22.csv", sep=",", header=T) 
+kkk$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#kkk <- data.frame(kkk[myvars])
+#colnames(kkk) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+lll  <- read.table("BOB-02_PART_2015_10_30.csv", sep=",", header=T) 
+lll$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#lll <- data.frame(lll[myvars])
+#colnames(lll) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+mmm   <- read.table("BOB-02_PART_2015_12_13.csv", sep=",", header=T) 
+mmm$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#mmm <- data.frame(mmm[myvars])
+#colnames(mmm) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+nnn  <- read.table("BOB-02_PART_2016_01_22.csv", sep=",", header=T)
+nnn$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#nnn <- data.frame(nnn[myvars])
+#colnames(nnn) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+ooo   <- read.table("BOB-02_PART_2016_02_24.csv", sep=",", header=T) 
+ooo$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ooo <- data.frame(ooo[myvars])
+#colnames(ooo) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+ppp   <- read.table("BOB-02_PART_2016_03_30.csv", sep=",", header=T) 
+ppp$Year="2016"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ppp <- data.frame(ppp[myvars])
+#colnames(ppp) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+qqq   <- read.table("BOB-03_PART_2014_07_03.csv", sep=",", header=T) 
+qqq$Year="2014"
+qqq$X=NULL
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#qqq <- data.frame(qqq[myvars])
+
+rrr   <- read.table("BOB-03_PART_2014_08_25.csv", sep=",", header=T)
+rrr$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#rrr <- data.frame(rrr[myvars])
+
+sss   <- read.table("BOB-03_PART_2014_09_24.csv", sep=",", header=T) 
+sss$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#sss <- data.frame(sss[myvars])
+
+ttt   <- read.table("BOB-03_PART_2014_10_29.csv", sep=",", header=T) 
+ttt$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#ttt <- data.frame(ttt[myvars])
+
+uuu   <- read.table("BOB-03_PART_2014_11_26.csv", sep=",", header=T) 
+uuu$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#uuu <- data.frame(uuu[myvars])
+
+vvv   <- read.table("BOB-03_PART_2014_12_10.csv", sep=",", header=T)
+vvv$Year="2014"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#vvv <- data.frame(vvv[myvars])
+
+www   <- read.table("BOB-03_PART_2015_01_27.csv", sep=",", header=T) 
+www$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#www <- data.frame(www[myvars])
+
+xxx   <- read.table("BOB-03_PART_2015_02_26.csv", sep=",", header=T) 
+xxx$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#xxx <- data.frame(xxx[myvars])
+
+yyy   <- read.table("BOB-03_PART_2015_03_25.csv", sep=",", header=T) 
+yyy$Year="2015"
+#myvars <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#yyy <- data.frame(yyy[myvars])
+
+zzz   <- read.table("BOB-03_PART_2015_04_29.csv", sep=",", header=F)
+zzz$Year="2015"
+#myvars <- c("SITE", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+#zzz <- data.frame(zzz[myvars])
+#colnames(zzz) <- c("Site", "Year", "Day", "Month", "CO2.Ref", "Input.E", "ATMP")
+
+
+bobA <- rbindlist(list(aa,bb,cc,dd,ee,ff,gg,hh,ii,jj,kk,ll,mm,nn,oo,pp,qq,rr,ss,tt,uu,vv,ww,xx,yy,zz,
+                       aaa,bbb,ccc,ddd,eee,fff,ggg,hhh,iii,jjj,kkk,lll,mmm,nnn,ooo,ppp,qqq,rrr,sss,ttt,uuu,vvv,www,xxx,yyy)) #! PROBLEM WITH THE FORMAT OF zzz
+
+
+a   <- read.table("BOB-03_PART_2015_05_14.csv", sep=",", header=T) 
+a$Year="2015"
+b   <- read.table("BOB-03_PART_2015_06_09.csv", sep=",", header=T) 
+b$Year="2015"
+c   <- read.table("BOB-03_PART_2015_08_12.csv", sep=",", header=T) 
+c$Year="2015"
+d   <- read.table("BOB-03_PART_2015_09_09.csv", sep=",", header=T)
+d$Year="2015"
+e   <- read.table("BOB-03_PART_2015_10_07.csv", sep=",", header=T) 
+e$Year="2015"
+f   <- read.table("BOB-03_PART_2015_10_28.csv", sep=",", header=T) 
+f$Year="2015"
+g   <- read.table("BOB-04_PART_2014_06_04.csv", sep=",", header=T) 
+g$Year="2014"
+g$Site.1=NULL
+h   <- read.table("BOB-04_PART_2014_07_01.csv", sep=",", header=T)
+h$Year="2014"
+i   <- read.table("BOB-04_PART_2014_08_07.csv", sep=",", header=T) 
+i$Year="2014"
+j   <- read.table("BOB-04_PART_2014_10_08.csv", sep=",", header=T) 
+j$Year="2014"
+k   <- read.table("BOB-04_PART_2014_10_28.csv", sep=",", header=T) 
+k$Year="2014"
+l   <- read.table("BOB-04_PART_2014_11_13.csv", sep=",", header=T)
+l$Year="2014"
+m   <- read.table("BOB-04_PART_2014_12_09.csv", sep=",", header=T) 
+m$Year="2014"
+n   <- read.table("BOB-04_PART_2015_02_10.csv", sep=",", header=T) 
+n$Year="2015"
+o   <- read.table("BOB-04_PART_2015_03_12.csv", sep=",", header=T) 
+o$Year="2015"
+p   <- read.table("BOB-04_PART_2015_03_24.csv", sep=",", header=T)
+p$Year="2015"
+q   <- read.table("BOB-04_PART_2015_04_29.csv", sep=",", header=T) 
+q$Year="2015"
+r   <- read.table("BOB-04_PART_2015_06_10.csv", sep=",", header=T) 
+r$Year="2015"
+s   <- read.table("BOB-04_PART_2015_06_18.csv", sep=",", header=T) 
+s$Year="2015"
+t   <- read.table("BOB-04_PART_2015_07_23.csv", sep=",", header=T)
+t$Year="2015"
+u   <- read.table("BOB-04_PART_2015_08_27.csv", sep=",", header=T) 
+u$Year="2015"
+u$X=NULL 
+u$X.1=NULL 
+u$X.2=NULL 
+u$X.3=NULL
+v   <- read.table("BOB-04_PART_2015_10_08.csv", sep=",", header=T) 
+v$Year="2015"
+v$M="NA"  
+v$T="NA" 
+v$CH="NA" 
+v$OM1="NA" 
+v$OM2="NA" 
+v$OM3="NA" 
+v$OM4="NA" 
+v$OT1="NA" 
+v$OT2="NA" 
+v$OT3="NA" 
+v$OT4="NA" 
+w   <- read.table("BOB-04_PART_2015_10_27.csv", sep=",", header=T) 
+w$Year="2015"
+x   <- read.table("BOB-04_PART_2015_12_14.csv", sep=",", header=T)
+x$Year="2015"
+y   <- read.table("BOB-04_PART_2016_01_18.csv", sep=",", header=T) 
+y$Year="2016"
+z   <- read.table("BOB-04_PART_2016_02_25.csv", sep=",", header=T) 
+z$Year="2016"
+aaaa   <- read.table("BOB-04_PART_2016_04_01.csv", sep=",", header=T) 
+aaaa$Year="2016"
+bbbb   <- read.table("BOB-05_PART_2014_10_07.csv", sep=",", header=T)
+bbbb$Year="2014"
+cccc   <- read.table("BOB-05_PART_2014_11_25.csv", sep=",", header=T) 
+cccc$Year="2014"
+dddd   <- read.table("BOB-05_PART_2014_12_16.csv", sep=",", header=T) 
+dddd$Year="2014"
+eeee   <- read.table("BOB-05_PART_2015_01_14.csv", sep=",", header=T) 
+eeee$Year="2015"
+ffff   <- read.table("BOB-05_PART_2015_02_26.csv", sep=",", header=T)
+ffff$Year="2015"
+gggg   <- read.table("BOB-05_PART_2015_03_12.csv", sep=",", header=T) 
+gggg$Year="2015"
+hhhh   <- read.table("BOB-05_PART_2015_04_15.csv", sep=",", header=T) 
+hhhh$Year="2015"
+iiii   <- read.table("BOB-05_PART_2015_06_16.csv", sep=",", header=T) 
+iiii$Year="2015"
+jjjj   <- read.table("BOB-05_PART_2015_06_30.csv", sep=",", header=T)
+jjjj$Year="2015"
+kkkk   <- read.table("BOB-05_PART_2015_07_21.csv", sep=",", header=T) 
+kkkk$Year="2015"
+llll   <- read.table("BOB-05_PART_2015_09_10.csv", sep=",", header=T) 
+llll$Year="2015"
+llll$X=NULL
+mmmm   <- read.table("BOB-05_PART_2015_09_24.csv", sep=",", header=T) 
+mmmm$Year="2015"
+nnnn   <- read.table("BOB-05_PART_2015_10_27.csv", sep=",", header=T)
+nnnn$Year="2015"
+oooo   <- read.table("BOB-05_PART_2015_12_22.csv", sep=",", header=T) 
+oooo$Year="2015"
+pppp   <- read.table("BOB-05_PART_2016_01_20.csv", sep=",", header=T)
+pppp$Year="2016"
+qqqq   <- read.table("BOB-06_PART_2014_08_20.csv", sep=",", header=T)
+qqqq$Year="2014"
+rrrr   <- read.table("BOB-06_PART_2014_10_07.csv", sep=",", header=T)
+rrrr$Year="2014"
+ssss   <- read.table("BOB-06_PART_2014_12_16.csv", sep=",", header=T)
+ssss$Year="2014"
+tttt   <- read.table("BOB-06_PART_2015_01_13.csv", sep=",", header=T)
+tttt$Year="2015"
+uuuu   <- read.table("BOB-06_PART_2015_01_28.csv", sep=",", header=T)
+uuuu$Year="2015"
+vvvv   <- read.table("BOB-06_PART_2015_02_24.csv", sep=",", header=T)
+vvvv$Year="2015"
+wwww   <- read.table("BOB-06_PART_2015_03_25.csv", sep=",", header=T)
+wwww$Year="2015"
+xxxx   <- read.table("BOB-06_PART_2015_04_30.csv", sep=",", header=T)
+xxxx$Year="2015"
+yyyy   <- read.table("BOB-06_PART_2015_06_02.csv", sep=",", header=T) 
+yyyy$Year="2015"
+zzzz   <- read.table("BOB-06_PART_2015_07_01.csv", sep=",", header=T)
+zzzz$Year="2015"
+aaaaa  <- read.table("BOB-06_PART_2015_07_21.csv", sep=",", header=T) 
+aaaaa$Year="2015"
+bbbbb  <- read.table("BOB-06_PART_2015_08_27.csv", sep=",", header=T) 
+bbbbb$Year="2015"
+ccccc  <- read.table("BOB-06_PART_2015_09_23.csv", sep=",", header=T) 
+ccccc$Year="2015"
+ddddd  <- read.table("BOB-06_PART_2015_10_26.csv", sep=",", header=T)
+ddddd$Year="2015"
+eeeee  <- read.table("BOB-06_PART_2015_12_21.csv", sep=",", header=T) 
+eeeee$Year="2015"
+fffff  <- read.table("BOB-06_PART_2016_01_19.csv", sep=",", header=T)
+fffff$Year="2016"
+
+bobB <- rbindlist(list(bobA,a,b,c,d,e,f,g,h,i,
+                       j,k,l,m,n,o,p,q,r,s,
+                       t,u,w,x,y,z,aaaa,bbbb,cccc,
+                       dddd,eeee,ffff,gggg,hhhh,iiii,jjjj,kkkk,llll,mmmm,
+                       nnnn,oooo,pppp,qqqq,rrrr,ssss,tttt,uuuu,vvvv,xxxx,
+                       yyyy,zzzz,aaaaa,bbbbb,ccccc,ddddd,eeeee,fffff))
+
+# Change column names
+setnames(bobB, "Site", "plot_code")
+setnames(bobB, "Subplot", "sub_plot")
+setnames(bobB, "Core", "treatment_code_partitioning")
+setnames(bobB, "X.Plot", "collar_num")
+setnames(bobB, "Day", "day")
+setnames(bobB, "Month", "month")
+setnames(bobB, "Year", "year")
+setnames(bobB, "CO2.Ref", "co2ref_ppm_sec")
+setnames(bobB, "Input.E", "time")
+setnames(bobB, "ATMP", "atmp_mb")
+setnames(bobB, "RecNo", "recno")
+setnames(bobB, "M", "soil_vwc_per")
+setnames(bobB, "T", "soil_temp_c")
+setnames(bobB, "CH", "ch_fill")
+bobB$replica <- as.numeric(1)
+
+bobB$plot_code <- revalue(bobB$plot_code, c("SNR" = "BOB-01", "Y53" = "BOB-02", "Y18" = "BOB-03", "Y10" = "BOB-04", "PP1" = "BOB-05", "PP2" = "BOB-06"))
+
+#!!! CHECK THIS IS WORKING!!!?? we get : #con_nor_lit con_no_lit  my_no_lit   so_no_lit   No litter   No Litter   no litter 
+bobB$treatment_code_partitioning <- revalue(bobB$treatment_code_partitioning, c("Control" = "con_nor_lit", "MS" = "so_no_lit", "Ms" = "so_no_lit", "No litter" = "con_no_lit", "Myco" = "so_no_lit", "No litter" = "con_no_lit", "CONTROL" = "con_nor_lit", "NO LITTER" = "con_no_lit", "MYCO" = "so_no_lit", "NL" = "con_no_lit", "M" = "so_no_lit", "NRM" = "my_no_lit", "NO LITTTER" = "con_no_lit"))
+
+#BOB-01 = SNR #BOB-02 = Y53 #BOB-03 = Y18 #BOB-04 = Y10 #BOB-05 = PP1 #BOB-06 = PP2
+
+#plot_code  sub_plot	plot_corner_code	collar_num	measurement_code	treatment_code_partitioning	
+#disturbance_code_control	litter_code	replica	year	egm_measurement	recno	day	month	hour	min	co2ref_ppm_sec	
+#InputD	time	InputF	atmp_mb	probe_type	quality_code	comments
+
+
+write.csv(bobB, file="BOB_PART.csv")
+bob_part   <- read.table("BOB_PART.csv", sep=",", header=T) 
 
 

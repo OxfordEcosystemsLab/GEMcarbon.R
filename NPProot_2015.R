@@ -74,12 +74,12 @@ extrapolate_failed_model <- function(cum, tx, b, mins = 100) {
   return(cum_tot)
 }
   
-calc_roots <- function(core_data, root_type, plotname, mins = 100, logmodel = T, tx) {  
+calc_roots <- function(core_data, root_type, plotname, mins = 100, logmodel = T) {  
   # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
   this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"])
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
-  tx = sub$time_step_cum
+  tx = sub$time_step_cum #### TO DO: WHERE SHOULD WE DEFINE THIS? SHOULD IT BE AS sub$time_step_cum
   
   if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
     cumdata      <- tail(core_data[,root_type], n=length(tx)) # cumulative values for that diameter class

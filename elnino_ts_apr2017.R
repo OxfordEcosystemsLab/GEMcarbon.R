@@ -10,7 +10,7 @@ require(ggplot2)
 require(gridExtra)
 
 # revalue plot_codes
-# data$plot_code <- revalue(data$plot_code, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "Danum Carbon 1" = "DAN-04", "Danum Carbon 2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "Ank-02" = "ANK-02"))
+rsoil_sea$Plot <- revalue(rsoil_sea$Plot, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "Danum Carbon 1" = "DAN-04", "Danum Carbon 2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "Ank-02" = "ANK-02"))
 
 
 ### R SOIL ###
@@ -47,11 +47,54 @@ tway1   <- mean(WAY01$soil_temp_c_out, na.rm=T)
 
 # AFR
 
-ACJ01   <- read.table("XXX.csv", sep=",", header=T)
+## AFRICA RHET
+
+# read in data
+raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
+raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/LPG_TOT.csv", sep=",", header=T)
+weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T) 
+
+#raw_parsrLPG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/LPG_PART.csv", sep=",", header=T)
+raw_parsrBOB    <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/BOB_PART.csv", sep=",", header=T)
+#raw_parsrKOG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
+raw_parsrA       <- raw_parsrBOB #rbind(raw_parsrLPG, raw_parsrBOB, raw_parsrKOG)
+
+# Call function Rflux. This simply estimates the flux for each measurement.
+setwd("~/Github/GEMcarbon.R")
+source("~/Github/GEMcarbon.R/EGM_fluxfunction_2017.R")
+
+# Temp data for Africa 
+#raw_parsr$air_temp_c <- 25
+#raw_parsr$ch_fill <- 5
+
+part_bob01 <- Rflux(raw_parsrBOB, ret="Res", "BOB-01")
+part_bob02 <- Rflux(raw_parsrBOB, ret="Res", "BOB-02")
+part_bob03 <- Rflux(raw_parsrBOB, ret="Res", "BOB-03")
+part_bob04 <- Rflux(raw_parsrBOB, ret="Res", "BOB-04")
+part_bob05 <- Rflux(raw_parsrBOB, ret="Res", "BOB-05")
+part_bob06 <- Rflux(raw_parsrBOB, ret="Res", "BOB-06")
+
+control_bob02
+het_bob02
+part_bob02 <- merge(ctrl, het, by = "codew") 
+aut_bob02
+
+
+
+# Output: heterotrophic respiration for BOB plots.
+Rhet_bob <- subset(outputfile, treatment_code_partitioning=="so_no_lit")
+
+
+# Get flux data for Africa
+BOBflux <- Rflux()
+
+
 
 # SEA
+rsoilsea   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)
+# revalue plot_codes
+rsoilsea$Plot <- revalue(rsoilsea$Plot, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "DC1" = "DAN-04", "DC2" = "DAN-05"))
 
-ACJ01   <- read.table("XXX.csv", sep=",", header=T)
 
 # SOUTH AMERICA
 
@@ -127,6 +170,60 @@ afr_aa <- ggplot(LPG01, aes(x = date, y = Rs_root_MgC_ha_mo, na.rm = T)) +
   ggtitle("LPG01")
 
 # SOUTH EAST ASIA
+
+totsea <- subset(rsoilsea, Quality == 1 & Collar_type %in% c("Total"))
+hetsea <- subset(rsoilsea, Quality == 1 & Collar_type %in% c("C3"))
+totsea$id <- paste(totsea$Plot, totsea$Subplot, totsea$year, totsea$month, totsea$day, sep=".")
+hetsea$id <- paste(hetsea$Plot, hetsea$Subplot, hetsea$year, hetsea$month, hetsea$day, sep=".")
+rsoil_sea <- merge(totsea, hetsea, by = "id") # all - Only rows with data from both x and y are included in the output
+rsoil_sea$raut_MgC_ha_month <- rsoil_sea$Flux_MgC_ha_month.x - rsoil_sea$Flux_MgC_ha_month.y
+rsoil_sea$date <- as.Date(paste(rsoil_sea$year.x, rsoil_sea$month.x, rsoil_sea$day.x, sep="."), format="%Y.%m.%d") 
+
+saf01 <- subset(rsoil_sea, Plot.x %in% c("SAF-01"))
+saf02 <- subset(rsoil_sea, Plot.x %in% c("SAF-02"))
+saf03 <- subset(rsoil_sea, Plot.x %in% c("SAF-03"))
+saf04 <- subset(rsoil_sea, Plot.x %in% c("SAF-04"))
+saf05 <- subset(rsoil_sea, Plot.x %in% c("SAF-05"))
+saf06 <- subset(rsoil_sea, Plot.x %in% c("SAF-06"))
+
+
+
+aa <- ggplot(saf01, aes(x = date, y = Flux_MgC_ha_month.x, na.rm = T)) +
+             geom_point(data = saf01, aes(x = date, y = Flux_MgC_ha_month.x), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = saf01, aes(x = date, y = Flux_MgC_ha_month.y), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = saf01, aes(x = date, y = raut_MgC_ha_month), size = 2, shape=79, colour = "navy", na.rm=T) +
+             ggtitle("SAF-01 (B South)")
+
+bb <- ggplot(saf02, aes(x = date, y = Flux_MgC_ha_month.x, na.rm = T)) +
+             geom_point(data = saf02, aes(x = date, y = Flux_MgC_ha_month.x), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = saf02, aes(x = date, y = Flux_MgC_ha_month.y), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = saf02, aes(x = date, y = raut_MgC_ha_month), size = 2, shape=79, colour = "navy", na.rm=T) +
+             ggtitle("SAF-02 (B North)")
+
+cc <- ggplot(saf03, aes(x = date, y = Flux_MgC_ha_month.x, na.rm = T)) +
+             geom_point(data = saf03, aes(x = date, y = Flux_MgC_ha_month.x), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = saf03, aes(x = date, y = Flux_MgC_ha_month.y), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = saf03, aes(x = date, y = raut_MgC_ha_month), size = 2, shape=79, colour = "navy", na.rm=T) +
+             ggtitle("SAF-03 (E)")
+
+dd <- ggplot(saf04, aes(x = date, y = Flux_MgC_ha_month.x, na.rm = T)) +
+             geom_point(data = saf04, aes(x = date, y = Flux_MgC_ha_month.x), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = saf04, aes(x = date, y = Flux_MgC_ha_month.y), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = saf04, aes(x = date, y = raut_MgC_ha_month), size = 2, shape=79, colour = "navy", na.rm=T) +
+             ggtitle("SAF-04 (LF)")
+
+ee <- ggplot(saf05, aes(x = date, y = Flux_MgC_ha_month.x, na.rm = T)) +
+             geom_point(data = saf05, aes(x = date, y = Flux_MgC_ha_month.x), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = saf05, aes(x = date, y = Flux_MgC_ha_month.y), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = saf05, aes(x = date, y = raut_MgC_ha_month), size = 2, shape=79, colour = "navy", na.rm=T) +
+             ggtitle("SAF-05 (Tower)")
+
+fig3 <- grid.arrange(aa, bb, cc, dd, ee, ncol=1, nrow=5) 
+fig3
+
+# Save results
+setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(rsoil_sea, file="ts_rsoil_part_sea_June2017.csv")
 
 
 
@@ -384,7 +481,7 @@ source("~/Github/GEMcarbon.R/NPProot_2015.R")
 rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_7June.csv", sep=",", header=T)
 # ic_all_7June
 
-# re-name plots
+# rename plots
 rawic1$plot_code <- revalue(rawic1$plot_code, c("TRU-4" = "TRU-04", "DC1" = "DAN-04", "DC2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "OP" = "OP"))
 
 # clean NA
@@ -393,11 +490,10 @@ rawic1[rawic1 == 'NA'] <- NA
 w = which(rawic1$is_stock == "y")
 rawic = rawic1[-w,]
 
-# get rid of duplicated rows
-#data_ic1 <- rawic2[!duplicated(rawic2),] # OR data_ic <- unique(rawic2[ , 1:3]))
+# ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nexted functions.
 
 datafile <- rawic
-plotname <- "TAM-05"
+plotname <- "SAF-05"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 
@@ -428,9 +524,7 @@ ts_ic_2017_sea <- NPProot_ic(subset(datafile, plot_code %in% c("DAN-04", "DAN-05
 # For all of sea, check - time_step = 1, 1, 1 & time_step_minutes = 10, 10, 10
 
 # Testing
-ic_test <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05"), ret_type = "list"))
-datafile <- subset(rawic, plot_code %in% c("ACJ-01"))
-head(datafile, 10)
+ic_test <- NPProot_ic(subset(datafile, plot_code %in% c("BOB-02"), ret_type = "list"))
 
 sa <- ts_ic_2017_sa[["three_monthly"]]
 sa <- data.frame(sa)
@@ -495,16 +589,31 @@ icraw <- ggplot(rawic , aes(year, month, colour = factor(rawic$plot_code))) +
 icraw
 
 
+## Save to processed_ts
+
+setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(data4, file="ts_ic_BOB01.csv")
+write.csv(data4, file="ts_ic_BOB02.csv")
+write.csv(data4, file="ts_ic_BOB03.csv")
+write.csv(data4, file="ts_ic_BOB04.csv")
+write.csv(data4, file="ts_ic_BOB05.csv")
+write.csv(data4, file="ts_ic_BOB06.csv")
+write.csv(data4, file="ts_ic_SAF01.csv")
+write.csv(data4, file="ts_ic_SAF02.csv")
+write.csv(data4, file="ts_ic_SAF03.csv")
+write.csv(data4, file="ts_ic_SAF04.csv")
+write.csv(data4, file="ts_ic_SAF05.csv")
+
 ### R STEM ###
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/stem_respiration_percollar_2017.R")
 
-stem_resp <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/stem respiration/stem_resp_26April.csv", sep=",", header=T)
+stem_resp <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/stem_respiration/stem_resp_13June.csv", sep=",", header=T)
 stem_resp <- subset(stem_resp, select=c(1:20))
 
-stem_resp$co2ref_ppm_sec <- as.numeric(as.character(stem_resp$co2ref_ppm_sec))
-stem_resp$time <- as.numeric(as.character(stem_resp$time))
+stem_resp$co2ref_ppm_sec <- as.numeric(as.character(stem_resp$co2ref_ppm_sec)) # NAs introduced by coercion 
+stem_resp$time <- as.numeric(as.character(stem_resp$time))  # NAs introduced by coercion 
 
 #stem_resp$plot_code <- revalue(stem_resp$plot_code, c("DC2" = "DAN-05", "DC1" = "DAN-04", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12"))
 #unique(stem_resp$plot_code) 
@@ -538,7 +647,7 @@ matESP01 <- 13.1
 
 
 # Test
-plotname = "LPG-01"
+plotname = "BOB-02"
 collardiameter = 12
 collarheight = 5
 T_ambient = "Default"
@@ -592,6 +701,16 @@ bob05 <- stemrespiration(stem_resp, "BOB-05", ret="monthly.ts.percollar", collar
 bob06 <- stemrespiration(stem_resp, "BOB-06", ret="monthly.ts.percollar", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
 
 rstemafr <- rbind(lpg01, lpg02, mng03, mng04, ivi01, ivi02, kog02, kog03, kog04, kog05, kog06, bob01, bob02, bob03, bob04, bob05, bob06)
+
+
+bob01 <- stemrespiration(stem_resp, "BOB-01", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+bob02 <- stemrespiration(stem_resp, "BOB-02", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+bob03 <- stemrespiration(stem_resp, "BOB-03", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+bob04 <- stemrespiration(stem_resp, "BOB-04", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+bob05 <- stemrespiration(stem_resp, "BOB-05", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+bob06 <- stemrespiration(stem_resp, "BOB-06", ret="monthly.means.ts", collardiameter=12, collarheight=5, pressure="Default", elevation="Default", T_ambient=25, plotit=T)
+rstembob <- rbind(bob01, bob02, bob03, bob04, bob05, bob06)
+
 
 rstemafr$codew <- NULL
 # ATTTENTION!! LOOK INTO OUTLIERS
@@ -659,6 +778,9 @@ maxx <- max(rstemsea$flux_MgC_ha_mo, rm.na=T)
 ####################
 
 
+## Save results
+setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(rstembob, file="ts_rstem_BOB.csv")
 
 setwd("~/Github/gemcarbon_data/processed_ts_2017/ts_stem_respiration")
 write.csv(rstemsa, file="ts_rstem_may17_sa.csv")
@@ -743,6 +865,7 @@ dmla = (subset(rstemsea, plot_code %in% c("MLA-01", "MLA-02")))
 require(ggplot2)
 require(sqldf)
 require(lubridate)
+require(dplyr)
 
 setwd("/Users/cecile/Dropbox/GEMcarbondb/db_csv/db_csv_2015/readyforupload_db")
 census_TRU04A <- read.table("andesplots_WFR_nov2014_noroots.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
@@ -772,12 +895,12 @@ tam05b  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default",
 #######################################
 setwd("/Users/cecile/GitHub/GEMcarbon.R/") 
 source("~/Github/GEMcarbon.R/allometric_equations_2014.R")
-source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")
+#source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")
 source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2015.r")
 
 setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd/stem_npp")
 NPPdend_all <- read.table("dendro_all_14June.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-dbh_census  <- read.table("formattedcensus_TAM06_Mar17.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+dbh_census  <- read.table("BOB01_treelist.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
   
 # STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
 # STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
@@ -785,17 +908,17 @@ dbh_census  <- read.table("formattedcensus_TAM06_Mar17.csv", header=TRUE, sep=",
 
 #TAM-05
 
-dendrometer = NPPdend_all
+dendrometer = NPPdend_all # %>% filter(year<=2012)
 census = dbh_census
-plotname = "TAM-06"     
+plotname = "BOB-01"     
 allometric_option = "Default"
 height_correction_option = "Default"
-census_year = 2005
+census_year = 2012
 plotit=F
-dtam05 <- NPPacw_dendro(census, dendrometer, plotname = "TAM-05", allometric_option="Default", height_correction_option="Default", census_year = 2005)
+dtam05 <- NPPacw_dendro(census, dendrometer, plotname = "BOB-02", allometric_option="Default", height_correction_option="Default", census_year = 2005)
 
 # save dendrometer data in MgC / tree / day
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
-write.csv(npp_tree, file="ts_dendrometers_tam05_15June17.csv")
+write.csv(npp_tree, file="ts_dendrometers_tam06_16June17.csv")
 
 

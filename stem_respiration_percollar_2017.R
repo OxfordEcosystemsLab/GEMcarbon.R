@@ -1,5 +1,5 @@
 # This code estimates stem respiration per tree collar. It does not scale to the whole surface of the tree yet.
-# Cécile Girardin 02/05/2017.
+# Cecile Girardin 02/05/2017.
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")

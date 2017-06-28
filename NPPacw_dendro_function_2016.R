@@ -104,7 +104,7 @@ Tabar = 25.0  # mean centered annual averge temperature
 if (predheight == 1) {
   w <- which(is.na(cen$height_m))
   h.pred <- h.est(cen$dbh, cen$height_m)
-  cen$height_m[w] <- h.pred[w]
+  cen$height_m[w] <- mean(h.pred, na.rm=T)
 } else if (predheight == 2) {
   w <- which(is.na(cen$height_m))
   cen$height_m[w] <- 10^(Bo + B1*log10(cen$dbh[w]/10) + Abar*So1 + n01*Pvbar + n02*Sdbar + n03*Tabar)
@@ -168,8 +168,8 @@ ee              <- c()
 ff              <- c()
 gg              <- c()
 
-for (ii in 1:length(dend$tree_tag)) {  
-  thistree  <- which(dend$tree_tag == dend$tree_tag[ii])
+for (ii in 1:length(uid)){  
+  thistree  <- which(dend$tree_tag == uid[ii]) #dend$tree_tag[ii])
   agC       <- dend$agC[thistree]
   tag       <- dend$tree_tag[thistree]
   #agCdiff   <- dend$agCdiff[thistree]
@@ -177,9 +177,9 @@ for (ii in 1:length(dend$tree_tag)) {
   year      <- dend$year[thistree]
   month     <- dend$month[thistree]
   plot_code <- dend$plot_code[thistree]
-  datediff  <- rbind(0/0, data.frame(diff(as.matrix(dend$date[thistree])))) #datediff <- data.frame(0/0, difftime(tail(dend$date[thistree], -1), head(dend$date[thistree], -1), units="days"))
-  ddiff     <- datediff$diff.as.matrix.dend.date.thistree...
-  
+  # datediff  <- rbind(NA, data.frame(diff(as.matrix(dend$date[thistree])))) #datediff <- data.frame(0/0, difftime(tail(dend$date[thistree], -1), head(dend$date[thistree], -1), units="days"))
+  # ddiff     <- datediff$diff.as.matrix.dend.date.thistree...
+  ddiff   <- rbind(NA, data.frame(diff(as.matrix(dend$date[thistree]))))[,1]
   aa            <- c(aa, plot_code)
   bb            <- c(bb, tag)
   cc            <- c(cc, year)
@@ -188,8 +188,10 @@ for (ii in 1:length(dend$tree_tag)) {
   ff            <- c(ff, agCdiff)
   gg            <- c(gg, ddiff)
   
-  print(ii)
+  if(ii%%100 ==0){print(ii)}
 }
+
+agCdiff %>% summary
 
 npp_tree        <- cbind(aa, bb, cc, dd, ee, ff, gg)
 npp_tree        <-data.frame(npp_tree)
@@ -206,6 +208,8 @@ npp_tree$datediff = as.numeric(as.character(npp_tree$datediff))
 
   npp_tree$nppacw_tree_day  <- npp_tree$agCdiff/npp_tree$datediff
   
+  npp_tree$nppacw_tree_day %>% hist(100) %>% abline(v=0, col="red", lwd=2)
+
   # Dendrometer NPP: MgC per plot per year 
   www                         <- sqldf("SELECT plot_code, year, month, AVG(nppacw_tree_day), STDEV(nppacw_tree_day) FROM npp_tree GROUP BY year, month")
   colnames (www)              <- c("plot_code", "year", "month", "npp_avgtrees_day_dend", "npp_avgtrees_day_dend_sd")
