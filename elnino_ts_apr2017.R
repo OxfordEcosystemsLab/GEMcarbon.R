@@ -50,14 +50,18 @@ tway1   <- mean(WAY01$soil_temp_c_out, na.rm=T)
 ## AFRICA RHET
 
 # read in data
-raw_consrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
-raw_totsrA   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/LPG_TOT.csv", sep=",", header=T)
+raw_con   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
+raw_tot   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rtotal/GhanaTotalSoilRespUploadv4.csv", sep=",", header=T)
+raw_tot$soil_temp_c = 25
+raw_tot$soil_vwc_per = 20
+raw_tot$ch_fill = 7
+
 weather      <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T) 
 
-#raw_parsrLPG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/LPG_PART.csv", sep=",", header=T)
-raw_parsrBOB    <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/BOB_PART.csv", sep=",", header=T)
-#raw_parsrKOG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
-raw_parsrA       <- raw_parsrBOB #rbind(raw_parsrLPG, raw_parsrBOB, raw_parsrKOG)
+#raw_parLPG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/LPG_PART.csv", sep=",", header=T)
+raw_parBOB    <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/BOB_PART.csv", sep=",", header=T)
+#raw_parKOG   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
+raw_par       <- raw_parBOB #rbind(raw_parsrLPG, raw_parsrBOB, raw_parsrKOG)
 
 # Call function Rflux. This simply estimates the flux for each measurement.
 setwd("~/Github/GEMcarbon.R")
@@ -67,28 +71,123 @@ source("~/Github/GEMcarbon.R/EGM_fluxfunction_2017.R")
 #raw_parsr$air_temp_c <- 25
 #raw_parsr$ch_fill <- 5
 
-part_bob01 <- Rflux(raw_parsrBOB, ret="Res", "BOB-01")
-part_bob02 <- Rflux(raw_parsrBOB, ret="Res", "BOB-02")
-part_bob03 <- Rflux(raw_parsrBOB, ret="Res", "BOB-03")
-part_bob04 <- Rflux(raw_parsrBOB, ret="Res", "BOB-04")
-part_bob05 <- Rflux(raw_parsrBOB, ret="Res", "BOB-05")
-part_bob06 <- Rflux(raw_parsrBOB, ret="Res", "BOB-06")
+bob01 <- Rflux(raw_parsrBOB, ret="Res", "BOB-01")
+bob02 <- Rflux(raw_parsrBOB, ret="Res", "BOB-02")
+bob03 <- Rflux(raw_parsrBOB, ret="Res", "BOB-03")
+bob04 <- Rflux(raw_parsrBOB, ret="Res", "BOB-04")
+bob05 <- Rflux(raw_parsrBOB, ret="Res", "BOB-05")
+bob06 <- Rflux(raw_parsrBOB, ret="Res", "BOB-06")
 
-control_bob02
-het_bob02
-part_bob02 <- merge(ctrl, het, by = "codew") 
-aut_bob02
+bob   <- data.frame(rbind(bob01, bob02, bob03, bob04, bob05, bob06))
+
+# remove outliers (> 3 SD) and NAs:
+bob$Rflux_MgC_ha_mo1 <- rm.flux.outlier(bob$Rflux_MgC_ha_mo, sd_interval = 2)                     # Discuss sd_interval with team: it makes a big difference to the data if you use 2 sd or 3 sd.
+
+ctrl                <- subset(bob, part_code=="con_no_lit")
+ctrl$id             <- as.factor(paste(ctrl$plot_code, ctrl$replica, ctrl$day, ctrl$month, ctrl$year, sep="."))
+avgctrl             <- data.frame(tapply(ctrl$Rflux_MgC_ha_mo, ctrl$id, mean, na.rm=T))
+avgctrl$id          <- rownames(avgctrl)
+het                 <- subset(bob, part_code=="so_no_lit") ## Check this is the right way to do this.
+het$id              <- as.factor(paste(het$plot_code, het$replica, het$day, het$month, het$year, sep="."))
+avghet              <- data.frame(tapply(het$Rflux_MgC_ha_mo, het$id, mean, na.rm=T))
+avghet$id           <- rownames(avghet)
+partbob           <- merge(avgctrl, avghet, by = "id") 
+colnames(partbob) <- c("id", "rctrl", "rhet")
+partbob$aut       <- partbob$rhet - partbob$rctrl
+
+temp = (strsplit(partbob$id, "[.]")) 
+partbob$plot_code = unlist(lapply(temp, `[[`, 1))
+partbob$replica = unlist(lapply(temp, `[[`, 2))
+partbob$day = unlist(lapply(temp, `[[`, 3))
+partbob$month = unlist(lapply(temp, `[[`, 4))
+partbob$year = unlist(lapply(temp, `[[`, 5))
+
+partbob$date <- strptime(paste(as.character(partbob$year), as.character(partbob$month), as.character(partbob$day), sep="-"), format="%Y-%m-%d")  
 
 
+# Plot results
 
-# Output: heterotrophic respiration for BOB plots.
-Rhet_bob <- subset(outputfile, treatment_code_partitioning=="so_no_lit")
+bob01 <- subset(partbob, plot_code=="BOB-01")
+bob02 <- subset(partbob, plot_code=="BOB-02")
+bob03 <- subset(partbob, plot_code=="BOB-03")
+bob04 <- subset(partbob, plot_code=="BOB-04")
+bob05 <- subset(partbob, plot_code=="BOB-05")
+bob06 <- subset(partbob, plot_code=="BOB-06")
 
 
-# Get flux data for Africa
-BOBflux <- Rflux()
+aa <- ggplot(bob01, aes(x = date, y = rctrl, na.rm = T)) +
+             geom_point(data = bob01, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+             geom_point(data = bob01, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+             geom_point(data = bob01, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+             ggtitle("Rsoil partitionning BOB-01")
+
+bb <- ggplot(bob02, aes(x = date, y = rctrl, na.rm = T)) +
+  geom_point(data = bob02, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+  geom_point(data = bob02, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+  geom_point(data = bob02, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+  ggtitle("Rsoil partitionning BOB-02")
+
+cc <- ggplot(bob03, aes(x = date, y = rctrl, na.rm = T)) +
+  geom_point(data = bob03, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+  geom_point(data = bob03, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+  geom_point(data = bob03, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+  ggtitle("Rsoil partitionning BOB-03")
+
+dd <- ggplot(bob04, aes(x = date, y = rctrl, na.rm = T)) +
+  geom_point(data = bob04, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+  geom_point(data = bob04, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+  geom_point(data = bob04, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+  ggtitle("Rsoil partitionning BOB-04")
+
+ee <- ggplot(bob05, aes(x = date, y = rctrl, na.rm = T)) +
+  geom_point(data = bob05, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+  geom_point(data = bob05, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+  geom_point(data = bob05, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+  ggtitle("Rsoil partitionning BOB-05")
+
+ff <- ggplot(bob06, aes(x = date, y = rctrl, na.rm = T)) +
+  geom_point(data = bob06, aes(x = date, y = rctrl), size = 2, colour = "orange", na.rm=T) +
+  geom_point(data = bob06, aes(x = date, y = rhet), size = 2, colour = "grey", na.rm=T) +
+  geom_point(data = bob06, aes(x = date, y = aut), size = 2, colour = "turquoise", na.rm=T) +
+  ggtitle("Rsoil partitionning BOB-06")
+
+#################################################################################################################
+#################################################################################################################
+
+# Total soil respiration
+
+datafile <- subset(raw_tot, plot_code=="BOB-03")
+plotname="BOB-03"
+datafile$soil_temp_c = 25
+datafile$soil_vwc_per = 20
+datafile$ch_fill = 7
+
+bob01 <- Rflux(raw_tot, ret="Res", "BOB-01")
+bob02 <- Rflux(raw_tot, ret="Res", "BOB-02")
+bob03 <- Rflux(raw_tot, ret="Res", "BOB-03")
+bob04 <- Rflux(raw_tot, ret="Res", "BOB-04")
+bob05 <- Rflux(raw_tot, ret="Res", "BOB-05")
+bob06 <- Rflux(raw_tot, ret="Res", "BOB-06")
+
+bob   <- data.frame(rbind(bob01, bob02, bob03, bob04, bob05, bob06))
+
+# remove outliers (> 3 SD) and NAs:
+bob$Rflux_MgC_ha_mo1 <- rm.flux.outlier(bob$Rflux_MgC_ha_mo, sd_interval = 2)                     # Discuss sd_interval with team: it makes a big difference to the data if you use 2 sd or 3 sd.
+bob$date <- strptime(paste(as.character(bob$year), as.character(bob$month), as.character(bob$day), sep="-"), format="%Y-%m-%d")  
+
+aa <- ggplot(bob, aes(x = date, y = Rflux_MgC_ha_mo, na.rm = T)) +
+             geom_point(data = bob, aes(x = date, y = Rflux_MgC_ha_mo), size = 2, colour = "green", na.rm=T) +
+             ggtitle("Total Rsoil Bobiri")
+aa
 
 
+het$year %>% summary
+het$month %>% summary
+
+# Save to directory
+setwd("~/Github/gemcarbon_data/")
+write.csv(partbob, file="BOB_PART.csv")
+write.csv(bob, file="ts_Rs_total_BOB.csv")
 
 # SEA
 rsoilsea   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)

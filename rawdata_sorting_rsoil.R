@@ -662,7 +662,8 @@ Pontos  Pare	Tipo de medida
 10	E	Solo pertubada	excabado
 
 # AFRICA
-setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rpart/BOB/")
+
+setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rpart_raw/BOB/")
 list.files()
 library(data.table) 
 

@@ -19,6 +19,13 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
 #  TO DO: DEFAULT 
     collardiameter = 12
 
+# Replace missing temperature and swc with default values.
+#w <- which(is.na(data$soil_temp_c))
+#data$soil_temp_c[w] = 25
+#w <- which(is.na(data$air_temp_c))
+#data$air_temp_c[w] = 25
+#w <- which(is.na(data$soil_vwc_per))
+#data$soil_vwc_per[w] = 20
 
     ## Corrections and conversions
     # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
@@ -27,7 +34,7 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
     convert = (2592000*10000*12)/(1000000*1000000)
 
     # Define unique id for each measurement
-    data$codew   <- paste(data$collar_num, data$replica, data$day, data$month, data$year, sep=".") # In most cases you will need to add the data$replica to this unique id.
+    data$codew   <- paste(data$sub_plot, data$collar_number, data$replica, data$day, data$month, data$year, sep=".") # In most cases you will need to add the data$replica to this unique id.
 
     # get unique identifyer for each measurement
     uid <- unique(data$codew)
@@ -77,14 +84,14 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
     Res$Rflux_umolm2sec <- as.numeric(as.character(Res$Rflux_umolm2sec))
     Res$Rflux_MgC_ha_mo = Res$Rflux_umolm2sec*convert*corrsresA # see correction factors above.
 
-data$codew   <- paste(data$collar_num, data$replica, data$day, data$month, data$year, sep=".")
+    temp = (strsplit(Res$codew, "[.]"))
+    Res$sub_plot = unlist(lapply(temp, `[[`, 1))
+    Res$collar_number = unlist(lapply(temp, `[[`, 2)) 
+    Res$replica = unlist(lapply(temp, `[[`, 3))
+    Res$day = unlist(lapply(temp, `[[`, 4))
+    Res$month = unlist(lapply(temp, `[[`, 5))
+    Res$year = unlist(lapply(temp, `[[`, 6))
 
-    Res$collar_number = unlist(strsplit(Res$codew, "[.]"))[[1]] 
-    Res$replica = unlist(strsplit(Res$codew, "[.]"))[[2]]
-    Res$day = unlist(strsplit(Res$codew, "[.]"))[[3]]
-    Res$month = unlist(strsplit(Res$codew, "[.]"))[[4]]
-    Res$year = unlist(strsplit(Res$codew, "[.]"))[[5]]
-    head(Res)
 
     return(Res)
     
