@@ -51,7 +51,7 @@ tway1   <- mean(WAY01$soil_temp_c_out, na.rm=T)
 
 # read in data
 raw_con   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/XXX.csv", sep=",", header=T)
-raw_tot   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rtotal/GhanaTotalSoilRespUploadv4.csv", sep=",", header=T)
+raw_tot   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rtotal/ ## This is not the right file. Cecilia is working on Total Resp Ghana. GhanaTotalSoilRespUploadv4.csv", sep=",", header=T)
 raw_tot$soil_temp_c = 25
 raw_tot$soil_vwc_per = 20
 raw_tot$ch_fill = 7
@@ -70,6 +70,8 @@ source("~/Github/GEMcarbon.R/EGM_fluxfunction_2017.R")
 # Temp data for Africa 
 #raw_parsr$air_temp_c <- 25
 #raw_parsr$ch_fill <- 5
+
+test <- Rflux(raw_tot, ret="Res", "KOG-04")
 
 bob01 <- Rflux(raw_parsrBOB, ret="Res", "BOB-01")
 bob02 <- Rflux(raw_parsrBOB, ret="Res", "BOB-02")
@@ -168,8 +170,12 @@ bob03 <- Rflux(raw_tot, ret="Res", "BOB-03")
 bob04 <- Rflux(raw_tot, ret="Res", "BOB-04")
 bob05 <- Rflux(raw_tot, ret="Res", "BOB-05")
 bob06 <- Rflux(raw_tot, ret="Res", "BOB-06")
+kog02 <- Rflux(raw_tot, ret="Res", "KOG-02")
+kog03 <- Rflux(raw_tot, ret="Res", "KOG-03")
+kog04 <- Rflux(raw_tot, ret="Res", "KOG-04")
 
-bob   <- data.frame(rbind(bob01, bob02, bob03, bob04, bob05, bob06))
+
+bob   <- data.frame(rbind(bob01, bob02, bob03, bob04, bob05, bob06, kog02, kog03, kog04))
 
 # remove outliers (> 3 SD) and NAs:
 bob$Rflux_MgC_ha_mo1 <- rm.flux.outlier(bob$Rflux_MgC_ha_mo, sd_interval = 2)                     # Discuss sd_interval with team: it makes a big difference to the data if you use 2 sd or 3 sd.
@@ -181,13 +187,13 @@ aa <- ggplot(bob, aes(x = date, y = Rflux_MgC_ha_mo, na.rm = T)) +
 aa
 
 
-het$year %>% summary
-het$month %>% summary
+bob %>% summary
+bob$month %>% summary
 
 # Save to directory
 setwd("~/Github/gemcarbon_data/")
 write.csv(partbob, file="BOB_PART.csv")
-write.csv(bob, file="ts_Rs_total_BOB.csv")
+write.csv(bob, file="ts_Rs_total_Ghana.csv")
 
 # SEA
 rsoilsea   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)
@@ -324,13 +330,85 @@ fig3
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
 write.csv(rsoil_sea, file="ts_rsoil_part_sea_June2017.csv")
 
+# Rsoil NXV
+setwd("~/Github/GEMcarbon.R")
+source("~/Github/GEMcarbon.R/EGM_fluxfunction_2017.R")
+
+setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/NXV")
+rsnxv <- read.table("total_rsoil_NXV_2017.csv", sep=",", header=T)
+
+# plot_codes 
+rsnxv$plot_code  <- gsub("CDB","NXV-02", rsnxv$plot_code, ignore.case=T)
+rsnxv$plot_code  <- gsub("CTB","NXV-01", rsnxv$plot_code, ignore.case=T)
+rsnxv$plot_code  <- gsub("PTB","NXV-xx1", rsnxv$plot_code, ignore.case=T)
+rsnxv$plot_code  <- gsub("RGB","NXV-xx2", rsnxv$plot_code, ignore.case=T)
+
+# Temp data for NXV 
+rsnxv$air_temp_c <- rsnxv$soil_temp_degc # ATTENTION!! It's soil temp.
+rsnxv$ch_fill <- 7                       # ATTENTION!! We need real values.
+
+# Testing NXV soil resp data with the function
+datafile = rsnxv 
+ret="Res"
+plotname = "NXV-02"
+
+nxvCDB <- Rflux(rsnxv, ret="Res", "NXV-01")
+nxvCTB <- Rflux(rsnxv, ret="Res", "NXV-02")
+nxvPTB <- Rflux(rsnxv, ret="Res", "NXV-xx1")
+nxvRGB <- Rflux(rsnxv, ret="Res", "NXV-xx2")
+ 
+# dates
+nxvCDB$date <- as.Date(paste(nxvCDB$year, nxvCDB$month, nxvCDB$day, sep="."), format="%Y.%m.%d") 
+nxvCTB$date <- as.Date(paste(nxvCTB$year, nxvCTB$month, nxvCTB$day, sep="."), format="%Y.%m.%d") 
+nxvPTB$date <- as.Date(paste(nxvPTB$year, nxvPTB$month, nxvPTB$day, sep="."), format="%Y.%m.%d") 
+nxvRGB$date <- as.Date(paste(nxvRGB$year, nxvRGB$month, nxvRGB$day, sep="."), format="%Y.%m.%d") 
+
+avg_nxvCDB %<%
+avg_nxvCTB
+
+avg_nxvCDB = nxvCDB %>% group_by(year, month) %>% 
+                        dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
+                                         sd = sd(Rflux_MgC_ha_mo, na.rm = T), 
+                                         date = max(date))
+avg_nxvCDB <- data.frame(avg_nxvCDB)
+
+avg_nxvCTB = nxvCTB %>% group_by(year, month) %>% 
+                        dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
+                                         sd = sd(Rflux_MgC_ha_mo, na.rm = T), 
+                                         date = max(date))
+avg_nxvCTB <- data.frame(avg_nxvCTB)
+
+
+limits <- aes(ymax = avg_nxvCDB$avg + avg_nxvCDB$sd, ymin = avg_nxvCDB$avg - avg_nxvCDB$sd)
+
+aa <- ggplot(nxvCDB, aes(x = nxvCDB$date, y = nxvCDB$Rflux_MgC_ha_mo, na.rm = T)) +
+             geom_point(data = nxvCDB, aes(x = date, y = Rflux_MgC_ha_mo), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = avg_nxvCDB, aes(x = date, y = avg), size = 2, colour = "red", na.rm=T) +
+             #geom_errorbar(data = avg_nxvCDB, aes(ymax = avg + sd, ymin = avg - sd), colour="red", width=.1) +
+             ggtitle("NXV-01 total soil respiration (MgC ha-1 mo-1)")
+aa
+
+bb <- ggplot(nxvCTB, aes(x = date, y = nxvCTB$Rflux_MgC_ha_mo, na.rm = T)) +
+             geom_point(data = nxvCTB, aes(x = date, y = nxvCTB$Rflux_MgC_ha_mo), size = 2, colour = "turquoise", na.rm=T) +
+             geom_point(data = avg_nxvCTB, aes(x = date, y = avg), size = 2, colour = "red", na.rm=T) +
+             #geom_errorbar(data = avg_nxvCTB, aes(ymax = avg + sd, ymin = avg - sd), colour="red", width=.1) +
+             ggtitle("NXV-02 total soil respiration (MgC ha-1 mo-1)")
+bb
+
+fig <- grid.arrange(aa, bb, ncol=1, nrow=2) 
+fig
+
+# Save results
+rsoil_nxv   <- data.frame(rbind(avg_nxvCTB, avg_nxvCDB))
+setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(rsoil_nxv, file="ts_rsoil_tot_nxv_July2017.csv")
 
 
 ### FLF ###
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/flf_2016.R")
-data_flf <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/flf_all_4April.csv", sep=",", header=T)
+data_flf <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/flf_all_15July.csv", sep=",", header=T)
 #data_flf <- subset(data_flf, plot_code %in% c("TAM-05"))
 
 # PROBLEM: we need to replace missing days by days 1 or 15. Assuming 0 = 1 & 1 = 15
@@ -341,9 +419,13 @@ data_flf$day[v] = 16
 
 ts_flf_2017_afr <- flf(subset(data_flf, plot_code %in% c("KOG-02", "KOG-03", "KOG-04", "KOG-05", "KOG-06", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "ANK-01", "ANK-02", "ANK-03", "LPG-01", "LPG-02", "IVI-01", "IVI-02")), plotit = F) #, "MNG-03", "MNG-04"
 ts_flf_2017_sea <- flf(subset(data_flf, plot_code %in% c("SAF-01", "SAF-02", "SAF-03", "SAF-04", "SAF-05", "MLA-01", "MLA-02", "DAN-04", "DAN-05")), plotit = F) 
-ts_flf_2017_sa  <- flf(subset(data_flf, plot_code %in% c("KEN-02", "SPD-02", "WAY-01", "ESP-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "TAM-09", "ACJ-01", "PAN-02", "PAN-03", "TRU-04", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22")), plotit = F) 
+ts_flf_2017_sa  <- flf(subset(data_flf, plot_code %in% c("KEN-02", "SPD-02", "WAY-01", "ESP-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "TAM-09", "ACJ-01", "PAN-02", "PAN-03", "TRU-04", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "NXV-01", "NXV-02")), plotit = F) 
 
 ts_flf_2017_tam  <- flf(subset(data_flf, plot_code %in% c("TAM-05", "TAM-06", "TAM-09")), plotit = F, ret="monthly.means.ts") 
+
+afr <- data.frame(ts_flf_2017_afr)
+sea <- data.frame(ts_flf_2017_sea)
+sa  <- data.frame(ts_flf_2017_sa)
 
 # Testing the code
 
@@ -577,8 +659,7 @@ fig3c
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/NPProot_2015.R")
-rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_7June.csv", sep=",", header=T)
-# ic_all_7June
+rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_10July.csv", sep=",", header=T)
 
 # rename plots
 rawic1$plot_code <- revalue(rawic1$plot_code, c("TRU-4" = "TRU-04", "DC1" = "DAN-04", "DC2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "OP" = "OP"))
@@ -592,7 +673,7 @@ rawic = rawic1[-w,]
 # ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nexted functions.
 
 datafile <- rawic
-plotname <- "SAF-05"
+plotname <- "NXV-02"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 
@@ -601,41 +682,37 @@ ret = "monthly.means.ts"
 ret_type = "list" 
 
 datafile = set_df_coltypes(datafile, ic_column_types)
- 
-
-ts_ic_2017_sa <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22"), ret_type = "list")) 
-# working: "ACJ-01" "ESP-01" "WAY-01" "SPD-01" "SPD-02" "TAM-05" "TAM-06" "TAM-09" "TRU-04" 
-# "PAN-01" "PAN-02" "PAN-03" "TAN-01" "TAN-02" "KEN-01" "KEN-02" "ALP-11" "ALP-12" "BLZ-11" "BLZ-12" "BLZ-21" "BLZ-22"
+  
+ts_ic_2017_sa <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "NXV-02", "NXV-01"), ret_type = "list")) 
 # These don't work: 
 # "TAN-01", "TAN-02" - time_step_minutes = 5, 10, 15 
 # "PAN-01" - time_step_minutes = 10, 20, 30
 # "ALP-11", "ALP-12" 
 
 ts_ic_2017_afr <- NPProot_ic(subset(datafile, plot_code %in% c("KOG-02", "KOG-03", "KOG-04", "KOG-05", "KOG-06", "LPG-01", "LPG-02", "ANK-01", "ANK-02", "ANK-03", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "MNG-03", "MNG-04"), ret_type = "list"))
-# working: "MNG-03", "MNG-04", "KOG-02" "KOG-03" "KOG-04" "KOG-05" "KOG-06" 
-# working (but data has repetitions "the condition has length > 1 and only the first element will be used")
 #  (stocks?) "LPG-01", "LPG-02", "ANK-01", "ANK-02", "ANK-03", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06"
 # not working: "IVI-01", "IVI-02" - time_step_minutes = 1, 2, 3, 4
  
-ts_ic_2017_sea <- NPProot_ic(subset(datafile, plot_code %in% c("DAN-04", "DAN-05"), ret_type = "list", tx = "txc"))
-# working: "SAF-05", "SAF-01", "SAF-02", "DAN-04", "DAN-05", "MLA-01", "MLA-02", "OP" , "MLA-01", "MLA-02", "OP", "SAF-05", "SAF-01", "SAF-02", 
+ts_ic_2017_sea <- NPProot_ic(subset(datafile, plot_code %in% c("SAF-05", "SAF-01", "SAF-02", "DAN-04", "DAN-05", "MLA-01", "MLA-02", "OP" , "MLA-01", "MLA-02", "OP", "SAF-05", "SAF-01", "SAF-02"), ret_type = "list", tx = "txc"))
+# working: "SAF-05", "SAF-01", "SAF-02", "DAN-04", "DAN-05", "MLA-01", "MLA-02", "OP" , "MLA-01", "MLA-02", "OP", "SAF-05", "SAF-01", "SAF-02"
 # not working: "SAF-03", "SAF-04" 
 # For all of sea, check - time_step = 1, 1, 1 & time_step_minutes = 10, 10, 10
 
 # Testing
 ic_test <- NPProot_ic(subset(datafile, plot_code %in% c("BOB-02"), ret_type = "list"))
 
+
 sa <- ts_ic_2017_sa[["three_monthly"]]
 sa <- data.frame(sa)
-sa
+head(sa)
 
 afr <- ts_ic_2017_afr[["three_monthly"]]
 afr <- data.frame(afr)
-afr
+head(afr)
 
 sea <- ts_ic_2017_sea[["three_monthly"]]
 sea <- data.frame(sea)
-sea
+head(sea)
 
 icsa <- ggplot(sa, aes(date, threemonthlyNPProot, colour = factor(sa$plot_code))) + 
                 geom_point() +
@@ -669,14 +746,8 @@ fig4 <- grid.arrange(icsa, icafr, icsea, ncol=1, nrow=3)
 fig4
 
 
-# test data3
-
-test <- ggplot(data4a, aes(date, monthlyNPProot, colour = factor(data4a$year))) + 
-  geom_point() 
-test
-
 # all ic data available 
-sa = subset(rawic, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "TAN-01", "TAN-02", "PAN-01"))
+sa = subset(rawic, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "TAN-01", "TAN-02", "PAN-01", "NXV-02", "NXV-01"))
 afr = subset(rawic, plot_code %in% c("SAF-02")) 
 sea = subset(rawic, plot_code %in% c("SAF-02"))
   
@@ -691,6 +762,10 @@ icraw
 ## Save to processed_ts
 
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+write.csv(sa, file="ts_ic_sa_July2017.csv")
+write.csv(afr, file="ts_ic_afr_July2017.csv")
+write.csv(sea, file="ts_ic_sea_July2017.csv")
+
 write.csv(data4, file="ts_ic_BOB01.csv")
 write.csv(data4, file="ts_ic_BOB02.csv")
 write.csv(data4, file="ts_ic_BOB03.csv")

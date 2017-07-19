@@ -5,7 +5,6 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
   
 # load packages
   library(sqldf)
-  require(ggplot2)
   require(plyr)
   
 # read in soil respiration auxillary functions from GitHub
@@ -17,7 +16,7 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
     data = subset(datafile, plot_code==plotname)
     
 #  TO DO: DEFAULT 
-    collardiameter = 12
+    collardiameter = 10 # 12 cm in Africa & Peru
 
 # Replace missing temperature and swc with default values.
 #w <- which(is.na(data$soil_temp_c))
@@ -35,6 +34,9 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
 
     # Define unique id for each measurement
     data$codew   <- paste(data$sub_plot, data$collar_number, data$replica, data$day, data$month, data$year, sep=".") # In most cases you will need to add the data$replica to this unique id.
+
+    # Order by codew and time
+    data <- data[order(data$codew, data$time),]
 
     # get unique identifyer for each measurement
     uid <- unique(data$codew)
@@ -55,7 +57,7 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
       t10      <- tail(ten_time, n=1)                                                  # last time step of 10 last measurements
       t1       <- head(ten_time, n=1)                                                  # first time step of 10 last measurements
       P        <- tail(sub$atmp, n=1)                                                  # ambient pressure at t10 (mb)
-      Ta       <- tail(sub$soil_temp_c, n=1)                                            # air temp at t10 (deg C)
+      Ta       <- tail(sub$air_temp_c, n=1)                                            # air temp at t10 (deg C)
       ch       <- tail(sub$ch_fill, n=1)                                               # see gap filling function fill.na() in soilrespiration_auxfinctions.r
       codep    <- tail(sub$treatment_code_partitioning, n=1)
       plot     <- tail(sub$plot_code, n=1)
