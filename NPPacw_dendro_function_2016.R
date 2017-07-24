@@ -9,15 +9,15 @@
 # census   <- read.csv() 
 # dendrometer <- read.csv() 
 
-# get allometric equation function
-setwd("/Users/cecile/GitHub/GEMcarbon.R") 
-dir()
-Sys.setlocale('LC_ALL','C') 
-source("allometric_equations_2014.R")
-
 
 NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Default", height_correction_option="Default", ret="nppacw.perday.pertree", census_year) {
 
+  # get allometric equation function
+  setwd("/Users/cecile/GitHub/GEMcarbon.R") 
+  dir()
+  Sys.setlocale('LC_ALL','C') 
+  source("allometric_equations_2014.R")
+  
 
   # load libraries
   library(sqldf)

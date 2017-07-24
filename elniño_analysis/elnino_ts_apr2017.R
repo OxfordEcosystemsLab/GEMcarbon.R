@@ -1067,15 +1067,79 @@ tam05b  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default",
 #######################################
 ########## NPPdendrometers ############
 #######################################
+
+# TO DO: Add this function to a different file we call in: source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")?
+
+find.wsg=function(family, genus, species, wsg){
+  capply = function(str, ff) {sapply(lapply(strsplit(str, NULL), ff), paste, collapse="") }
+  cap = function(char) {if (any(ind <- letters==char)) LETTERS[ind]    else char}
+  capitalize = function(str) {ff <- function(x) paste(lapply(unlist(strsplit(x, NULL)),cap),collapse="")
+                              capply(str,ff)}
+  lower = function(char) {if (any(ind <- LETTERS==char)) letters[ind]    else char}
+  lowerize = function(str) {ff <- function(x) paste(lapply(unlist(strsplit(x, NULL)),lower),collapse="")
+                            capply(str,ff)}
+  
+  family=(as.character(family))
+  genus=(as.character(genus))
+  species=(as.character(species))
+  
+  w=which(is.na(family))
+  family[w]='unknown'
+  w=which(is.na(genus))
+  genus[w]='unknown'
+  w=which(is.na(species))
+  species[w]='unknown'
+  
+  family=capitalize((family))
+  genus=capitalize((genus))
+  species=capitalize((species))
+  
+  family2=capitalize(as.character(wsg$FAMILY))
+  genus2=capitalize(as.character(wsg$GENUS))
+  species2=capitalize(as.character(wsg$SPECIES))
+  
+  fam.wsg=tapply(wsg$WSG, family2, mean,na.rm=T)
+  gen.wsg=tapply(wsg$WSG, genus2, mean, na.rm=T)
+  
+  family2=names(fam.wsg)
+  genus2=names(gen.wsg)
+  
+  m=match(family, family2)
+  wsg.est=fam.wsg[m]
+  
+  m=match(genus, genus2)
+  w=which(!is.na(m))
+  wsg.est[w]=gen.wsg[m][w]
+  
+  m=match(species, species2)
+  w=which(!is.na(m))
+  wsg.est[w]=wsg$WSG[m][w]
+  
+  names(wsg.est)=species
+  wsg.est
+}
+
+
 setwd("/Users/cecile/GitHub/GEMcarbon.R/") 
 source("~/Github/GEMcarbon.R/allometric_equations_2014.R")
 #source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")
-source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2015.r")
+source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2016.r")
 
+setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd")
+NPPdend_all <- read.table("dendro_all_10July.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd/stem_npp")
-NPPdend_all <- read.table("dendro_all_14June.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-dbh_census  <- read.table("BOB01_treelist.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+dbh_census  <- read.table("BOB01_census_example.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+wsg    <- read.table("wsg.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
   
+#estimate wsg (wood density)
+data$wsg=find.wsg(data$Family, data$Genus, data$Species, wsg)
+wsg.plot=tapply(data$wsg, data$PLOT, mean, na.rm=T)
+w=which(is.na(data$wsg))
+m=match(data$PLOT[w], names(wsg.plot))
+data$wsg[w]=wsg.plot[m]
+w=which(is.na(data$wsg))
+data$wsg[w]=median(unique(data$wsg), na.rm=T)
+
 # STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
 # STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
 # STEP 3. at the end of "NPPacw_dendro_function_2014.R", you use the function "NPPacw_census" to get an annual value of NPPACW from census data. L 198. Make sure you have the correct parameters in that function (plot name & census years)
@@ -1089,7 +1153,7 @@ allometric_option = "Default"
 height_correction_option = "Default"
 census_year = 2012
 plotit=F
-dtam05 <- NPPacw_dendro(census, dendrometer, plotname = "BOB-02", allometric_option="Default", height_correction_option="Default", census_year = 2005)
+endbob01 <- NPPacw_dendro(census, dendrometer, plotname = "BOB-01", allometric_option="Default", height_correction_option="Default", census_year = 2005)
 
 # save dendrometer data in MgC / tree / day
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
