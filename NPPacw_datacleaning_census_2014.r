@@ -59,21 +59,21 @@ for (i in 1:length(aa$plot)){
 
 # do not allow recruits 
 w = which(is.na(data$DBH.1) & !is.na(data$DBH.2))
-data$DBH.2[w] = 0/0 
+data$DBH.2[w] = NA 
 data$recruits <- "ok"
 data$recruits[w] <- "recruit"
 
 w = which(is.na(data$DBH.1) & is.na(data$DBH.2) & !is.na(data$DBH.3)) 
-data$DBH.3[w] = 0/0    
+data$DBH.3[w] = NA    
 data$recruits[w] <- "recruit"
 
-# Do not allow for shrinking trees. QUESTION: Allow shrinkage of 10%?
-w = which(data$DBH.1 > data$DBH.2) 
+# Do not allow for shrinking trees. QUESTION: Allow shrinkage of 10%.
+w = which((data$DBH.1*0.9) > data$DBH.2) 
 data$DBH.2[w] = data$DBH.1[w]  
 data$srink <- "ok"
 data$srink[w] <- "shrunk.dbh.2"
 
-w = which(data$DBH.2 > data$DBH.3)   
+w = which((data$DBH.2*0.9) > data$DBH.3)   
 data$DBH.3[w] = data$DBH.2[w]        
 data$srink[w] <- "shrunk.dbh.3"
 

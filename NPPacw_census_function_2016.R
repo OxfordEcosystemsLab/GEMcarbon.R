@@ -7,14 +7,12 @@
 # We then use this to estimate a scaling factor for the monthly dendrometer data (NPPcensus ha-1 yr-1 / NPPdend ha-1 yr-1).
 
 # requires one .csv file: 
-setwd("~/Github/GEMcarbon.R/a_readyforupload_db")
-census   <- read.csv("formattedcensus_TAM05_Mar17.csv", sep=",", header=T) 
-
-plotname = "TAM-05" 
-census1_year = "2005" 
-census2_year = "2006" 
-allometric_option = "Default" 
-height_correction_option = "Default"
+#census   <- read.csv("formattedcensus_TAM05_Mar17.csv", sep=",", header=T) 
+#plotname = "TAM-05" 
+#census1_year = "2005" 
+#census2_year = "2006" 
+#allometric_option = "Default" 
+#height_correction_option = "Default"
 
 ## column names required for this function:
 #plot_code
@@ -183,7 +181,7 @@ NPPacw_census <- function(census, plotname, census1_year="Default", census2_year
   
   # OR get an annual value for the entire plot by summing all trees in the plot 
   NPPacw_MgC_ha_yr <- (sum(npp$npp_day, na.rm=T))*365 
-  NPPacw_MgC_ha_yr_se <- sd(npp$npp_day, na.rm=T)/length(cen$tree_tag)
+  NPPacw_MgC_ha_yr_se <- sd(npp$npp_day, na.rm=T)/sqrt(length(cen$tree_tag))
   
   # TO DO !!! Talbot census correction function
   NPPcorr = NPPacw_MgC_ha_yr + (0.0091 * NPPacw_MgC_ha_yr) * (census_interval/365)

@@ -42,8 +42,8 @@ dataA[dataA$codew %in% n_occur$Var1[n_occur$Freq > 1],]
 # Get rid of duplicate codew
 # data[data$tag!=210.2 & data$height!=3.77, ]
 
-# identify dendrometers that have been replaced.
-dendrometer_reading_replaced_mm
+# TO DO: identify dendrometers that have been replaced.
+# dendrometer_reading_replaced_mm
 
 # get unique identifyer for each measurement
 uid   <- unique(dataA$codeb)

@@ -658,8 +658,8 @@ fig3c
 ### IC ###
 
 setwd("~/Github/GEMcarbon.R")
-source("~/Github/GEMcarbon.R/NPProot_2015.R")
-rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/ic_all_10July.csv", sep=",", header=T)
+source("~/Github/GEMcarbon.R/ingrowth_cores_201.R")
+rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingemdb/ic_all_16Aug.csv", sep=",", header=T) #stringsAsFactors=FALSE
 
 # rename plots
 rawic1$plot_code <- revalue(rawic1$plot_code, c("TRU-4" = "TRU-04", "DC1" = "DAN-04", "DC2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "OP" = "OP"))
@@ -670,10 +670,10 @@ rawic1[rawic1 == 'NA'] <- NA
 w = which(rawic1$is_stock == "y")
 rawic = rawic1[-w,]
 
-# ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nexted functions.
+# ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nested functions.
 
 datafile <- rawic
-plotname <- "NXV-02"
+plotname <- "TAM-06"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 
@@ -683,6 +683,20 @@ ret_type = "list"
 
 datafile = set_df_coltypes(datafile, ic_column_types)
   
+xyz <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05"), ret_type = "list")) #, "BOB-01", "BOB-02", "SAF-05", "SAF-01", "SAF-02", "TAM-06"
+xy <- xyz[["three_monthly"]]
+xy <- data.frame(xy)
+head(xy)
+
+xyzp <- ggplot(data4, aes(date, monthlyNPProot, colour = factor(data4$plot_code))) + 
+  geom_point() +
+  #scale_colour_manual(values=rep(brewer.pal(12,"Paired"), times=5)) +
+  theme(legend.position = "bottom") +
+  xlab("") + ylab(expression(paste("Ingrowth Core (MgC ",ha^-1, threemonths^-1, ")", sep=""))) +
+  ylim(0, 5) +
+  ggtitle("TAM / BOB / SAF") 
+xyzp
+
 ts_ic_2017_sa <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05", "ESP-01", "WAY-01", "ACJ-01", "TRU-4", "PAN-02", "PAN-03", "KEN-01", "KEN-02", "SPD-01", "SPD-02", "TAM-05", "TAM-06", "TAM-09", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "NXV-02", "NXV-01"), ret_type = "list")) 
 # These don't work: 
 # "TAN-01", "TAN-02" - time_step_minutes = 5, 10, 15 
@@ -765,6 +779,7 @@ setwd("~/Github/gemcarbon_data/processed_ts_2017/")
 write.csv(sa, file="ts_ic_sa_July2017.csv")
 write.csv(afr, file="ts_ic_afr_July2017.csv")
 write.csv(sea, file="ts_ic_sea_July2017.csv")
+write.csv(data4, file="ts_ic_tam6_Sept2017.csv")
 
 write.csv(data4, file="ts_ic_BOB01.csv")
 write.csv(data4, file="ts_ic_BOB02.csv")
@@ -1060,103 +1075,57 @@ source("NPPacw_census_function_2015.R")
 source("allometric_equations_2014.R")
 
 # Run the function for the plot level census. Default allometric equation is Chave et al. 2005 
-tam05a  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", height_correction_option="Default", census1_year=2013, census2_year=2014)
-tam05b  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", height_correction_option="Default", census1_year=2014, census2_year=2015)
+x  <- NPPacw_census(census_TAM05, plotname="TAM-05", allometric_option="Default", height_correction_option="Default", census1_year=2006, census2_year=2007)
+npp <- sum(tam05a$NPPpertree_MgC_ha_yr, na.rm=T)
+
+acj01  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", height_correction_option="Default", census1_year=2014, census2_year=2015)
 
 
 #######################################
 ########## NPPdendrometers ############
 #######################################
 
-# TO DO: Add this function to a different file we call in: source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")?
-
-find.wsg=function(family, genus, species, wsg){
-  capply = function(str, ff) {sapply(lapply(strsplit(str, NULL), ff), paste, collapse="") }
-  cap = function(char) {if (any(ind <- letters==char)) LETTERS[ind]    else char}
-  capitalize = function(str) {ff <- function(x) paste(lapply(unlist(strsplit(x, NULL)),cap),collapse="")
-                              capply(str,ff)}
-  lower = function(char) {if (any(ind <- LETTERS==char)) letters[ind]    else char}
-  lowerize = function(str) {ff <- function(x) paste(lapply(unlist(strsplit(x, NULL)),lower),collapse="")
-                            capply(str,ff)}
-  
-  family=(as.character(family))
-  genus=(as.character(genus))
-  species=(as.character(species))
-  
-  w=which(is.na(family))
-  family[w]='unknown'
-  w=which(is.na(genus))
-  genus[w]='unknown'
-  w=which(is.na(species))
-  species[w]='unknown'
-  
-  family=capitalize((family))
-  genus=capitalize((genus))
-  species=capitalize((species))
-  
-  family2=capitalize(as.character(wsg$FAMILY))
-  genus2=capitalize(as.character(wsg$GENUS))
-  species2=capitalize(as.character(wsg$SPECIES))
-  
-  fam.wsg=tapply(wsg$WSG, family2, mean,na.rm=T)
-  gen.wsg=tapply(wsg$WSG, genus2, mean, na.rm=T)
-  
-  family2=names(fam.wsg)
-  genus2=names(gen.wsg)
-  
-  m=match(family, family2)
-  wsg.est=fam.wsg[m]
-  
-  m=match(genus, genus2)
-  w=which(!is.na(m))
-  wsg.est[w]=gen.wsg[m][w]
-  
-  m=match(species, species2)
-  w=which(!is.na(m))
-  wsg.est[w]=wsg$WSG[m][w]
-  
-  names(wsg.est)=species
-  wsg.est
-}
-
-
 setwd("/Users/cecile/GitHub/GEMcarbon.R/") 
 source("~/Github/GEMcarbon.R/allometric_equations_2014.R")
-#source("~/Github/GEMcarbon.R/NPPacw_census_function_2015.R")
+source("~/Github/GEMcarbon.R/NPPacw_census_function_2016.R")
 source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2016.r")
 
 setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd")
 NPPdend_all <- read.table("dendro_all_10July.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
 setwd("/Users/cecile/Github/gemcarbon_data/raw_data_ingembd/stem_npp")
-dbh_census  <- read.table("BOB01_census_example.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+census_BOB02  <- read.table("BOB02_census_example.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE) # formattedcensus_TAM05_Mar17.csv
+census_BOB02$dbh <- census_BOB02$DBH3/10
+
 wsg    <- read.table("wsg.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
   
 #estimate wsg (wood density)
-data$wsg=find.wsg(data$Family, data$Genus, data$Species, wsg)
-wsg.plot=tapply(data$wsg, data$PLOT, mean, na.rm=T)
-w=which(is.na(data$wsg))
-m=match(data$PLOT[w], names(wsg.plot))
-data$wsg[w]=wsg.plot[m]
-w=which(is.na(data$wsg))
-data$wsg[w]=median(unique(data$wsg), na.rm=T)
+census_BOB02$wsg     = find.wsg(census_BOB02$Family, census_BOB02$Genus, census_BOB02$Species, wsg)
+wsg_plot             = tapply(census_BOB02$wsg, census_BOB02$plot_code, mean, na.rm=T)
+w                    = which(is.na(census_BOB02$wsg))
+m                    = match(census_BOB02$plot_code[w], names(wsg_plot))
+census_BOB02$wsg[w]  = wsg_plot[m]
+w                    = which(is.na(census_BOB02$wsg))
+census_BOB02$wsg[w]  = median(unique(census_BOB02$wsg), na.rm=T)
+census_BOB02$density = census_BOB02$wsg
+
+# re-name columns
+NPPdend_all$dendrometer_reading_mm = NPPdend_all$dbh_nodirection_mm
 
 # STEP 1. for each plot: run census data cleaning function above first, to get the dataframe "census". You need to do this for each plot separately.
 # STEP 2. then, select the parameters below for each plot, and start running the code "NPPacw_dendro_function_2014.R". Work on one plot at a time. 
 # STEP 3. at the end of "NPPacw_dendro_function_2014.R", you use the function "NPPacw_census" to get an annual value of NPPACW from census data. L 198. Make sure you have the correct parameters in that function (plot name & census years)
 
-#TAM-05
-
+# BOB-02 test
 dendrometer = NPPdend_all # %>% filter(year<=2012)
-census = dbh_census
-plotname = "BOB-01"     
+census = census_BOB02
+plotname = "BOB-02"     
 allometric_option = "Default"
 height_correction_option = "Default"
 census_year = 2012
-plotit=F
-endbob01 <- NPPacw_dendro(census, dendrometer, plotname = "BOB-01", allometric_option="Default", height_correction_option="Default", census_year = 2005)
+
+dend_tam05 <- NPPacw_dendro(census, dendrometer, plotname = "TAM-05", allometric_option="Default", height_correction_option="Default", ret="nppacw.permonth.perha", census_year = 2005)
 
 # save dendrometer data in MgC / tree / day
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
-write.csv(npp_tree, file="ts_dendrometers_tam06_16June17.csv")
-
+write.csv(monthlynppacw, file="ts_dendrometers_bob02_25July17.csv")
 

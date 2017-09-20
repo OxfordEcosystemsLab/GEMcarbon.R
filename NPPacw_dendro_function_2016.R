@@ -10,7 +10,7 @@
 # dendrometer <- read.csv() 
 
 
-NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Default", height_correction_option="Default", ret="nppacw.perday.pertree", census_year) {
+NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Default", height_correction_option="Default", ret="nppacw.perday.pertree", census_year) { #census_year 1 & year 2
 
   # get allometric equation function
   setwd("/Users/cecile/GitHub/GEMcarbon.R") 
@@ -18,7 +18,6 @@ NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Defa
   Sys.setlocale('LC_ALL','C') 
   source("allometric_equations_2014.R")
   
-
   # load libraries
   library(sqldf)
 
@@ -120,11 +119,10 @@ if (predheight == 1) {
   
   # add first dbh measurement (cm) to dendrometer measurement (cm) = thisdbh
   dend$dendrometer_reading_mm <- as.numeric(dend$dendrometer_reading_mm) # Ignore error message. NA introduced by coercion is ok.
-  dend$thisdbh_cm             <- (dend$dbh*pi) + ((dend$dendrometer_reading_mm/10)/pi)
-  # Error estimates TO DO. Error estimated as diax1er <- (diax1*pi + er)/pi in matlab code. Where diax1 <- (diameterlA[tree_ind]*pi + dendroallA[[tree_ind]]/10)/pi  
+  dend$thisdbh_cm             <- (dend$dbh*pi) + ((dend$dendrometer_reading_mm/10)) # deleted /pi, as dendrometer reading is a measure of circumferance already  
 
   # estimate biomass of each tree for each new thisdbh_mm
-  #loop through each tree to estimate biomass (bm) and convert to above ground carbon (agC)
+  # loop through each tree to estimate biomass (bm) and convert to above ground carbon (agC)
 for (ii in 1:length(dend$tree_tag)) {  
   thistree <- which(dend$tree_tag == dend$tree_tag[ii] & dend$year == dend$year[ii] & dend$month == dend$month[ii] & dend$day == dend$day[ii])     
   dbh_tree <- dend$thisdbh_cm[thistree]
@@ -142,12 +140,11 @@ for (ii in 1:length(dend$tree_tag)) {
     bm <- Chave2014(diax=dbh_tree, density=den_tree, height=h_tree)
   }
   
-  ## TO DO ## error treatment remains to be done!
   
   # Unit conversions 
   
   dend$agC[ii] <- (bm)*(1/(2.1097*1000)) # convert kg to Mg=1/1000=10 and convert to carbon = 47.8% (ADD REF!! Txx et al?)
-  dend$bm_kg[ii] <- (bm)
+  # dend$bm_kg[ii] <- (bm)
 }
 
   # NPPacw per tree: substact bm(t) - bm(t+1) / (t)-(t+1)
@@ -169,6 +166,7 @@ ff              <- c()
 gg              <- c()
 
 for (ii in 1:length(uid)){  
+  
   thistree  <- which(dend$tree_tag == uid[ii]) #dend$tree_tag[ii])
   agC       <- dend$agC[thistree]
   tag       <- dend$tree_tag[thistree]
@@ -179,7 +177,7 @@ for (ii in 1:length(uid)){
   plot_code <- dend$plot_code[thistree]
   # datediff  <- rbind(NA, data.frame(diff(as.matrix(dend$date[thistree])))) #datediff <- data.frame(0/0, difftime(tail(dend$date[thistree], -1), head(dend$date[thistree], -1), units="days"))
   # ddiff     <- datediff$diff.as.matrix.dend.date.thistree...
-  ddiff   <- rbind(NA, data.frame(diff(as.matrix(dend$date[thistree]))))[,1]
+  ddiff   <- rbind(NA, data.frame(diff(as.matrix(dend$date[thistree]))))[,1] # ADD stings as factors
   aa            <- c(aa, plot_code)
   bb            <- c(bb, tag)
   cc            <- c(cc, year)
@@ -188,13 +186,14 @@ for (ii in 1:length(uid)){
   ff            <- c(ff, agCdiff)
   gg            <- c(gg, ddiff)
   
-  if(ii%%100 ==0){print(ii)}
+  if(ii%%100 == 0){print(ii)}
 }
 
-agCdiff %>% summary
+ff %>% summary
+cc %>% summary
 
 npp_tree        <- cbind(aa, bb, cc, dd, ee, ff, gg)
-npp_tree        <-data.frame(npp_tree)
+npp_tree        <- data.frame(npp_tree)
 colnames(npp_tree) <- c("plot_code", "tag", "year", "month", "agC", "agCdiff", "datediff")
 
 npp_tree$tag      = as.numeric(as.character(npp_tree$tag))
@@ -210,63 +209,54 @@ npp_tree$datediff = as.numeric(as.character(npp_tree$datediff))
   
   npp_tree$nppacw_tree_day %>% hist(100) %>% abline(v=0, col="red", lwd=2)
 
-  # Dendrometer NPP: MgC per plot per year 
+  # Dendrometer NPP: MgC per plot per avgTREE per year 
+
   www                         <- sqldf("SELECT plot_code, year, month, AVG(nppacw_tree_day), STDEV(nppacw_tree_day) FROM npp_tree GROUP BY year, month")
   colnames (www)              <- c("plot_code", "year", "month", "npp_avgtrees_day_dend", "npp_avgtrees_day_dend_sd")
   www$npp_avgtrees_day_dend   <- as.numeric(www$npp_avgtrees_day_dend)
-  www$npp_avgtrees_month_dend <- www$npp_avgtrees_day_dend*29.6 
+  www$npp_avgtrees_month_dend <- www$npp_avgtrees_day_dend*29.6 # per month
   www$npp_avgtrees_yr_dend    <- www$npp_avgtrees_month_dend*12
 
-  #www$npp_avgtrees_day_dend_se   <- as.numeric(www$npp_avgtrees_day_dend_sd/length(unique(npp_tree$tag)))
-  www$npp_avgtrees_month_dend_sd <- www$npp_avgtrees_day_dend_sd*29.6 
+  www$npp_avgtrees_month_dend_sd <- www$npp_avgtrees_day_dend_sd*29.6 # per month
   www$npp_avgtrees_yr_dend_sd    <- www$npp_avgtrees_month_dend_sd*12
+ #www$npp_avgtrees_day_dend_se   <- as.numeric(www$npp_avgtrees_day_dend_sd/sqrt(length(unique(npp_tree$tag))))
 
   # scale dendrometer band data to the whole plot by applying a scaling factor 
-  # scaling factor (sf) = annual NPPacw from dendrometers (~200 trees) / annual NPPacw from census (all trees)
   # get nppacw_census value for this plot
-  nppacw_cen  <- NPPacw_census(census, plotname="TAM-05", allometric_option="Default", height_correction_option="Default", census1_year=2013, census2_year=2014)
+  nppacw_cen  <- NPPacw_census(census, plotname="BOB-02", allometric_option="Default", height_correction_option="Default", census1_year=2013, census2_year=2015)
+  # nppacw_cen  <- NPPacw_census(census, plotname, census1_year=2013, census2_year=2015)  are defined above.
 
-  # THIS IS NOT WORKING
-  #xxx <- sqldf("SELECT plot_code, AVG(npp_avgtrees_yr_dend) from www")
-  #colnames(xxx) <- c("plot_code", "nppacw_dend")
-  #sf  <- (xxx$nppacw_dend*length(unique(dend$tree_tag))) / nppacw_cen[,1]
-  #www$nppacw_month <- (www$npp_avgtrees_month_dend*length(unique(dend$tree_tag)))/sf
-  #www$nppacw_month_sd <- (www$npp_avgtrees_month_dend_sd*length(unique(dend$tree_tag)))/sf # TO DO: so we want SE or SD??? 
+  pertree = mean(nppacw_cen$NPPpertree_MgC_ha_yr, na.rm=T)
+  npp_cen_ha_yr = pertree * length(unique(census$tree_tag)) # Refine this with Sammy
+
+  # get mean nppacw_dend per tree value for this plot
+  xxx <- sqldf("SELECT plot_code, AVG(npp_avgtrees_yr_dend) from www")
+  colnames(xxx) <- c("plot_code", "nppacw_dend")
+  # scaling factor (sf) = annual NPPacw from dendrometers (~200 trees) / annual NPPacw from census (all trees)
+  sf  <- (xxx$nppacw_dend*length(unique(dend$tree_tag))) / npp_cen_ha_yr
+  www$nppacw_month <- (www$npp_avgtrees_month_dend*length(unique(dend$tree_tag)))/sf
+  www$nppacw_month_sd <- (www$npp_avgtrees_month_dend_sd*length(unique(dend$tree_tag)))/sf 
+  www$nppacw_month_se <- (((www$npp_avgtrees_month_dend_sd/sqrt(length(www$npp_avgtrees_month_dend))))*length(unique(dend$tree_tag)))/sf 
 
   # test that result is correct: the annual value should be the same as the annual value obtained from NPPacw_census_function_2014
-  yy <- data.frame((mean(www$nppacw_month, na.rm=T))*12,(mean(www$nppacw_month_sd, na.rm=T))*12) 
-  colnames(yy) <- c("nppacw_month", "nppacw_month_sd")
+  yy <- data.frame((mean(www$nppacw_month, na.rm=T))*12,(mean(www$nppacw_month_se, na.rm=T))) 
+  colnames(yy) <- c("nppacw_ha_yr", "nppacw_ha_yr_se")
   yy
-  nppacw_cen
+  npp_cen_ha_yr
 
-  monthlynppacw             <- data.frame(cbind(as.character(www$plot_code), www$year, www$month, www$nppacw_month, www$nppacw_month_sd))
-  colnames(monthlynppacw)   <- c("plot_code", "year", "month", "nppacw_MgC_month", "nppacw_MgC_month_sd") 
-  
-plot(www$month, www$nppacw_month)
+  monthlynppacw             <- data.frame(cbind(as.character(www$plot_code), www$year, www$month, www$nppacw_month, www$nppacw_month_sd, www$nppacw_month_se))
+  colnames(monthlynppacw)   <- c("plot_code", "year", "month", "nppacw_MgC_month", "nppacw_MgC_month_sd", "nppacw_MgC_month_se") 
+  monthlynppacw$nppacw_MgC_month <- as.numeric(as.character(monthlynppacw$nppacw_MgC_month))
+  monthlynppacw$year             <- as.numeric(as.character(monthlynppacw$year))
+  monthlynppacw$month            <- as.numeric(as.character(monthlynppacw$month))
+  monthlynppacw$nppacw_MgC_month_se <- as.numeric(as.character(monthlynppacw$nppacw_MgC_month_se))
 
-if (plotit==T) {
-
-plot <- ggplot(data=www, aes(x=month, y=nppacw_month, na.rm=T)) +
-               geom_point(colour='black', size=2) +
-               #geom_ribbon(data=www, aes(ymin=nppacw_month-nppacw_month_se , ymax=nppacw_month+nppacw_month_se), alpha=0.2) +
-               geom_errorbar(aes(ymin=nppacw_month-nppacw_month_sd, ymax=nppacw_month+nppacw_month_sd), width=.1) +             
-               #scale_x_date(breaks = date_breaks("months"), labels = date_format("%b-%Y")) +  
-               scale_colour_grey() + 
-               theme(text = element_text(size=17), legend.title = element_text(colour = 'black', size = 17, hjust = 3, vjust = 7, face="plain")) +
-               xlab("month") + ylab(expression(paste("NPP ACW (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-               theme_classic(base_size = 15, base_family = "") + 
-               theme(legend.position="left") +
-               theme(panel.border = element_rect(fill = NA, colour = "black", size = 1))
-
-plot 
-
-}
+plot(monthlynppacw$month, monthlynppacw$nppacw_MgC_month)
 
 switch(ret,
        nppacw.permonth.perha = {return(monthlynppacw)},
        nppacw.perday.pertree = {return(npp_tree)}
 )
-
 
 }
 

@@ -663,7 +663,7 @@ Pontos  Pare	Tipo de medida
 
 # AFRICA
 
-setwd("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/Afr_Rpart_raw/BOB/")
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rpart_raw/BOB/")
 list.files()
 library(data.table) 
 
@@ -1127,6 +1127,157 @@ bobB$treatment_code_partitioning <- revalue(bobB$treatment_code_partitioning, c(
 
 write.csv(bobB, file="BOB_PART.csv")
 bob_part   <- read.table("BOB_PART.csv", sep=",", header=T) 
+
+# IVI
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rpart_raw/IVI/")
+list.files()
+a   <- read.table("IVI-01_PART_2013_06_26.csv", sep=",", skip= 2, header=T) 
+a$Year="2013"
+b   <- read.table("IVI-01_PART_2013_07_23.csv", sep=",", skip= 2, header=T) 
+b$Year="2013"
+c   <- read.table("IVI-01_PART_2013_10_02.csv", sep=",", skip= 2, header=T) 
+c$Year="2013"
+d   <- read.table("IVI-01_PART_2013_11_22.csv", sep=",", skip= 2, header=T)
+d$Year="2013"
+e   <- read.table("IVI-01_PART_2014_04_28.csv", sep=",", skip= 2, header=T) 
+e$Year="2014"
+f   <- read.table("IVI-01_PART_2014_06_04.csv", sep=",", skip= 2, header=T) 
+f$Year="2014"
+g   <- read.table("IVI-01_PART_2014_07_13.csv", sep=",", skip= 2, header=T) 
+g$Year="2014"
+h   <- read.table("IVI-01_PART_2014_08_13.csv", sep=",", skip= 2, header=T)
+h$Year="2014"
+i   <- read.table("IVI-01_PART_2015_04_11.csv", sep=",", skip= 2, header=T) 
+i$Year="2015"
+j   <- read.table("IVI-01_PART_2015_06_09.csv", sep=",", skip= 2, header=T) 
+j$Year="2015"
+k   <- read.table("IVI-01_PART_2015_07_26.csv", sep=",", skip= 2, header=T) 
+k$Year="2015"
+l   <- read.table("IVI-02_PART_2013_06_27.csv", sep=",", skip= 2, header=T)
+l$Year="2013"
+m   <- read.table("IVI-02_PART_2013_07_24.csv", sep=",", skip= 2, header=T) 
+m$Year="2013"
+n   <- read.table("IVI-02_PART_2013_10_01.csv", sep=",", skip= 2, header=T) 
+n$Year="2013"
+o   <- read.table("IVI-02_PART_2013_11_21.csv", sep=",", skip= 2, header=T) 
+o$Year="2013"
+p   <- read.table("IVI-02_PART_2014_04_29.csv", sep=",", skip= 2, header=T) 
+p$Year="2014"
+q   <- read.table("IVI-02_PART_2014_06_05.csv", sep=",", skip= 2, header=T)  
+q$Year="2014"
+r   <- read.table("IVI-02_PART_2014_07_13.csv", sep=",", skip= 2, header=T)  
+r$Year="2014"
+s   <- read.table("IVI-02_PART_2014_08_14.csv", sep=",", skip= 2, header=T)  
+s$Year="2014"
+t   <- read.table("IVI-02_PART_2015_04_10.csv", sep=",", skip= 2, header=T) 
+t$Year="2015"
+u   <- read.table("IVI-02_PART_2015_06_08.csv", sep=",", skip= 2, header=T)  
+u$Year="2015"
+v   <- read.table("IVI-02_PART_2015_07_26.csv", sep=",", skip= 2, header=T) 
+v$Year="2015"
+
+ivi_part <- rbindlist(list(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v))
+ivi_part$Year <- as.numeric(ivi_part$Year)   
+ivi_part$replica <- as.numeric(1)
+
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/IVI/")
+list.files()
+
+aa   <- read.table("IVI-01_TOT_2013_06_26.csv", sep=",", skip= 2, header=T)   
+aa$Year="2013"
+bb   <- read.table("IVI-01_TOT_2013_07_23.csv", sep=",", skip= 2, header=T) 
+bb$Year="2013"
+cc   <- read.table("IVI-01_TOT_2013_10_02.csv", sep=",", skip= 2, header=T)    
+cc$Year="2013"
+dd   <- read.table("IVI-01_TOT_2013_11_22.csv", sep=",", skip= 2, header=T)   
+dd$Year="2013"
+ee   <- read.table("IVI-01_TOT_2014_04_28.csv", sep=",", skip= 2, header=T)   
+ee$Year="2014"
+ff   <- read.table("IVI-01_TOT_2014_06_04.csv", sep=",", skip= 2, header=T) 
+ff$Year="2014"
+gg   <- read.table("IVI-01_TOT_2014_07_13.csv", sep=",", skip= 2, header=T)  
+gg$Year="2014"
+hh   <- read.table("IVI-01_TOT_2014_08_13.csv", sep=",", skip= 2, header=T) 
+hh$Year="2014"
+ii   <- read.table("IVI-01_TOT_2015_04_11.csv", sep=",", skip= 2, header=T) 
+ii$Year="2015"
+jj   <- read.table("IVI-01_TOT_2015_06_09.csv", sep=",", skip= 2, header=T) 
+jj$Year="2015"
+kk   <- read.table("IVI-01_TOT_2015_07_26.csv", sep=",", skip= 2, header=T)   
+kk$Year="2015"
+ll   <- read.table("IVI-02_TOT_2013_06_27.csv", sep=",", skip= 2, header=T)
+ll$Year="2013"
+mm   <- read.table("IVI-02_TOT_2013_07_24.csv", sep=",", skip= 2, header=T) 
+mm$Year="2013"
+nn   <- read.table("IVI-02_TOT_2013_10_01.csv", sep=",", skip= 2, header=T) 
+nn$Year="2013"
+oo   <- read.table("IVI-02_TOT_2013_11_21.csv", sep=",", skip= 2, header=T) 
+oo$Year="2013"
+pp   <- read.table("IVI-02_TOT_2014_04_29.csv", sep=",", skip= 2, header=T) 
+pp$Year="2014"
+qq   <- read.table("IVI-02_TOT_2014_06_03.csv", sep=",", skip= 2, header=T) 
+qq$Year="2014"
+rr   <- read.table("IVI-02_TOT_2014_07_13.csv", sep=",", skip= 2, header=T) 
+rr$Year="2014"
+ss   <- read.table("IVI-02_TOT_2014_08_14.csv", sep=",", skip= 2, header=T) 
+ss$Year="2014"
+tt   <- read.table("IVI-02_TOT_2015_04_10.csv", sep=",", skip= 2, header=T) 
+tt$Year="2015"
+uu   <- read.table("IVI-02_TOT_2015_06_08.csv", sep=",", skip= 2, header=T) 
+uu$Year="2015"
+vv   <- read.table("IVI-02_TOT_2015_07_25.csv", sep=",", skip= 2, header=T) 
+vv$Year="2015"
+
+ivi_tot <- rbindlist(list(aa,bb,cc,dd,ee,ff,gg,hh,ii,jj,kk,ll,mm,nn,oo,pp,qq,rr,ss,tt,uu,vv))
+ivi_tot$Year <- as.numeric(ivi_tot$Year)   
+ivi_tot$replica <- as.numeric(1)
+
+ivi_resp <- rbindlist(list(ivi_part, ivi_tot))
+
+# MNG
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rpart_raw/MNG/")
+list.files()
+
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/MNG/")
+list.files()
+
+# LPG 
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/LPG/")
+list.files()
+
+"LPG-01_TOT_2013_07_01.csv"  
+"LPG-01_TOT_2013_07_29.csv"
+"LPG-01_TOT_2013_08_27.csv"
+"LPG-01_TOT_2013_09_24.csv"
+"LPG-01_TOT_2013_10_30.csv"
+"LPG-01_TOT_2013_11_18.csv"
+"LPG-01_TOT_2014_01_21.csv"
+"LPG-01_TOT_2014_02_17.csv"
+"LPG-01_TOT_2014_03_17.csv"
+"LPG-01_TOT_2014_04_14.csv"
+"LPG-01_TOT_2014_05_28.csv"
+"LPG-01_TOT_2014_06_17.csv"
+"LPG-01_TOT_2014_07_14.csv"
+"LPG-01_TOT_2014_09_17.csv" 
+"LPG-01_TOT_2014_10_21.csv"  "LPG-01_TOT_2014_10_21.xlsx" "LPG-01_TOT_2014_11_18.csv"  "LPG-01_TOT_2014_11_18.xlsx"
+"LPG-01_TOT_2015_01_19.csv"  "LPG-01_TOT_2015_01_19.xlsx" "LPG-01_TOT_2015_02_16.csv"  "LPG-01_TOT_2015_02_16.xlsx"
+"LPG-01_TOT_2015_03_20.csv"  "LPG-01_TOT_2015_03_20.xlsx" "LPG-01_TOT_2015_04_16.csv"  "LPG-01_TOT_2015_04_16.xlsx"
+"LPG-01_TOT_2015_05_13.csv"  "LPG-01_TOT_2015_05_13.xlsx" "LPG-01_TOT_2015_06_23.csv"  "LPG-01_TOT_2015_06_23.xlsx"
+"LPG-01_TOT_2015_07_22.csv"  "LPG-01_TOT_2015_07_22.xlsx" "LPG-02_TOT_2013_07_04.csv"  "LPG-02_TOT_2013_07_04.xlsx"
+"LPG-02_TOT_2013_07_30.csv"  "LPG-02_TOT_2013_07_30.xlsx" "LPG-02_TOT_2013_08_26.csv"  "LPG-02_TOT_2013_08_26.xlsx"
+"LPG-02_TOT_2013_09_25.csv"  "LPG-02_TOT_2013_09_25.xlsx" "LPG-02_TOT_2013_10_24.csv"  "LPG-02_TOT_2013_10_24.xlsx"
+"LPG-02_TOT_2013_11_19.csv"  "LPG-02_TOT_2013_11_19.xlsx" "LPG-02_TOT_2014_01_28.csv"  "LPG-02_TOT_2014_01_28.xlsx"
+"LPG-02_TOT_2014_02_27.csv"  "LPG-02_TOT_2014_02_27.xlsx" "LPG-02_TOT_2014_03_19.csv"  "LPG-02_TOT_2014_03_19.xlsx"
+"LPG-02_TOT_2014_04_16.csv"  "LPG-02_TOT_2014_04_16.xlsx" "LPG-02_TOT_2014_05_31.csv"  "LPG-02_TOT_2014_05_31.xlsx"
+"LPG-02_TOT_2014_06_18.csv"  "LPG-02_TOT_2014_06_18.xlsx" "LPG-02_TOT_2014_07_15.csv"  "LPG-02_TOT_2014_07_15.xlsx"
+"LPG-02_TOT_2014_09_18.csv"  "LPG-02_TOT_2014_09_18.xlsx" "LPG-02_TOT_2014_10_28.csv"  "LPG-02_TOT_2014_10_28.xlsx"
+"LPG-02_TOT_2014_11_21.csv"  "LPG-02_TOT_2014_11_21.xlsx" "LPG-02_TOT_2015_01_20.csv"  "LPG-02_TOT_2015_01_20.xlsx"
+"LPG-02_TOT_2015_02_17.csv"  "LPG-02_TOT_2015_02_17.xlsx" "LPG-02_TOT_2015_03_19.csv"  "LPG-02_TOT_2015_03_19.xlsx"
+"LPG-02_TOT_2015_04_20.csv"  "LPG-02_TOT_2015_04_20.xlsx" "LPG-02_TOT_2015_05_18.csv"  "LPG-02_TOT_2015_05_18.xlsx"
+"LPG-02_TOT_2015_06_24.csv" 
+"LPG-02_TOT_2015_07_23.csv"  
+
+
 
 
 # Nova Xavantina
