@@ -1245,37 +1245,99 @@ list.files()
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/LPG/")
 list.files()
 
-"LPG-01_TOT_2013_07_01.csv"  
-"LPG-01_TOT_2013_07_29.csv"
-"LPG-01_TOT_2013_08_27.csv"
-"LPG-01_TOT_2013_09_24.csv"
-"LPG-01_TOT_2013_10_30.csv"
-"LPG-01_TOT_2013_11_18.csv"
-"LPG-01_TOT_2014_01_21.csv"
-"LPG-01_TOT_2014_02_17.csv"
-"LPG-01_TOT_2014_03_17.csv"
-"LPG-01_TOT_2014_04_14.csv"
-"LPG-01_TOT_2014_05_28.csv"
-"LPG-01_TOT_2014_06_17.csv"
-"LPG-01_TOT_2014_07_14.csv"
-"LPG-01_TOT_2014_09_17.csv" 
-"LPG-01_TOT_2014_10_21.csv"  "LPG-01_TOT_2014_10_21.xlsx" "LPG-01_TOT_2014_11_18.csv"  "LPG-01_TOT_2014_11_18.xlsx"
-"LPG-01_TOT_2015_01_19.csv"  "LPG-01_TOT_2015_01_19.xlsx" "LPG-01_TOT_2015_02_16.csv"  "LPG-01_TOT_2015_02_16.xlsx"
-"LPG-01_TOT_2015_03_20.csv"  "LPG-01_TOT_2015_03_20.xlsx" "LPG-01_TOT_2015_04_16.csv"  "LPG-01_TOT_2015_04_16.xlsx"
-"LPG-01_TOT_2015_05_13.csv"  "LPG-01_TOT_2015_05_13.xlsx" "LPG-01_TOT_2015_06_23.csv"  "LPG-01_TOT_2015_06_23.xlsx"
-"LPG-01_TOT_2015_07_22.csv"  "LPG-01_TOT_2015_07_22.xlsx" "LPG-02_TOT_2013_07_04.csv"  "LPG-02_TOT_2013_07_04.xlsx"
-"LPG-02_TOT_2013_07_30.csv"  "LPG-02_TOT_2013_07_30.xlsx" "LPG-02_TOT_2013_08_26.csv"  "LPG-02_TOT_2013_08_26.xlsx"
-"LPG-02_TOT_2013_09_25.csv"  "LPG-02_TOT_2013_09_25.xlsx" "LPG-02_TOT_2013_10_24.csv"  "LPG-02_TOT_2013_10_24.xlsx"
-"LPG-02_TOT_2013_11_19.csv"  "LPG-02_TOT_2013_11_19.xlsx" "LPG-02_TOT_2014_01_28.csv"  "LPG-02_TOT_2014_01_28.xlsx"
-"LPG-02_TOT_2014_02_27.csv"  "LPG-02_TOT_2014_02_27.xlsx" "LPG-02_TOT_2014_03_19.csv"  "LPG-02_TOT_2014_03_19.xlsx"
-"LPG-02_TOT_2014_04_16.csv"  "LPG-02_TOT_2014_04_16.xlsx" "LPG-02_TOT_2014_05_31.csv"  "LPG-02_TOT_2014_05_31.xlsx"
-"LPG-02_TOT_2014_06_18.csv"  "LPG-02_TOT_2014_06_18.xlsx" "LPG-02_TOT_2014_07_15.csv"  "LPG-02_TOT_2014_07_15.xlsx"
-"LPG-02_TOT_2014_09_18.csv"  "LPG-02_TOT_2014_09_18.xlsx" "LPG-02_TOT_2014_10_28.csv"  "LPG-02_TOT_2014_10_28.xlsx"
-"LPG-02_TOT_2014_11_21.csv"  "LPG-02_TOT_2014_11_21.xlsx" "LPG-02_TOT_2015_01_20.csv"  "LPG-02_TOT_2015_01_20.xlsx"
-"LPG-02_TOT_2015_02_17.csv"  "LPG-02_TOT_2015_02_17.xlsx" "LPG-02_TOT_2015_03_19.csv"  "LPG-02_TOT_2015_03_19.xlsx"
-"LPG-02_TOT_2015_04_20.csv"  "LPG-02_TOT_2015_04_20.xlsx" "LPG-02_TOT_2015_05_18.csv"  "LPG-02_TOT_2015_05_18.xlsx"
-"LPG-02_TOT_2015_06_24.csv" 
-"LPG-02_TOT_2015_07_23.csv"  
+a   <- read.table("LPG-01_TOT_2013_07_01.csv", sep=",", header=T) 
+a$Year = "2013"
+  
+a   <- read.table("LPG-01_TOT_2013_07_29.csv", header=T) 
+a$Year = "2013"
+a   <- read.table("LPG-01_TOT_2013_08_27.csv", header=T)
+a$Year = "2013"
+a   <- read.table("LPG-01_TOT_2013_09_24.csv", header=T) 
+a$Year = "2013"
+a   <- read.table("LPG-01_TOT_2013_10_30.csv", header=T)
+a$Year = "2013"
+a   <- read.table("LPG-01_TOT_2013_11_18.csv", header=T)
+a$Year = "2013"
+a   <- read.table("LPG-01_TOT_2014_01_21.csv", header=T)
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_02_17.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_03_17.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_04_14.csv", header=T)
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_05_28.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_06_17.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_07_14.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_09_17.csv", header=T)
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_10_21.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2014_11_18.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-01_TOT_2015_01_19.csv", header=T) 
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_02_16.csv", header=T)   
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_03_20.csv", header=T)  
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_04_16.csv", header=T) 
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_05_13.csv", header=T) 
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_06_23.csv", header=T) 
+a$Year = "2015"
+a   <- read.table("LPG-01_TOT_2015_07_22.csv", header=T)  
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2013_07_04.csv", header=T) 
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2013_07_30.csv", header=T)    
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2013_08_26.csv", header=T)  
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2013_09_25.csv", header=T)   
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2013_10_24.csv", header=T)  
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2013_11_19.csv", header=T)  
+a$Year = "2013"
+a   <- read.table("LPG-02_TOT_2014_01_28.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_02_27.csv", header=T)   
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_03_19.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_04_16.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_05_31.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_06_18.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_07_15.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_09_18.csv", header=T)  
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_10_28.csv", header=T) 
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2014_11_21.csv", header=T)  
+a$Year = "2014"
+a   <- read.table("LPG-02_TOT_2015_01_20.csv", header=T)  
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_02_17.csv", header=T)   
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_03_19.csv", header=T)  
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_04_20.csv", header=T)
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_05_18.csv", header=T) 
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_06_24.csv", header=T)  
+a$Year = "2015"
+a   <- read.table("LPG-02_TOT_2015_07_23.csv", header=T)  
+a$Year = "2015"
 
 
 

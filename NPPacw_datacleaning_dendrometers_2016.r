@@ -81,7 +81,7 @@ colnames(data2) <- c("codew", "measurement_interval_days", "measurement_differen
 # change data2$measurement_mmperday from a factor to a number:
 data2$measurement_mmperday <- as.numeric(as.character(data2$measurement_mmperday))
 
-data3 <- sqldf("SELECT data.*, data2.* FROM data2 JOIN data ON data2.codew = data.codew") 
+data3 <- sqldf("SELECT dataA.*, data2.* FROM data2 JOIN dataA ON data2.codew = dataA.codew") 
 
 # Convert from mm per day to mm per month:
 data3$measurement_mmpermonth <- (data3$measurement_mmperday * 30.44) # average number of days in a month
