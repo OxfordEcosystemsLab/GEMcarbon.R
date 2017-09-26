@@ -1238,8 +1238,210 @@ ivi_resp <- rbindlist(list(ivi_part, ivi_tot))
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rpart_raw/MNG/")
 list.files()
 
+a   <- read.table("MNG-03_PART_2013_05_16.csv", sep=",", skip= 2, header=T)   
+a$Year="2013"
+b   <- read.table("MNG-03_PART_2013_06_13.csv", sep=",", skip= 2, header=T)  
+b$Year="2013" 
+c   <- read.table("MNG-03_PART_2013_07_11.csv", sep=",", skip= 2, header=T)  
+c$Year="2013"
+d   <- read.table("MNG-03_PART_2013_08_06.csv", sep=",", skip= 2, header=T) 
+d$Year="2013"
+e   <- read.table("MNG-03_PART_2013_09_04.csv", sep=",", skip= 2, header=T)   
+e$Year="2013"
+f   <- read.table("MNG-03_PART_2013_10_09.csv", sep=",", skip= 2, header=T)   
+f$Year="2013"
+g   <- read.table("MNG-03_PART_2013_11_04.csv", sep=",", skip= 2, header=T)   
+g$Year="2013"
+h   <- read.table("MNG-03_PART_2013_12_05.csv", sep=",", skip= 2, header=T)   
+h$Year="2013" 
+i   <- read.table("MNG-03_PART_2014_01_09.csv", sep=",", skip= 2, header=T)   
+i$Year="2014"
+j   <- read.table("MNG-03_PART_2014_04_02.csv", sep=",", skip= 2, header=T)  
+j$Year="2014"
+k   <- read.table("MNG-03_PART_2014_05_20.csv", sep=",", skip= 2, header=T)  
+k$Year="2014"
+l   <- read.table("MNG-03_PART_2014_06_03.csv", sep=",", skip= 2, header=T)   
+l$Year="2014"
+m   <- read.table("MNG-03_PART_2014_07_02.csv", sep=",", skip= 2, header=T)   
+m$Year="2014"
+n   <- read.table("MNG-03_PART_2014_08_06.csv", sep=",", skip= 2, header=T)   
+n$Year="2014"
+o   <- read.table("MNG-03_PART_2014_09_03.csv", sep=",", skip= 2, header=T)   
+o$Year="2014"
+p   <- read.table("MNG-03_PART_2014_10_07.csv", sep=",", skip= 2, header=T)   
+p$Year="2014"
+q   <- read.table("MNG-03_PART_2015_03_02.csv", sep=",", skip= 2, header=T)   
+q$Year="2015"
+r   <- read.table("MNG-03_PART_2015_05_15.csv", sep=",", skip= 2, header=T)  
+r$Year="2015" 
+s   <- read.table("MNG-03_PART_2015_06_09.csv", sep=",", skip= 2, header=T)   
+s$Year="2015"
+t   <- read.table("MNG-03_PART_2015_07_09.csv", sep=",", skip= 2, header=T)   
+t$Year="2015"
+u   <- read.table("MNG-04_PART_2013_03_20.csv", sep=",", skip= 2, header=T)   
+u$Year="2013"
+v   <- read.table("MNG-04_PART_2013_04_16.csv", sep=",", skip= 2, header=T)   
+v$Year="2013"
+w   <- read.table("MNG-04_PART_2013_05_17.csv", sep=",", skip= 2, header=T)   
+w$Year="2013"
+x   <- read.table("MNG-04_PART_2013_06_14.csv", sep=",", skip= 2, header=T)   
+x$Year="2013"
+y   <- read.table("MNG-04_PART_2013_07_12.csv", sep=",", skip= 2, header=T)  
+y$Year="2013"
+z   <- read.table("MNG-04_PART_2013_08_07.csv", sep=",", skip= 2, header=T)   
+z$Year="2013"
+aa   <- read.table("MNG-04_PART_2013_09_05.csv", sep=",", skip= 2, header=T)   
+aa$Year="2013"
+bb   <- read.table("MNG-04_PART_2013_10_10.csv", sep=",", skip= 2, header=T)   
+bb$Year="2013"
+cc   <- read.table("MNG-04_PART_2013_11_06.csv", sep=",", skip= 2, header=T)   
+cc$Year="2013"
+dd   <- read.table("MNG-04_PART_2013_12_05.csv", sep=",", skip= 2, header=T)   
+dd$Year="2013"
+ee   <- read.table("MNG-04_PART_2014_01_10.csv", sep=",", skip= 2, header=T)   
+ee$Year="2014"
+ff   <- read.table("MNG-04_PART_2014_04_04.csv", sep=",", skip= 2, header=T)  
+ff$Year="2014"
+gg   <- read.table("MNG-04_PART_2014_05_21.csv", sep=",", skip= 2, header=T)   
+gg$Year="2014"
+hh   <- read.table("MNG-04_PART_2014_06_04.csv", sep=",", skip= 2, header=T)   
+hh$Year="2014"
+ii   <- read.table("MNG-04_PART_2014_07_03.csv", sep=",", skip= 2, header=T)   
+ii$Year="2014"
+jj   <- read.table("MNG-04_PART_2014_08_05.csv", sep=",", skip= 2, header=T)   
+jj$Year="2014"
+kk   <- read.table("MNG-04_PART_2014_09_08.csv", sep=",", skip= 2, header=T)   
+kk$Year="2014"
+ll   <- read.table("MNG-04_PART_2014_10_10.csv", sep=",", skip= 2, header=T)   
+ll$Year="2014"
+mm   <- read.table("MNG-04_PART_2014_11_04.csv", sep=",", skip= 2, header=T)  
+mm$Year="2014"
+nn   <- read.table("MNG-04_PART_2015_01_07.csv", sep=",", skip= 2, header=T)   
+nn$Year="2015"
+oo   <- read.table("MNG-04_PART_2015_02_03.csv", sep=",", skip= 2, header=T)   
+oo$Year="2015"
+pp   <- read.table("MNG-04_PART_2015_03_03.csv", sep=",", skip= 2, header=T)   
+pp$Year="2015"
+qq   <- read.table("MNG-04_PART_2015_04_03.csv", sep=",", skip= 2, header=T)   
+qq$Year="2015"
+rr   <- read.table("MNG-04_PART_2015_05_13.csv", sep=",", skip= 2, header=T)   
+rr$Year="2015"
+ss   <- read.table("MNG-04_PART_2015_06_10.csv", sep=",", skip= 2, header=T)   
+ss$Year="2015"
+tt   <- read.table("MNG-04_PART_2015_07_10.csv", sep=",", skip= 2, header=T)  
+tt$Year="2015"
+
+mng_part <- rbindlist(list(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,aa,bb,cc,dd,ee,ff,gg,hh,ii,jj,kk,ll,mm,nn,oo,pp,qq,rr,ss,tt))
+mng_part$Year <- as.numeric(mng_part$Year)   
+mng_part$replica <- as.numeric(1)
+
+
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/MNG/")
 list.files()
+a   <- read.table("MNG-03_TOT_2013_03_28.csv", sep=",", skip= 2, header=T)   
+a$Year="2013"
+b   <- read.table("MNG-03_TOT_2013_04_26.csv", sep=",", skip= 2, header=T)    
+b$Year="2013"
+c   <- read.table("MNG-03_TOT_2013_05_23.csv", sep=",", skip= 2, header=T)     
+c$Year="2013"
+d   <- read.table("MNG-03_TOT_2013_06_17.csv", sep=",", skip= 2, header=T)    
+d$Year="2013"
+e   <- read.table("MNG-03_TOT_2013_07_11.csv", sep=",", skip= 2, header=T)     
+e$Year="2013"
+f   <- read.table("MNG-03_TOT_2013_08_08.csv", sep=",", skip= 2, header=T)     
+f$Year="2013"
+g   <- read.table("MNG-03_TOT_2013_09_11.csv", sep=",", skip= 2, header=T)     
+g$Year="2013"
+h   <- read.table("MNG-03_TOT_2013_10_14.csv", sep=",", skip= 2, header=T)     
+h$Year="2013"
+i   <- read.table("MNG-03_TOT_2013_11_11.csv", sep=",", skip= 2, header=T)     
+i$Year="2013"
+j   <- read.table("MNG-03_TOT_2013_12_09.csv", sep=",", skip= 2, header=T)     
+j$Year="2013"
+k   <- read.table("MNG-03_TOT_2014_04_03.csv", sep=",", skip= 2, header=T)    
+k$Year="2014"
+l   <- read.table("MNG-03_TOT_2014_05_05.csv", sep=",", skip= 2, header=T)     
+l$Year="2014"
+m   <- read.table("MNG-03_TOT_2014_06_11.csv", sep=",", skip= 2, header=T)     
+m$Year="2014"
+n   <- read.table("MNG-03_TOT_2014_07_09.csv", sep=",", skip= 2, header=T)     
+n$Year="2014"
+o   <- read.table("MNG-03_TOT_2014_08_12.csv", sep=",", skip= 2, header=T)     
+o$Year="2014"
+p   <- read.table("MNG-03_TOT_2014_09_11.csv", sep=",", skip= 2, header=T)     
+p$Year="2014"
+q   <- read.table("MNG-03_TOT_2014_10_09.csv", sep=",", skip= 2, header=T)     
+q$Year="2014"
+r   <- read.table("MNG-03_TOT_2014_11_03.csv", sep=",", skip= 2, header=T)    
+r$Year="2014"
+s   <- read.table("MNG-03_TOT_2015_01_08.csv", sep=",", skip= 2, header=T)     
+s$Year="2015"
+t   <- read.table("MNG-03_TOT_2015_02_02.csv", sep=",", skip= 2, header=T)     
+t$Year="2015"
+u   <- read.table("MNG-03_TOT_2015_03_05.csv", sep=",", skip= 2, header=T)     
+u$Year="2015"
+v   <- read.table("MNG-03_TOT_2015_04_02.csv", sep=",", skip= 2, header=T)     
+v$Year="2015"
+w   <- read.table("MNG-03_TOT_2015_05_06.csv", sep=",", skip= 2, header=T)     
+w$Year="2015"
+x   <- read.table("MNG-03_TOT_2015_06_09.csv", sep=",", skip= 2, header=T)     
+x$Year="2015" 
+y   <- read.table("MNG-03_TOT_2015_07_09.csv", sep=",", skip= 2, header=T)    
+y$Year="2015"
+z   <- read.table("MNG-04_TOT_2013_03_27.csv", sep=",", skip= 2, header=T)     
+z$Year="2013"
+aa   <- read.table("MNG-04_TOT_2013_04_29.csv", sep=",", skip= 2, header=T)     
+aa$Year="2013"
+bb   <- read.table("MNG-04_TOT_2013_05_24.csv", sep=",", skip= 2, header=T)    
+bb$Year="2013"
+cc   <- read.table("MNG-04_TOT_2013_06_17.csv", sep=",", skip= 2, header=T)     
+cc$Year="2013" 
+dd   <- read.table("MNG-04_TOT_2013_07_12.csv", sep=",", skip= 2, header=T)     
+dd$Year="2013"
+ee   <- read.table("MNG-04_TOT_2013_08_12.csv", sep=",", skip= 2, header=T)     
+ee$Year="2013"
+ff   <- read.table("MNG-04_TOT_2013_09_11.csv", sep=",", skip= 2, header=T)    
+ff$Year="2013"
+gg   <- read.table("MNG-04_TOT_2013_10_14.csv", sep=",", skip= 2, header=T)     
+gg$Year="2013"
+hh   <- read.table("MNG-04_TOT_2013_11_11.csv", sep=",", skip= 2, header=T)     
+hh$Year="2013"
+ii   <- read.table("MNG-04_TOT_2013_12_09.csv", sep=",", skip= 2, header=T)     
+ii$Year="2013"
+jj   <- read.table("MNG-04_TOT_2014_04_04.csv", sep=",", skip= 2, header=T)     
+jj$Year="2014"
+kk   <- read.table("MNG-04_TOT_2014_06_12.csv", sep=",", skip= 2, header=T)     
+kk$Year="2014" 
+ll   <- read.table("MNG-04_TOT_2014_07_09.csv", sep=",", skip= 2, header=T)     
+ll$Year="2014" 
+mm   <- read.table("MNG-04_TOT_2014_08_13.csv", sep=",", skip= 2, header=T)    
+mm$Year="2014"
+nn   <- read.table("MNG-04_TOT_2014_09_12.csv", sep=",", skip= 2, header=T)     
+nn$Year="2014"
+oo   <- read.table("MNG-04_TOT_2014_10_10.csv", sep=",", skip= 2, header=T)     
+oo$Year="2014"
+pp   <- read.table("MNG-04_TOT_2014_11_04.csv", sep=",", skip= 2, header=T)     
+pp$Year="2014"
+qq   <- read.table("MNG-04_TOT_2015_01_07.csv", sep=",", skip= 2, header=T)     
+qq$Year="2015"
+rr   <- read.table("MNG-04_TOT_2015_02_03.csv", sep=",", skip= 2, header=T)     
+rr$Year="2015"
+ss   <- read.table("MNG-04_TOT_2015_03_03.csv", sep=",", skip= 2, header=T)     
+ss$Year="2015"
+tt   <- read.table("MNG-04_TOT_2015_04_03.csv", sep=",", skip= 2, header=T)    
+tt$Year="2015"
+uu   <- read.table("MNG-04_TOT_2015_05_13.csv", sep=",", skip= 2, header=T)     
+uu$Year="2015"
+vv   <- read.table("MNG-04_TOT_2015_06_10.csv", sep=",", skip= 2, header=T)     
+vv$Year="2015"
+ww   <- read.table("MNG-04_TOT_2015_07_10.csv", sep=",", skip= 2, header=T)     
+ww$Year="2015"
+
+mng_tot <- rbindlist(list(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,aa,bb,cc,dd,ee,ff,gg,hh,ii,jj,kk,ll,mm,nn,oo,pp,qq,rr,ss,tt))
+mng_tot$Year <- as.numeric(mng_tot$Year)   
+mng_tot$replica <- as.numeric(1)
+
+
 
 # LPG 
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb/soil_respiration/Afr_Rtotal/LPG/")
@@ -1247,100 +1449,106 @@ list.files()
 
 a   <- read.table("LPG-01_TOT_2013_07_01.csv", sep=",", header=T) 
 a$Year = "2013"
-  
-a   <- read.table("LPG-01_TOT_2013_07_29.csv", header=T) 
-a$Year = "2013"
-a   <- read.table("LPG-01_TOT_2013_08_27.csv", header=T)
-a$Year = "2013"
-a   <- read.table("LPG-01_TOT_2013_09_24.csv", header=T) 
-a$Year = "2013"
-a   <- read.table("LPG-01_TOT_2013_10_30.csv", header=T)
-a$Year = "2013"
-a   <- read.table("LPG-01_TOT_2013_11_18.csv", header=T)
-a$Year = "2013"
-a   <- read.table("LPG-01_TOT_2014_01_21.csv", header=T)
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_02_17.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_03_17.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_04_14.csv", header=T)
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_05_28.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_06_17.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_07_14.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_09_17.csv", header=T)
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_10_21.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2014_11_18.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-01_TOT_2015_01_19.csv", header=T) 
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_02_16.csv", header=T)   
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_03_20.csv", header=T)  
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_04_16.csv", header=T) 
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_05_13.csv", header=T) 
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_06_23.csv", header=T) 
-a$Year = "2015"
-a   <- read.table("LPG-01_TOT_2015_07_22.csv", header=T)  
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2013_07_04.csv", header=T) 
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2013_07_30.csv", header=T)    
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2013_08_26.csv", header=T)  
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2013_09_25.csv", header=T)   
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2013_10_24.csv", header=T)  
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2013_11_19.csv", header=T)  
-a$Year = "2013"
-a   <- read.table("LPG-02_TOT_2014_01_28.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_02_27.csv", header=T)   
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_03_19.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_04_16.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_05_31.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_06_18.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_07_15.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_09_18.csv", header=T)  
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_10_28.csv", header=T) 
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2014_11_21.csv", header=T)  
-a$Year = "2014"
-a   <- read.table("LPG-02_TOT_2015_01_20.csv", header=T)  
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_02_17.csv", header=T)   
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_03_19.csv", header=T)  
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_04_20.csv", header=T)
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_05_18.csv", header=T) 
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_06_24.csv", header=T)  
-a$Year = "2015"
-a   <- read.table("LPG-02_TOT_2015_07_23.csv", header=T)  
-a$Year = "2015"
+b  <- read.table("LPG-01_TOT_2013_07_29.csv", sep=",", header=T) 
+b$Year = "2013"
+c   <- read.table("LPG-01_TOT_2013_08_27.csv", sep=",", header=T)
+c$Year = "2013"
+d   <- read.table("LPG-01_TOT_2013_09_24.csv", sep=",", header=T) 
+d$Year = "2013"
+e   <- read.table("LPG-01_TOT_2013_10_30.csv", sep=",", header=T)
+e$Year = "2013"
+f   <- read.table("LPG-01_TOT_2013_11_18.csv", sep=",", header=T)
+f$Year = "2013"
+g   <- read.table("LPG-01_TOT_2014_01_21.csv", skip= 2, sep=",", header=T)
+g$Year = "2014"
+h   <- read.table("LPG-01_TOT_2014_02_17.csv", skip= 2, sep=",", header=T) 
+h$Year = "2014"
+i   <- read.table("LPG-01_TOT_2014_03_17.csv", skip= 2, sep=",", header=T) 
+i$Year = "2014"
+j   <- read.table("LPG-01_TOT_2014_04_14.csv", skip= 2, sep=",", header=T)
+j$Year = "2014"
+k   <- read.table("LPG-01_TOT_2014_05_28.csv", skip= 2, sep=",", header=T) 
+k$Year = "2014"
+l   <- read.table("LPG-01_TOT_2014_06_17.csv", skip= 2, sep=",", header=T) 
+l$Year = "2014"
+m   <- read.table("LPG-01_TOT_2014_07_14.csv", skip= 2, sep=",", header=T) 
+m$Year = "2014"
+n   <- read.table("LPG-01_TOT_2014_09_17.csv", skip= 2, sep=",", header=T)
+n$Year = "2014"
+o   <- read.table("LPG-01_TOT_2014_10_21.csv", skip= 2, sep=",", header=T) 
+o$Year = "2014"
+p   <- read.table("LPG-01_TOT_2014_11_18.csv", skip= 2, sep=",", header=T) 
+p$Year = "2014"
+q   <- read.table("LPG-01_TOT_2015_01_19.csv", skip= 2, sep=",", header=T) 
+q$Year = "2015"
+r   <- read.table("LPG-01_TOT_2015_02_16.csv", skip= 2, sep=",", header=T)   
+r$Year = "2015"
+s   <- read.table("LPG-01_TOT_2015_03_20.csv", skip= 2, sep=",", header=T)  
+s$Year = "2015"
+t   <- read.table("LPG-01_TOT_2015_04_16.csv", skip= 2, sep=",", header=T) 
+t$Year = "2015"
+u   <- read.table("LPG-01_TOT_2015_05_13.csv", skip= 2, sep=",", header=T) 
+u$Year = "2015"
+v   <- read.table("LPG-01_TOT_2015_06_23.csv", skip= 2, sep=",", header=T) 
+v$Year = "2015"
+w   <- read.table("LPG-01_TOT_2015_07_22.csv", skip= 2, sep=",", header=T)  
+w$Year = "2015"
+x   <- read.table("LPG-02_TOT_2013_07_04.csv", skip= 2, sep=",", header=T) 
+x$Year = "2013"
+y   <- read.table("LPG-02_TOT_2013_07_30.csv", skip= 2, sep=",", header=T)    
+y$Year = "2013"
+z   <- read.table("LPG-02_TOT_2013_08_26.csv", skip= 2, sep=",", header=T)  
+z$Year = "2013"
+aa   <- read.table("LPG-02_TOT_2013_09_25.csv", skip= 2, sep=",", header=T)   
+aa$Year = "2013"
+bb   <- read.table("LPG-02_TOT_2013_10_24.csv", skip= 2, sep=",", header=T)  
+bb$Year = "2013"
+cc   <- read.table("LPG-02_TOT_2013_11_19.csv", skip= 2, sep=",", header=T)  
+cc$Year = "2013"
+dd   <- read.table("LPG-02_TOT_2014_01_28.csv", skip= 2, sep=",", header=T) 
+dd$Year = "2014"
+ee   <- read.table("LPG-02_TOT_2014_02_27.csv", skip= 2, sep=",", header=T)   
+ee$Year = "2014"
+ff   <- read.table("LPG-02_TOT_2014_03_19.csv", skip= 2, sep=",", header=T) 
+ff$Year = "2014"
+gg   <- read.table("LPG-02_TOT_2014_04_16.csv", skip= 2, sep=",", header=T) 
+gg$Year = "2014"
+hh   <- read.table("LPG-02_TOT_2014_05_31.csv", skip= 2, sep=",", header=T) 
+hh$Year = "2014"
+ii   <- read.table("LPG-02_TOT_2014_06_18.csv", skip= 2, sep=",", header=T) 
+ii$Year = "2014"
+jj   <- read.table("LPG-02_TOT_2014_07_15.csv", skip= 2, sep=",", header=T) 
+jj$Year = "2014"
+kk   <- read.table("LPG-02_TOT_2014_09_18.csv", skip= 2, sep=",", header=T)  
+kk$Year = "2014"
+ll   <- read.table("LPG-02_TOT_2014_10_28.csv", skip= 2, sep=",", header=T) 
+ll$Year = "2014"
+mm   <- read.table("LPG-02_TOT_2014_11_21.csv", skip= 2, sep=",", header=T)  
+mm$Year = "2014"
+nn   <- read.table("LPG-02_TOT_2015_01_20.csv", skip= 2, sep=",", header=T)  
+nn$Year = "2015"
+oo   <- read.table("LPG-02_TOT_2015_02_17.csv", skip= 2, sep=",", header=T)   
+oo$Year = "2015"
+pp   <- read.table("LPG-02_TOT_2015_03_19.csv", skip= 2, sep=",", header=T)  
+pp$Year = "2015"
+qq   <- read.table("LPG-02_TOT_2015_04_20.csv", skip= 2, sep=",", header=T)
+qq$Year = "2015"
+rr   <- read.table("LPG-02_TOT_2015_05_18.csv", skip= 2, sep=",", header=T) 
+rr$Year = "2015"
+ss   <- read.table("LPG-02_TOT_2015_06_24.csv", skip= 2, sep=",", header=T)  
+ss$Year = "2015"
+tt   <- read.table("LPG-02_TOT_2015_07_23.csv", skip= 2, sep=",", header=T)  
+tt$Year = "2015"
+
+lpg_tot <- rbindlist(list(a ,b ,c ,d ,e ,f ,g ,h ,i ,j ,k ,l ,m ,n ,o ,p ,q ,r ,s ,t ,u ,vv, w, x, y, z,aa ,bb ,cc ,dd ,ee ,ff ,gg ,hh ,ii ,jj ,kk ,ll ,mm ,nn ,oo ,pp ,qq ,rr ,ss ,tt))
+lpg_tot$Year <- as.numeric(lpg_tot$Year)   
+lpg_tot$replica <- as.numeric(1)
 
 
 
+gabon_rsoil_sept2017 <- rbindlist(list(ivi_part, ivi_tot, mng_part, mng_tot, lpg_tot))
+
+write.csv(gabon_rsoil_sept2017, file="Afr_rsoil_addtofinalfile.csv")
 
 # Nova Xavantina
 # NXV-01 NXV-02
