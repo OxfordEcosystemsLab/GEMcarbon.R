@@ -22,18 +22,22 @@ NPPacw_dendro <- function(census, dendrometer, plotname, allometric_option="Defa
   library(sqldf)
 
 ## get data for all trees that are in the plot selected from census & dendrometer files
-cen1  <- subset(census, plot_code==plotname)
-cen   <- subset(cen1, year==census_year)  
+cen  <- subset(census, plot_code==plotname | year==census_year) 
 dend1 <- subset(dendrometer, plot_code==plotname)
+str(dend1)
 
 # re-name year, month, day in cen
 cen$cenyear  <- cen$year
 cen$cenmonth <- cen$month
 cen$cenday   <- cen$day
+str(cen)
+
+# Check tree_tags are the same in dendrometer and census datasets
+dend1$tree_tag[!(dend1$tree_tag %in% cen$tree_tag)]
 
 ## get the data you need from the census file into the dendrometer data frame: density, height, first dbh measurement, date of first dbh measurement
 dend <- sqldf("SELECT dend1.*, cen.density, cen.height_m, cen.dbh, cen.cenyear, cen.cenmonth, cen.cenday FROM cen JOIN dend1 ON cen.tree_tag = dend1.tree_tag")
-head(dend) # check you have data in here. If not, make sure dend1 and cen are in the right formats, e.g. using sapply(cen, class).
+str(dend) # check you have data in here. If not, make sure dend1 and cen are in the right formats, e.g. using sapply(cen, class).
 
 
   ## Allometric equation option. Set of allometric equations after Chave et al. 2005 and Chave et al. 2014 are defined in allometricEquations.R. Options defined here:
@@ -140,6 +144,7 @@ for (ii in 1:length(dend$tree_tag)) {
     bm <- Chave2014(diax=dbh_tree, density=den_tree, height=h_tree)
   }
   
+  print(bm)
   
   # Unit conversions 
   
@@ -189,8 +194,8 @@ for (ii in 1:length(uid)){
   if(ii%%100 == 0){print(ii)}
 }
 
-ff %>% summary
-cc %>% summary
+#ff %>% summary
+#cc %>% summary
 
 npp_tree        <- cbind(aa, bb, cc, dd, ee, ff, gg)
 npp_tree        <- data.frame(npp_tree)
@@ -207,7 +212,14 @@ npp_tree$datediff = as.numeric(as.character(npp_tree$datediff))
 
   npp_tree$nppacw_tree_day  <- npp_tree$agCdiff/npp_tree$datediff
   
-  npp_tree$nppacw_tree_day %>% hist(100) %>% abline(v=0, col="red", lwd=2)
+  #npp_tree$nppacw_tree_day %>% hist(100) %>% abline(v=0, col="red", lwd=2)
+
+
+# Replace negatives by 0 
+# !!! ATTENTION !!! Sami needs this for his model. 
+# Do not force negative growth to 0 unless you need to, these datasets were cleaned and we usually allow for a reasonable amount of shrinkage (see NPPacw_datacleaning_dendrometers_2016.R).
+  npp_tree$nppacw_tree_day[which((npp_tree$nppacw_tree_day <= 0))] <- 0
+# !!! ATTENTION !!!
 
   # Dendrometer NPP: MgC per plot per avgTREE per year 
 
@@ -223,11 +235,11 @@ npp_tree$datediff = as.numeric(as.character(npp_tree$datediff))
 
   # scale dendrometer band data to the whole plot by applying a scaling factor 
   # get nppacw_census value for this plot
-  nppacw_cen  <- NPPacw_census(census, plotname="BOB-02", allometric_option="Default", height_correction_option="Default", census1_year=2013, census2_year=2015)
+  nppacw_cen  <- NPPacw_census(census, plotname, allometric_option="Default", height_correction_option="Default", census1_year=2012, census2_year=2013)
   # nppacw_cen  <- NPPacw_census(census, plotname, census1_year=2013, census2_year=2015)  are defined above.
 
   pertree = mean(nppacw_cen$NPPpertree_MgC_ha_yr, na.rm=T)
-  npp_cen_ha_yr = pertree * length(unique(census$tree_tag)) # Refine this with Sammy
+  npp_cen_ha_yr = pertree * length(unique(census$tree_tag)) # Refine this with Sami
 
   # get mean nppacw_dend per tree value for this plot
   xxx <- sqldf("SELECT plot_code, AVG(npp_avgtrees_yr_dend) from www")

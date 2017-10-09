@@ -7,10 +7,16 @@ source("~/Github/GEMcarbon.R/soilrespiration_auxfunctions.r")
 setwd("~/Github/GEMcarbon.R") 
 source("allometric_equations_2014.R")
 
+stem_resp                <- read.table("~/ ... stem_resp_13June.csv", sep=",", header=T)
 
-stemrespiration <- function(stem_resp, plotname, ret = c("monthly.means.ts", "list"), collardiameter=12, collarheight=5, # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
-                            pressure="Default", elevation="Default", T_ambient="Default",
-                            plotit=T) {
+plotname = "TAM-05"
+collardiameter = 12
+collarheight = 5
+
+#stemrespiration <- function(stem_resp, plotname, ret = c("monthly.means.ts", "list"), collardiameter=12, collarheight=5, # Add tube radius as a parameter, change A to A <- pi*(rad^2) 
+#                            pressure="Default", elevation="Default", T_ambient="Default",
+#                            plotit=T) {
+
 # select a plot
 data1 = subset(stem_resp, plot_code==plotname)
 
@@ -77,7 +83,7 @@ for (i in 1:length(uid)) {
   t1       <- head(ten_time, n=1)                                                  # first time step of 10 last measurements
   P        <- tail(sub$atmp, n=1)                                                  # ambient pressure at t10 (mb)
   Ta       <- tail(sub$air_temp_c, n=1)                                            # air temp at t10 (deg C)
-  ch       <- tail(sub$collar_height, n=1)                                               # see gap filling function fill.na() in soilrespiration_auxfinctions.r
+  ch       <- tail(sub$collar_height, n=1)                                         # see gap filling function fill.na() in soilrespiration_auxfinctions.r
   Vd       <- 0.0012287                                                            # m3 (constant)
   A        <- 0.00950                                                              # m2 (constant)
   Ru       <- 8.31432                                                              # J mol-1 K-1 (constant)
@@ -103,7 +109,7 @@ Res$flux_MgC_ha_month <- Res$flux_umolm2sec*convert*tempcorr
 # Res$codew[which(duplicated(Res$codew))]
 
 # build the new data frame
-tsstem                   <- sqldf("SELECT Res.*, data1.* FROM Res LEFT JOIN data1 ON Res.codew = data1.codew GROUP BY Res.codew")
+tsstem  <- sqldf("SELECT Res.*, data1.* FROM Res LEFT JOIN data1 ON Res.codew = data1.codew GROUP BY Res.codew")
 # tsstem <- merge(Res, data1, by = "codew", all.x=T)
 
 tsstem$flux_MgC_ha_month    <- rm.flux.outlier(tsstem$flux_MgC_ha_month, 4)
@@ -112,6 +118,15 @@ tsstem$flux_MgC_ha_month[w] <- NA
 tsstem$date                 <- as.Date(paste(tsstem$year, tsstem$month, tsstem$day, sep="."), format="%Y.%m.%d") 
 tsstem                      <- tsstem[order(tsstem$sub_plot,tsstem$date),]
 tsstem$codew                <- NULL
+
+# Average Rstem per unit area.
+
+# Scale to surface area of the plot. 
+# calculate tree Surface Area using Chambers 2004:
+largetree_sa <- Chambers2004_surfaceArea(diameter=diametersA) 
+# smalltree_sa <- Chambers2004_surfaceArea(diameter=diameterlA) 
+
+
 
 # Mean R stem per month per plot, average of all the collars - still no scaling to the tree surface area!
 avg_rs_sa = tsstem %>% group_by(plot_code, year, month) %>% 
