@@ -356,7 +356,7 @@ nxvCDB <- Rflux(rsnxv, ret="Res", "NXV-01")
 nxvCTB <- Rflux(rsnxv, ret="Res", "NXV-02")
 nxvPTB <- Rflux(rsnxv, ret="Res", "NXV-xx1")
 nxvRGB <- Rflux(rsnxv, ret="Res", "NXV-xx2")
- 
+  
 # dates
 nxvCDB$date <- as.Date(paste(nxvCDB$year, nxvCDB$month, nxvCDB$day, sep="."), format="%Y.%m.%d") 
 nxvCTB$date <- as.Date(paste(nxvCTB$year, nxvCTB$month, nxvCTB$day, sep="."), format="%Y.%m.%d") 
@@ -658,8 +658,8 @@ fig3c
 ### IC ###
 
 setwd("~/Github/GEMcarbon.R")
-source("~/Github/GEMcarbon.R/ingrowth_cores_201.R")
-rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingemdb/ic_all_16Aug.csv", sep=",", header=T) #stringsAsFactors=FALSE
+source("~/Github/GEMcarbon.R/ingrowth_cores_2017.R")
+rawic1 <- read.table("~/Github/gemcarbon_data/raw_data_ingemdb/SR_ic_9Oct.csv", sep=",", header=T, stringsAsFactors=FALSE) #stringsAsFactors=FALSE
 
 # rename plots
 rawic1$plot_code <- revalue(rawic1$plot_code, c("TRU-4" = "TRU-04", "DC1" = "DAN-04", "DC2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "OP" = "OP"))
@@ -673,7 +673,7 @@ rawic = rawic1[-w,]
 # ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nested functions.
 
 datafile <- rawic
-plotname <- "TAM-06"
+plotname <- "STB-08"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 
@@ -683,7 +683,7 @@ ret_type = "list"
 
 datafile = set_df_coltypes(datafile, ic_column_types)
   
-xyz <- NPProot_ic(subset(datafile, plot_code %in% c("TAM-05"), ret_type = "list")) #, "BOB-01", "BOB-02", "SAF-05", "SAF-01", "SAF-02", "TAM-06"
+xyz <- NPProot_ic(subset(datafile, plot_code %in% c("STB-08"), ret_type = "list")) #, "BOB-01", "BOB-02", "SAF-05", "SAF-01", "SAF-02", "TAM-06"
 xy <- xyz[["three_monthly"]]
 xy <- data.frame(xy)
 head(xy)
@@ -776,6 +776,9 @@ icraw
 ## Save to processed_ts
 
 setwd("~/Github/gemcarbon_data/processed_ts_2017/")
+
+#santarem
+write.csv(data4, file="ts_ic_santarem_Oct17.csv")
 write.csv(sa, file="ts_ic_sa_July2017.csv")
 write.csv(afr, file="ts_ic_afr_July2017.csv")
 write.csv(sea, file="ts_ic_sea_July2017.csv")
@@ -1085,7 +1088,10 @@ acj01  <- NPPacw_census(census, plotname="ACJ-01", allometric_option="Default", 
 ########## NPPdendrometers ############
 #######################################
 
-"ACJ-01"   "BZ11"   "BZ12"   "BZ21"   "BZ22"   "ESP-01" "MLA-01" "MLA-02" "MNG-03" "MNG-04" "PAN-02" "PAN-03" "SPD-01" "SPD-02" "TRU-04" "WAY-01" "YAY-03" "YAY-07" "YAY-17" "YAY-40" "YAY-55"
+"ACJ-01"   "BZ11"   "BZ12"   "BZ21"   "BZ22"   "ESP-01" 
+"MLA-01" "MLA-02" "MNG-03" "MNG-04" "PAN-02" "PAN-03" 
+"SPD-01" "SPD-02" "TRU-04" "WAY-01" 
+"YAY-03" "YAY-07" "YAY-17" "YAY-40" "YAY-55"
  
 
 "KOG-02" 
@@ -1124,12 +1130,12 @@ source("~/Github/GEMcarbon.R/allometric_equations_2014.R")
 source("~/Github/GEMcarbon.R/NPPacw_census_function_2016.R")
 source("~/Github/GEMcarbon.R/NPPacw_dendro_function_2016.r")
 
-require(plyr) 
+require(dplyr) 
 require(lubridate)
 
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb/stem_npp")
-NPPdend_all <- read.table("dendro_Sep20.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
-census_all  <- read.table("forestplots_download_oct17.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE) # formattedcensus_TAM05_Mar17.csv
+NPPdend_all <- read_table("dendro_Sep20.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
+census_all  <- read_table("forestplots_download_oct17.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE) # formattedcensus_TAM05_Mar17.csv
 str(census_all) 
 census_all$plot_code = as.character(census_all$plot_code)
 census_all$F1        = as.character(census_all$F1)
@@ -1178,3 +1184,4 @@ dend_bob01 <- NPPacw_dendro(census, dendrometer, plotname = "TAM-09", allometric
 setwd("~/Github/gemcarbon_data/processed_ts_inELDS/")
 write.csv(monthlynppacw, file="dend_tam06_2Oct17.csv")
 
+santr <- read.table("santarem_dendro.csv", header=TRUE, sep=",", na.strings=c("NA", "NaN", ""), dec=".", strip.white=TRUE)
