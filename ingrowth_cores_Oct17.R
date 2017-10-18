@@ -333,7 +333,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data3$totaic   = data3$rootztot / (1-dzz)   # total roots estimated by extrapolating timesteps, plus roots growing below 30cm estimated with the correction factor dzz.
   data3$ic_MgCha = (data3$totaic/data3$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
   data3$d        = as.character(paste(data3$month, data3$day, data3$year, sep="/")) 
-  data3$date     = as.Date(data3$d, "%m/%d/%Y")
+  data3$date     = as.Date(data3$d, "%m/%d/%Y") # POSIXct
   
   # convert to MgC / ha / month per plot ####
   data3[data3 == 0] <- NA
@@ -352,7 +352,7 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   data4$date  = as.Date(data4$d, "%m/%d/%Y")
   data4       = sqldf("SELECT data4.* FROM data4 ORDER BY data4.year, data4.month, data4.day ASC")
   
-  # split out into per-tube summaries here ####
+  # split out into per-tube summaries here #### LUBRIDATE!!
   data4_pertube       = sqldf("SELECT data3.persist_id, data3.year, data3.month, data3.day, SUM(data3.ic_MgCha) FROM data3 GROUP BY data3.year, data3.month, data3.persist_id")
   colnames(data4_pertube) = c("persist_id", "year", "month", "day", "threemonthlyNPProot")
   data4_pertube$year  = sub("^(\\d\\d)$", "20\\1", data4_pertube$year) # make 2-digit years into 4-digit years.  Assume 20xx.

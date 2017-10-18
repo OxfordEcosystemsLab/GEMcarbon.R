@@ -1,0 +1,36 @@
+dend <- read.table("~/Github/gemcarbon_data/raw_data_ingemdb/stem_npp/santarem_dendro.csv", sep=",", header=T, stringsAsFactors=FALSE) #stringsAsFactors=FALSE
+# replace this with read_csv
+library(dplyr)
+
+d1 = select(dend, plot_code, Tree_code, dbh, date = date.1, dendrometer_reading_mm = dendrometer_reading_mm.1, comments = comments.1)
+d2 = select(dend, plot_code, Tree_code, dbh, date = date.2, dendrometer_reading_mm = dendrometer_reading_mm.2, comments = comments.2)
+d3 = select(dend, plot_code, Tree_code, dbh, date = date.3, dendrometer_reading_mm = dendrometer_reading_mm.3, comments = comments.3)
+d4 = select(dend, plot_code, Tree_code, dbh, date = date.4, dendrometer_reading_mm = dendrometer_reading_mm.4, comments = comments.4)
+d5 = select(dend, plot_code, Tree_code, dbh, date = date.5, dendrometer_reading_mm = dendrometer_reading_mm.5, comments = comments.5)
+d6 = select(dend, plot_code, Tree_code, dbh, date = date.6, dendrometer_reading_mm = dendrometer_reading_mm.6, comments = comments.6)
+d7 = select(dend, plot_code, Tree_code, dbh, date = date.7, dendrometer_reading_mm = dendrometer_reading_mm.7, comments = comments.7)
+d8 = select(dend, plot_code, Tree_code, dbh, date = date.8, dendrometer_reading_mm = dendrometer_reading_mm.8, comments = comments.8)
+d9 = select(dend, plot_code, Tree_code, dbh, date = date.9, dendrometer_reading_mm = dendrometer_reading_mm.9, comments = comments.9)
+d10 = select(dend, plot_code, Tree_code, dbh, date = date.10, dendrometer_reading_mm = dendrometer_reading_mm.10, comments = comments.10)
+d11 = select(dend, plot_code, Tree_code, dbh, date = date.11, dendrometer_reading_mm = dendrometer_reading_mm.11, comments = comments.11)
+d12 = select(dend, plot_code, Tree_code, dbh, date = date.12, dendrometer_reading_mm = dendrometer_reading_mm.12, comments = comments.12)
+d13 = select(dend, plot_code, Tree_code, dbh, date = date.13, dendrometer_reading_mm = dendrometer_reading_mm.13, comments = comments.13)
+d14 = select(dend, plot_code, Tree_code, dbh, date = date.14, dendrometer_reading_mm = dendrometer_reading_mm.14, comments = comments.14)
+d15 = select(dend, plot_code, Tree_code, dbh, date = date.15, dendrometer_reading_mm = dendrometer_reading_mm.15, comments = comments.15)
+d16 = select(dend, plot_code, Tree_code, dbh, date = date.16, dendrometer_reading_mm = dendrometer_reading_mm.16, comments = comments.16)
+d17 = select(dend, plot_code, Tree_code, dbh, date = date.17, dendrometer_reading_mm = dendrometer_reading_mm.17, comments = comments.17)
+d18 = select(dend, plot_code, Tree_code, dbh, date = date.18, dendrometer_reading_mm = dendrometer_reading_mm.18, comments = comments.18)
+d19 = select(dend, plot_code, Tree_code, dbh, date = date.19, dendrometer_reading_mm = dendrometer_reading_mm.19, comments = comments.19)
+d20 = select(dend, plot_code, Tree_code, dbh, date = date.20, dendrometer_reading_mm = dendrometer_reading_mm.20, comments = comments.20)
+d21 = select(dend, plot_code, Tree_code, dbh, date = date.21, dendrometer_reading_mm = dendrometer_reading_mm.21, comments = comments.21)
+d22 = select(dend, plot_code, Tree_code, dbh, date = date.22, dendrometer_reading_mm = dendrometer_reading_mm.22, comments = comments.22)
+d23 = select(dend, plot_code, Tree_code, dbh, date = date.23, dendrometer_reading_mm = dendrometer_reading_mm.23, comments = comments.23)
+d24 = select(dend, plot_code, Tree_code, dbh, date = date.24, dendrometer_reading_mm = dendrometer_reading_mm.24, comments = comments.24)
+d25 = select(dend, plot_code, Tree_code, dbh, date = date.25, dendrometer_reading_mm = dendrometer_reading_mm.25, comments = comments.25)
+d26 = select(dend, plot_code, Tree_code, dbh, date = date.26, dendrometer_reading_mm = dendrometer_reading_mm.26, comments = comments.26)
+d27 = select(dend, plot_code, Tree_code, dbh, date = date.27, dendrometer_reading_mm = dendrometer_reading_mm.27, comments = comments.27)
+
+xx <- bind_rows(d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24, d25, d26, d27)
+
+write.csv(xx, file="dend_Santarem_15Oct17.csv")
+

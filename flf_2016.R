@@ -11,11 +11,8 @@
 # plotsize = 1 ha  ### TO DO: Different plot size is not an option yet. 
 
 library(zoo)
-library(sqldf)
 require(ggplot2)
 library(dplyr)
-library(plyr)
-
 
 
 flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
