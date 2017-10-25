@@ -47,33 +47,7 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
     "comments" = "character"
   )
   
-  flfend_column_types = c(
-    "leavesflf_MgC_ha_month" = "numeric",
-    "twigsflf_MgC_ha_month" = "numeric",
-    "flowersflf_MgC_ha_month" = "numeric",
-    "fruitsflf_MgC_ha_month" = "numeric",
-    "bromflf_MgC_ha_month" = "numeric",
-    "epiflf_MgC_ha_month" = "numeric",
-    "otherflf_MgC_ha_month" = "numeric",
-    "totalflf_MgC_ha_month" = "numeric",
-    "sd_leavesflf" = "numeric",
-    "sd_twigsflf" = "numeric",
-    "sd_flowersflf" = "numeric",
-    "sd_fruitsflf" = "numeric",
-    "sd_bromflf" = "numeric",
-    "sd_epiflf" = "numeric",
-    "sd_otherflf" = "numeric",
-    "sd_totalflf" = "numeric",
-    "se_leavesflf" = "numeric",
-    "se_twigsflf" = "numeric",
-    "se_flowersflf" = "numeric",
-    "se_fruitsflf" = "numeric",
-    "se_bromflf" = "numeric",
-    "se_epiflf" = "numeric",
-    "se_otherflf" = "numeric",
-    "se_totalflf" = "numeric"
-  )
-  
+ 
   
   # set column datatypes as defined above # TO DO; this doesn't work. Error: attempt to apply non-function.
   # data_flf = set_df_coltypes(data_flf, flf_column_types)
@@ -107,7 +81,10 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   
 }
 
-flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, verbose = T) {   # add plotsize=1   
+# START HERE!! 
+
+flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", verbose = T) {   
+  # add plotsize=1   
   # ret = monthly.means.subplot or monthly.means.ts for plot averages.
   # verbose = print out unique id's for debugging or otherwise
     
@@ -116,6 +93,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   }
     
   # some data was getting imported in the wrong format
+  data_flf$leaves_g_per_trap = as.numeric(data_flf$leaves_g_per_trap)
   data_flf$fruits_g_per_trap = as.numeric(data_flf$fruits_g_per_trap)
   data_flf$seeds_g_per_trap = as.numeric(as.character(data_flf$seeds_g_per_trap))
   data_flf$day = as.integer(as.character(data_flf$day))
@@ -155,7 +133,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   
   ### Sanity check of the inputs.
   
-  data_flf2$total[which(data_flf2$total>300)] <- NA   # remove outliers with totalf > 300
+  data_flf2$total[which(data_flf2$total>1500)] <- NA   # remove outliers with totalf > 1000
   data_flf2$total[which(data_flf2$total<0)]   <- NA   # remove implausible totallf (negative litter)
   
   # Calculate leaf area ****need density from photos, we assume average SLA = 100g/m2
@@ -182,9 +160,9 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   for (i in 1:length(data_flf2$num)) { 
     sub       <- subset(data_flf2, subset=(data_flf2$codeb == uid[i]))
     if(length(sub$codeb) > 1) {
-      meas_int      <- difftime(sub$date[1:(length(sub$date)-1)], sub$date[2:length(sub$date)], units="days")
-      meas_int_num  <- as.numeric(as.character(meas_int))
-  
+      #meas_int      <- difftime(sub$date[1:(length(sub$date)-1)], sub$date[2:length(sub$date)], units="days")
+      meas_int      <- get_time_diffs(sub$date)
+      
       aleaves       <- tail(sub$leaves,-1)
       atwigs        <- tail(sub$twigs,-1)
       aflowers      <- tail(sub$flowers,-1)
@@ -194,19 +172,19 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
       aother        <- tail(sub$other,-1)
       atotal        <- tail(sub$total,-1)
       
-      bleaves       <- aleaves/(-meas_int_num) 
-      btwigs        <- atwigs/(-meas_int_num)
-      bflowers      <- aflowers/(-meas_int_num)
-      bfruits       <- afruits/(-meas_int_num)
-      bbrom         <- abrom/(-meas_int_num)
-      bepi          <- aepi/(-meas_int_num)
-      bother        <- aother/(-meas_int_num)
-      btotal        <- atotal/(-meas_int_num)
+      bleaves       <- aleaves/(meas_int) 
+      btwigs        <- atwigs/(meas_int)
+      bflowers      <- aflowers/(meas_int)
+      bfruits       <- afruits/(meas_int)
+      bbrom         <- abrom/(meas_int)
+      bepi          <- aepi/(meas_int)
+      bother        <- aother/(meas_int)
+      btotal        <- atotal/(meas_int)
       
       id            <- tail(sub$codew,-1) 
       
       xx            <- c(xx, id)
-      yy            <- c(yy, meas_int_num)
+      yy            <- c(yy, meas_int)
       aa            <- c(aa, bleaves)
       bb            <- c(bb, btwigs)
       cc            <- c(cc, bflowers)
@@ -216,7 +194,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
       gg            <- c(gg, bother)
       hh            <- c(hh, btotal)
       
-      if (verbose) print(xx)
+      #print(xx)
 
     } else {  
       # print(paste("row number:", i))
@@ -257,7 +235,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   # Convert to Mg: *1 g = 0.000001 Mg
   # Convert to C: *0.49
   
-  data3$leavesflf_MgC_ha_month  <- (((data3$leavesflf_g_trap_day*(10000/0.25))*0.000001)*0.49)*30 # TO DO: multiply by number of days in that month, not 30.
+  data3$leavesflf_MgC_ha_month  <- (((data3$leavesflf_g_trap_day*(10000/0.25))*0.000001)*0.49)*30 
   data3$twigsflf   <- (((data3$twigs*(10000/0.25))*0.000001)*0.49)*30
   data3$flowersflf <- (((data3$flowers*(10000/0.25))*0.000001)*0.49)*30
   data3$fruitsflf  <- (((data3$fruits*(10000/0.25))*0.000001)*0.49)*30
@@ -318,12 +296,6 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
                      sd_otherflf = sd(otherflf, na.rm = T),
                      sd_totalflf = sd(totalflf, na.rm = T)) 
   
-  #data5            <- sqldf("SELECT plot, year, month, 
-                            #AVG(leavesflf_MgC_ha_month), AVG(twigsflf), AVG(flowersflf), AVG(fruitsflf), AVG(bromflf), AVG(epiflf), AVG(otherflf), AVG(totalflf),  
-                            #STDEV(leavesflf_MgC_ha_month), STDEV(twigsflf), STDEV(flowersflf), STDEV(fruitsflf), STDEV(bromflf), STDEV(epiflf), STDEV(otherflf), STDEV(totalflf)
-                            #FROM data3 GROUP BY plot, year, month")
-  #colnames(data5)  <- c("plot_code", "year", "month","leavesflf_MgC_ha_month", "twigsflf_MgC_ha_month", "flowersflf_MgC_ha_month", "fruitsflf_MgC_ha_month", "bromflf_MgC_ha_month", "epiflf_MgC_ha_month", "otherflf_MgC_ha_month", "totalflf_MgC_ha_month", 
-                        #"sd_leavesflf", "sd_twigsflf", "sd_flowersflf", "sd_fruitsflf", "sd_bromflf", "sd_epiflf", "sd_otherflf", "sd_totalflf") # Note: SD is 0 if we only have a year's worth of data!
   
   
   # calculate standard error sd/sqrt(length(unique(data3$year)))
@@ -338,42 +310,11 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
   data5$se_otherflf   <- data5$sd_otherflf/sqrt(length(unique(data3$num))) 
   data5$se_totalflf   <- data5$sd_totalflf/sqrt(length(unique(data3$num)))
   
-  # set column datatypes as defined above
-  # data5 = set_df_coltypes(data5, flfend_column_types)
+  # NPP litterfall in g m-2 mo-1
   
-  ## Plotroutine, triggered by argument 'plotit=T' 
-  data5$date      <- strptime(paste(as.character(data5$year), as.character(data5$month), as.character(15), sep="-"), format="%Y-%m-%d")
-  data5$date      <- as.POSIXct(data5$date)
-  data5$yearmonth <- as.yearmon(data5$date)
+  data5$totalflf_g_m2_mo <- data5$totalflf_MgC_ha_month * 0.49 * 10000 / 0.000001
   
-  if (plotit==T) {
-    #top <- data5$totalflf_MgC_ha_month + data5$sd_totalflf
-    data5$date <- as.Date(data5$date)
-    plot1 <- ggplot(data = data5, aes(x = date, y = totalflf_MgC_ha_month, na.rm = T)) +
-                    geom_point(colour = data5$year, size = 1.5) +
-                    xlab("") + ylab(expression(paste("Total fine litterfall (MgC ", ha^-1, mo^-1, ")", sep=""))) +
-                    #ylim(0, max(top, na.rm = T)) +  
-                    ggtitle(plotname)                        
-                  
-    #top <- data5$twigsflf_MgC_ha_month+data5$sd_twigsflf
-    plot2 <- ggplot(data = data5, aes(x = date, y = twigsflf_MgC_ha_month, na.rm = T)) +
-                    geom_point(colour = "navy", size = 1.5) +
-                    geom_point(aes(x = date, y = leavesflf_MgC_ha_month), colour = "seagreen", size = 1.5) +              
-                    xlab("") + ylab(expression(paste("Fine litterfall components \n leaves & twigs (MgC ",ha^-1, mo^-1, ")", sep=""))) #+
-                    #ylim(0, max(top, na.rm = T))
-    
-    #top <- data5$fruitsflf_MgC_ha_month  + data5$sd_fruitsflf
-    plot3 <- ggplot(data = data5, aes(x = date, y = fruitsflf_MgC_ha_month, na.rm = T)) +
-                    geom_point(colour = "deeppink4", size = 1.5) +
-                    geom_point(aes(x = date, y = flowersflf_MgC_ha_month), colour = "red2", size = 1.5) +              
-                    xlab("") + ylab(expression(paste("Fine litterfall components \n fruit & flowers (MgC ",ha^-1, mo^-1, ")", sep=""))) #+
-                    #ylim(0, max(top, na.rm = T))
-    
-    # geom_ribbon(data = data5, aes(ymin=twigsflf_MgC_ha_month-sd_twigsflf , ymax=twigsflf_MgC_ha_month+sd_twigsflf), alpha=0.2) +
-    
-    fig <- grid.arrange(plot1, plot2, plot3, ncol=1, nrow=3)
-  }
-  
+  yy = data.frame(data5)
   
 # Return either monthly means (ret="monthly.means") or annual means (ret="annual.means")  
   switch(ret,
@@ -381,4 +322,5 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", plotit=F, ve
          monthly.means.ts = {return(data5)}
          )
 }
+
 

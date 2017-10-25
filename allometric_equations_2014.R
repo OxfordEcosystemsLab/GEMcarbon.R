@@ -33,7 +33,8 @@ Chave2014 <- function(diax, density, height) {
 # see also RAINFOR manual, p. 52; diameter in cm 
 # Note: A. Shenkin is developing our own surface area equation. 
 Chambers2004_surfaceArea <- function(diameter) {
-  surface_area = 10^(-0.015-0.686*log10(diameter)+(2.208*log10(diameter)^2)-(0.627*log10(diameter)^3))
+  x = log10(diameter)
+  surface_area = 10^(-0.015 - 0.686*x + (2.208*x)^2 - (0.627*x)^3)
   return(surface_area)
 }
 

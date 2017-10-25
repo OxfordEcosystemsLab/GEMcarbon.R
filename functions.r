@@ -67,3 +67,25 @@ as.level <- function( fac, level_class = "integer" ) {
   
   return( levels_out )
 }
+
+
+#Sami's date function 24/10/2017
+#This function is used for date difference: 
+get_time_diffs <- function(date_vec){
+  # This function calculates difference between dates, returning the number of days
+  date_diff_vec <- numeric(length(date_vec)-1)
+  for(i in 2:length(date_vec)){
+    date_diff_vec[i-1] <- lubridate::int_length(lubridate::interval(date_vec[i-1], date_vec[i]))/86400
+  }
+  return(date_diff_vec);
+}
+
+date_vec should be a vector of POSIXct dates
+
+# here's an example
+library(lubridate)
+d1 <- parse_date_time(paste(2011,1,1),"ymd")
+d2 <- parse_date_time(paste(2012,1,1),"ymd")
+d3 <- parse_date_time(paste(2013,6,15),"ymd")
+
+get_time_diffs(c(d1,d2,d3))

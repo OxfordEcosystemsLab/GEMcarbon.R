@@ -50,8 +50,8 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
       id       <- tail(sub$codew, n=1) 
       ten_co2  <- tail(sub$co2ref_ppm_sec, n=10)                                       # Drop first two values rather than only keep last 10 values.
       ten_time <- tail(sub$time, n=10)       
-      #fit      <- lm(ten_co2~ten_time)
-      #Co2slope <- fit$coefficients[2]                                                 # USE SLOPE RATHER THAN DIFFERENCE OF C10-C1
+      fit      <- lm(ten_co2~ten_time)
+      Co2slope <- fit$coefficients[2]                                                  # USE SLOPE RATHER THAN DIFFERENCE OF C10-C1
       C10      <- tail(ten_co2, n=1)                                                   # last CO2 measurement of last 10 measurements
       C1       <- head(ten_co2, n=1)                                                   # first CO2 measurement of last 10 measurements
       t10      <- tail(ten_time, n=1)                                                  # last time step of 10 last measurements

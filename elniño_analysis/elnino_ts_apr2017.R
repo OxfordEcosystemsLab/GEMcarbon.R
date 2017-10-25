@@ -407,25 +407,40 @@ write.csv(rsoil_nxv, file="ts_rsoil_tot_nxv_July2017.csv")
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/flf_2016.R")
-data_flf <- read.csv("all_flf_26Sep.csv", sep=",", header=T, stringsAsFactors=FALSE)
-#data_flf <- subset(data_flf, plot_code %in% c("TAM-05"))
+source("~/Github/GEMcarbon.R/functions.r")
+data_flf <- read.csv("all_flf_18Oct.csv", sep=",", header=T, stringsAsFactors=FALSE)
+data_flf$leaves_g_per_trap <- as.numeric(data_flf$leaves_g_per_trap)
 
-# PROBLEM: we need to replace missing days by days 1 or 15. Assuming 0 = 1 & 1 = 15
-w = which((data_flf$day == 0 & data_flf$year == 2005) | (data_flf$day == 0 & data_flf$year == 2006) | (data_flf$day == 0 & data_flf$year == 2007) | (data_flf$day == 0 & data_flf$year == 2008) | (data_flf$day == 0 & data_flf$year == 2009) | (data_flf$day == 0 & data_flf$year == 2010) | (data_flf$day == 0 & data_flf$year == 2011))
-data_flf$day[w] = 2    
-v = which((data_flf$day == 1 & data_flf$year == 2005) | (data_flf$day == 1 & data_flf$year == 2006) | (data_flf$day == 1 & data_flf$year == 2007) | (data_flf$day == 1 & data_flf$year == 2008) | (data_flf$day == 1 & data_flf$year == 2009) | (data_flf$day == 1 & data_flf$year == 2010) | (data_flf$day == 1 & data_flf$year == 2011))
-data_flf$day[v] = 16    
-
-ts_flf_2017_afr <- flf(subset(data_flf, plot_code %in% c("KOG-02", "KOG-03", "KOG-04", "KOG-05", "KOG-06", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "ANK-01", "ANK-02", "ANK-03", "LPG-01", "LPG-02", "IVI-01", "IVI-02")), plotit = F) #, "MNG-03", "MNG-04"
-ts_flf_2017_sea <- flf(subset(data_flf, plot_code %in% c("SAF-01", "SAF-02", "SAF-03", "SAF-04", "SAF-05", "MLA-01", "MLA-02", "DAN-04", "DAN-05")), plotit = F) 
-ts_flf_2017_sa  <- flf(subset(data_flf, plot_code %in% c("KEN-02", "SPD-02", "WAY-01", "ESP-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "TAM-09", "ACJ-01", "PAN-02", "PAN-03", "TRU-04", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "NXV-01", "NXV-02")), plotit = F) 
-ts_flf_2017_santarem  <- flf(subset(data_flf, plot_code %in% c("", "", "")), plotit = F) 
-
+ts_flf_2017_afr <- flf(subset(data_flf, plot_code %in% c("KOG-02", "KOG-03", "KOG-04", "KOG-05", "KOG-06", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "ANK-01", "ANK-02", "ANK-03", "LPG-01", "LPG-02", "IVI-01", "IVI-02"))) #, "MNG-03", "MNG-04"
+ts_flf_2017_sea <- flf(subset(data_flf, plot_code %in% c("SAF-01", "SAF-02", "SAF-03", "SAF-04", "SAF-05", "MLA-01", "MLA-02", "DAN-04", "DAN-05"))) 
+ts_flf_2017_sa  <- flf(subset(data_flf, plot_code %in% c("KEN-02", "SPD-02", "WAY-01", "ESP-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "TAM-09", "ACJ-01", "PAN-02", "PAN-03", "TRU-04", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", "NXV-01", "NXV-02"))) 
 ts_flf_2017_tam  <- flf(subset(data_flf, plot_code %in% c("TAM-05", "TAM-06", "TAM-09")), plotit = F, ret="monthly.means.ts") 
 
 afr <- data.frame(ts_flf_2017_afr)
 sea <- data.frame(ts_flf_2017_sea)
 sa  <- data.frame(ts_flf_2017_sa)
+
+
+#Santarem
+data_flf <- subset(data_flf, plot_code %in% c("STQ-08")) 
+plotname="STQ-08"
+
+not done yet: "STD-11", "STD-05", "STJ-05", "STN-02", "STN-03", "STN-04", "STN-06", "STN-09", 
+ 
+write.csv(yy, file="STQ08.csv")
+
+# We have these:
+#Santarem: "STB-12", "STO-03", "STO-06", "STO-07", "STB-08", "STD-10", "STL-10", "STL-09", "STJ-01", "STJ-04", "STQ-11", "STQ-08"
+#SA: "KEN-02", "SPD-02", "WAY-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22",
+#SEA: "SAF-02", "SAF-01", "SAF-04"
+#AFR: "KOG-06", "KOG-05", "KOG-04", "KOG-03", "KOG-02", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "ANK-03"
+
+# Not working (mainly when plotit = T)
+# TAM-09 ESP-01 
+# SAF-03 MLA-01 SAF-05 
+# LPG-01 LPG-02 "ANK-02"
+# We only have total for: TRU-04
+
 
 # Testing the code
 
@@ -470,16 +485,6 @@ tam9r <- ggplot(cc, aes(year, total_litter_g_per_trap)) +
 fig3r <- grid.arrange(tam5r, tam6r, tam9r, ncol=1, nrow=3) 
 fig3r
 
-# I tested these individually, they work:
-#SA: "KEN-02", "SPD-02", "WAY-01", "ALP-11", "ALP-12", "KEN-01", "SPD-01", "TAM-05", "TAM-06", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22",
-#SEA: "SAF-02", "SAF-01", "SAF-04"
-#AFR: "KOG-06", "KOG-05", "KOG-04", "KOG-03", "KOG-02", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "ANK-03"
-
-# Not working (mainly when plotit = T)
-# TAM-09 ESP-01 
-# SAF-03 MLA-01 SAF-05 
-# LPG-01 LPG-02 "ANK-02"
-# We only have total for: TRU-04
 
 unique(data_flf$plot_code)
 plotname <- "TAM-06"
@@ -659,7 +664,8 @@ fig3c
 
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/ingrowth_cores_Oct17.R")
-rawic1 <- read.csv("ic_all_17Oct.csv", sep=",", header=T, stringsAsFactors=FALSE) #stringsAsFactors=FALSE
+rawic1 <- read.csv("ic_all_16Aug_test.csv", sep=",", header=T, stringsAsFactors=FALSE) #ic_all_17Oct.csv
+
 
 # rename plots
 rawic1$plot_code <- revalue(rawic1$plot_code, c("TRU-4" = "TRU-04", "DC1" = "DAN-04", "DC2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "OP" = "OP"))
@@ -670,7 +676,11 @@ rawic1[rawic1 == 'NA'] <- NA
 w = which(rawic1$is_stock == "y")
 rawic = rawic1[-w,]
 
-# ATTENTION! SOMETHING IS WRONG WITH THE FUNCTION> IT MUST BE SOMETHING TO DO with the way "tx" is dealt with in nested functions.
+# Scan for stock that is not marked as stock. 
+testic <- subset(rawic1, plot_code %in% c("TAM-05")) 
+stock <- ggplot(testic, aes(month, ol_under_2mm_g)) + 
+  geom_point()
+
 
 datafile <- rawic
 plotname <- "STN-04"
@@ -681,9 +691,9 @@ remove_stock_meas = T
 ret = "monthly.means.ts"
 ret_type = "list" 
 
-"STQ-08" "STQ-11" "STB-08" "STB-12" "STJ-01" "STO-03" "STJ-05" 
-"STO-06" "STN-06" "STJ-04" "STL-10" "STN-09" "STD-05" "STD-11" 
-"STN-02" "STO-07" "STL-09" "STD-10" "STN-03" "STN-04"
+#"STQ-08" "STQ-11" "STB-08" "STB-12" "STJ-01" "STO-03" "STJ-05" 
+#"STO-06" "STN-06" "STJ-04" "STL-10" "STN-09" "STD-05" "STD-11" 
+#"STN-02" "STO-07" "STL-09" "STD-10" "STN-03" "STN-04"
 
 write.csv(data4, file="ic_STN04.csv")
 
