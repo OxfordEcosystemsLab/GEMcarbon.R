@@ -312,7 +312,7 @@ flf_oneplot <- function(data_flf, plotname, ret="monthly.means.ts", verbose = T)
   
   # NPP litterfall in g m-2 mo-1
   
-  data5$totalflf_g_m2_mo <- data5$totalflf_MgC_ha_month * 0.49 * 10000 / 0.000001
+  data5$totalflf_g_m2_mo <- data5$totalflf_MgC_ha_month * 0.49 * 10000 * 0.000001
   
   yy = data.frame(data5)
   

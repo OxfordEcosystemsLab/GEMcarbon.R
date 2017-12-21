@@ -7,6 +7,10 @@ library(grDevices)
 library(RColorBrewer)
 require(ggplot2)
 require(gridExtra)
+library(tidyverse)
+library(lubridate)
+require(lubridate)
+require(tidyverse)
 
 # revalue plot_codes
 rsoil_sea$Plot <- revalue(rsoil_sea$Plot, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "Danum Carbon 1" = "DAN-04", "Danum Carbon 2" = "DAN-05", "BZ11" = "BLZ-11", "BZ12" = "BLZ-12", "BZ22" = "BLZ-22", "BZ21" = "BLZ-21", "Ank-02" = "ANK-02"))
@@ -195,9 +199,51 @@ write.csv(partbob, file="BOB_PART.csv")
 write.csv(bob, file="ts_Rs_total_Ghana.csv")
 
 # SEA
-rsoilsea   <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/soil_respiration/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE)
+rsoilsea   <- read.table("~/Github/gemcarbon_data/SAFE_SoilRespiration_Data_toCecile3.csv", sep=",", header=T, fill = TRUE) #raw_data_ingembd/soil_respiration/
+
 # revalue plot_codes
-rsoilsea$Plot <- revalue(rsoilsea$Plot, c("Tower" = "SAF-05", "E" = "SAF-03", "B South" = "SAF-01", "B North" = "SAF-02", "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "DC1" = "DAN-04", "DC2" = "DAN-05"))
+rsoilsea$Plot <- recode(rsoilsea$Plot, c(Tower = "SAF-05", E = "SAF-03", B South = "SAF-01", B North = "SAF-02")#, "Seraya" = "MLA-02", "Belian" = "MLA-01", "LF" = "SAF-04", "DC1" = "DAN-04", "DC2" = "DAN-05"))
+
+# mean per plot - MgC / ha / mo
+
+rsoilsea_new = subset(rsoilsea, Flux_MgC_ha_month > 0 & Flux_MgC_ha_month < 10)
+
+avg_rsoil_sea = rsoilsea_new %>% group_by(Plot, Collar_type, year, month) %>% 
+                             dplyr::summarize(avg = mean(Flux_MgC_ha_month, na.rm = T), 
+                                              sd = sd(Flux_MgC_ha_month, na.rm = T))
+
+
+avg_rsoil_sea <- data.frame(avg_rsoil_sea)
+
+# estimate autotrophic respiration
+
+#C1 = total
+tot = subset(avg_rsoil_sea, Collar_type %in% c("C1"))
+
+tot2 = mutate(tot,
+              code = paste(Plot, year, month, sep = '_'))
+
+#C3 = het
+het = subset(avg_rsoil_sea, Collar_type %in% c("C3"))
+
+het2 = mutate(het,
+              code = paste(Plot, year, month, sep = '_'))
+
+
+rpart = tot2 %>% left_join(het2, by = "code")
+
+
+#C1-C3 = aut
+rpart = rpart %>% aut = avg.x - avg.y
+                  
+rpart %>% mutate(aut = (avg.x - avg.y)) %>%
+          mutate(aut_sd = sqrt((sd.x^2 - sd.y^2))) %>%
+          head
+
+
+
+# write
+write.csv(rpart, file="ts_rpart_sea_MgC_ha_mo_Nov2017.csv")
 
 
 # SOUTH AMERICA
@@ -403,6 +449,10 @@ setwd("~/Github/gemcarbon_data/processed_ts_2017/")
 write.csv(rsoil_nxv, file="ts_rsoil_tot_nxv_July2017.csv")
 
 
+
+
+
+
 ### FLF ###
 
 setwd("~/Github/GEMcarbon.R")
@@ -422,8 +472,9 @@ sa  <- data.frame(ts_flf_2017_sa)
 
 
 #Santarem
-data_flf <- subset(data_flf, plot_code %in% c("STQ-08")) 
+#data_flf <- subset(data_flf, plot_code %in% c("STQ-08")) 
 plotname="STQ-08"
+data_flf2$total <-  data_flf2$total_litter_g_per_trap
 
 not done yet: "STD-11", "STD-05", "STJ-05", "STN-02", "STN-03", "STN-04", "STN-06", "STN-09", 
  
@@ -695,6 +746,9 @@ ret_type = "list"
 #"STO-06" "STN-06" "STJ-04" "STL-10" "STN-09" "STD-05" "STD-11" 
 #"STN-02" "STO-07" "STL-09" "STD-10" "STN-03" "STN-04"
 
+# These are missing from the data that goes into the model:
+# STB-12, STJ-01, STN-02, STN-09, STQ-08  
+
 write.csv(data4, file="ic_STN04.csv")
 
 datafile = set_df_coltypes(datafile, ic_column_types)
@@ -815,8 +869,8 @@ write.csv(data4, file="ts_ic_SAF05.csv")
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/stem_respiration_percollar_2017.R")
 
-stem_resp <- read.table("~/Github/gemcarbon_data/raw_data_ingembd/stem_respiration/stem_resp_13June.csv", sep=",", header=T)
-stem_resp <- subset(stem_resp, select=c(1:20))
+stem_resp <- read.table("all_stem_resp_26Sep.csv", sep=",", header=T)
+stem_resp <- subset(stem_resp, plot_code="TAM-05")
 
 stem_resp$co2ref_ppm_sec <- as.numeric(as.character(stem_resp$co2ref_ppm_sec)) # NAs introduced by coercion 
 stem_resp$time <- as.numeric(as.character(stem_resp$time))  # NAs introduced by coercion 

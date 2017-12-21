@@ -33,11 +33,10 @@ Chave2014 <- function(diax, density, height) {
 # see also RAINFOR manual, p. 52; diameter in cm 
 # Note: A. Shenkin is developing our own surface area equation. 
 Chambers2004_surfaceArea <- function(diameter) {
-  x = log10(diameter)
+  x = (log10(diameter))
   surface_area = 10^(-0.015 - 0.686*x + (2.208*x)^2 - (0.627*x)^3)
   return(surface_area)
 }
-
 
 
 # find.wsg is a function that finds density data (wsg) from Chave's density database (wsg.txt, it is saved in the same directory as this function). It fits the density to species / if no species, to genus / if no genus, to family level.
