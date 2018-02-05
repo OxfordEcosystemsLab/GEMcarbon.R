@@ -4,10 +4,19 @@
 library(dplyr)
 library(grDevices)
 require(ggplot2)
+require(gridExtra)
 library(tidyverse)
 library(lubridate)
 require(lubridate)
 require(tidyverse)
+
+
+## NOTES FROM YM
+# for each experiment, get f= Rhet/Rtot - check these look right, get rid of the dodgy ones.
+# work out an average value for the plot
+# then use the Rtot from 25 ploints to get plot level R aut r = Rtot*f, Raut = 1-r
+
+
 
 # load functions
 # function EGM_fluxfunction_20171205.R simply estimates the flux for each measurement recorded by the EGM.
@@ -19,13 +28,21 @@ source("~/Github/GEMcarbon.R/EGM_fluxfunction_20171205.R")
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS/soil_respiration")
 #eltr        = read.table("eltr_rsoil_total_mar17.csv", sep=",", header=T)
 
-rtot        = read.table("tot_soil_resp_20171212.csv", sep=",", header=T)
+rtot        = read.table("tot_soil_resp_20180131.csv", sep=",", header=T)
 rtot_test = rtot %>% select(plot_code, sub_plot, plot_corner_code, collar_number, measurement_code, treatment_code_partitioning, litter_code, replica, year, egm_measurement, recno, day, month, co2ref_ppm_sec, time, atmp_mb) %>%
                      filter(plot_code == "TAM-05")
 
 #> unique(rtot$plot_code)
-#[1] ACJ-01 ESP-01 KEN-01 KEN-02 NXV-01 NXV-02 PAN-02 PAN-03 SPD-01 SPD-02 STB-08 STB-12 STD-05 STD-10 STD-11 STJ-01 STJ-04 STJ-05 STL-09
-#[20] STL-10 STN-02 STN-03 STN-04 STN-06 STN-09 STO-03 STO-06 STO-07 STQ-08 STQ-11 TAM-05 TAM-06 TAM-09 TRU-04 WAY-01 LPG-01 LPG-02
+ACJ-01 ESP-01 TRU-04 WAY-01
+KEN-01 KEN-02 
+NXV-01 NXV-02 
+PAN-02 PAN-03 
+SPD-01 SPD-02 
+TAM-05 TAM-06 TAM-09  
+LPG-01 LPG-02        
+ANK-01 ANK-02 ANK-03 
+BOB-01 BOB-03 BOB-02 BOB-04 BOB-05 BOB-06 
+KOG-02 KOG-03 KOG-04 KOG-05 KOG-06
 
 temp_vwc_ch = read.table("eltr_rsoil_temp_vwc_ch_mar17.csv", sep=",", header=T)
 
@@ -38,6 +55,7 @@ rpart_test = rpart %>% select(plot_code, sub_plot, plot_corner_code, collar_numb
 #datafile = left_join(rtot, temp_vwc_ch, by = "uid")
 
 # run EGM_fluxfunction_20171205.R
+datafile = rtot
 datafile = rpart_test 
 
 # If you don't have air temperature, relative humidity, and collar height, you need to add the columns, EGM_fluxfunction_20171205.R replaces NAs with default values
@@ -48,12 +66,97 @@ datafile$ch_fill = NA
 rsoil_tot_persubplot <- Rflux(datafile, ret="Res", "TAM-05")
 rsoil_tot_persubplot
 
-# Or go through the code step by step and run the whole dataset.
+# Or go through the code step by step and run the whole dataset. That gives you Rflux_MgC_ha_mo per subplot
+# So this is to average per plot:
+avg_rtot = Res %>% group_by(plot_code, measurement_code, year, month) %>% 
+           dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
+                    sd = sd(Rflux_MgC_ha_mo, na.rm = T))
+
+Res2 = data.frame(avg_rtot)
 
 # Save output: this is in GEMcarbon.R
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS")
-write.csv(Res, file="rsoil_tot_persubplot_20171213.csv")
-write.csv(Res, file="rsoil_part_tam05_20171220.csv")
+write.csv(Res, file="rsoil_tot_persubplot_20180204.csv")
+write.csv(Res2, file="rsoil_tot_MgChamo_20180204.csv")
+
+Res2$date = strptime(paste(as.character(Res2$year), as.character(Res2$month), as.character("15"), sep="-"), format="%Y-%m-%d")  
+unique(Res2$plot_code)
+# "ANK-01" "ANK-02" "ANK-03" "BOB-01" "BOB-02" "BOB-03" "BOB-04" "BOB-05" "BOB-06" 
+# "IVI-01" "IVI-02" "KEN-01" "KEN-02" "KOG-02" "KOG-03" "KOG-04" "KOG-05" "KOG-06" "LPG-01" "LPG-02" "MNG-03" "MNG-04" 
+# "NXV-01" "NXV-02" 
+# "ACJ-01" "ESP-01" "SPD-02" "TAM-05" "TAM-06" "TAM-09" "TRU-04" "WAY-01" "PAN-02" "PAN-03" "SPD-01"
+
+
+# Plot it
+sub = subset(Res2, plot_code = "ANK-01")
+sub = sub[-1,]
+aa <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+             geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+             #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+             ggtitle("ANK-01")
+
+
+sub = subset(Res2, plot_code = "ANK-02")
+sub = sub[-1,]
+bb <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+             geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+             #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+             ggtitle("ANK-02")
+
+
+sub = subset(Res2, plot_code = "ANK-03")
+sub = sub[-1,]
+cc <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+             geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+             #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+             ggtitle("ANK-03")
+
+sub = subset(Res2, plot_code = "BOB-01")
+sub = sub[-1,]
+dd <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-01")
+
+sub = subset(Res2, plot_code = "BOB-02")
+sub = sub[-1,]
+ee <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-02")
+
+sub = subset(Res2, plot_code = "BOB-03")
+sub = sub[-1,]
+ff <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-03")
+
+sub = subset(Res2, plot_code = "BOB-04")
+sub = sub[-1,]
+gg <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-04")
+
+sub = subset(Res2, plot_code = "BOB-05")
+sub = sub[-1,]
+hh <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-05")
+
+sub = subset(Res2, plot_code = "BOB-06")
+sub = sub[-1,]
+ii <- ggplot(sub, aes(x = date, y = avg, na.rm = T)) +
+  geom_point(data = sub, aes(x = date, y = avg), size = 2, colour = "orange", na.rm=T) +
+  #geom_ribbon(data = sub, aes(x = date, max = avg+sd, min = avg-sd), colour = "grey", na.rm=T) +
+  ggtitle("BOB-06")
+
+fig1 <- grid.arrange(aa, bb, cc, dd, ee, ff, gg, hh, ii, ncol=3, nrow=3) 
+fig1
+
+#write.csv(Res, file="rsoil_part_tam05_20171220.csv")
 
 totflux = read.table("rsoil_tot_persubplot_20171213.csv", sep=",", header=T)
 partflux = read.table("rsoil_part_persubplot_20171219_2.csv", sep=",", header=T)

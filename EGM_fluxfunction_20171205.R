@@ -18,6 +18,9 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
 #  TO DO: set a DEFAULT collar diameter
   collardiameter = 12 # 12 cm in Africa & Peru, 10.6 cm in Malaysia
 
+data$air_temp_c = NA
+data$ch_fill = NA
+
 # Replace missing temperature and collar height with default values.
   w = which(is.na(data$air_temp_c))
   data$air_temp_c[w] = 25
@@ -119,7 +122,16 @@ Res$fluxnum[Res$fluxnum <= 0 | Res$fluxnum >= 15] <- NA
     Res$measurement_code            = unlist(lapply(temp, `[[`, 8)) 
     Res$treatment_code_partitioning = unlist(lapply(temp, `[[`, 9))
 
+# Average over the whole plot: one value per plot per month.
+avg_rtot = Res %>% group_by(plot_code, measurement_code, year, month) %>% 
+                   dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
+                                    sd = sd(Rflux_MgC_ha_mo, na.rm = T))
+
+Res2 = data.frame(avg_rtot)
+
     return(Res)
+    return(Res2)
+
     
   }
   
