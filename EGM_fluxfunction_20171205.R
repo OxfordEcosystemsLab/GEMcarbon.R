@@ -16,7 +16,7 @@ Rflux <- function(datafile, ret="Res", plotname, collardiameter) {
   data = datafile #subset(datafile, plot_code==plotname)
     
 #  TO DO: set a DEFAULT collar diameter
-  collardiameter = 12 # 12 cm in Africa & Peru, 10.6 cm in Malaysia
+  collardiameter = 12 # 12 cm in Africa & Andes & TAM, 10.6 cm in Malaysia, 10.143 in JEN 
 
 data$air_temp_c = NA
 data$ch_fill = NA
@@ -28,10 +28,12 @@ data$ch_fill = NA
   data$ch_fill[w] = 7
   
     ## Corrections and conversions
-    # add a temperature correction from Sotta et al 2004 Q10=1.8 and k=0.0613
+    # add a temperature correction from Sotta et al. 2004 Q10=1.8 and k=0.0613
     corrsresA = exp(-0.0695*(1))
     # Convert units umol m2 s-1 to MgC ha month = 1mo=2592000sec, 10000m2=1ha, 1000000umol = 1 mol, 1mol = 12 g, 1000000g=1Mg
     convert = (2592000*10000*12)/(1000000*1000000)
+
+# !! It would be better to Convert to umol m2 s-1 here, from g CO2 m-2 h-1.
 
     # Define unique id for each measurement
     data$codew = paste(data$plot_code, data$sub_plot, data$collar_number, data$replica, data$day, data$month, data$year, data$measurement_code, data$treatment_code_partitioning, sep=".") # In most cases you will need to add the data$replica to this unique id.
@@ -80,7 +82,8 @@ data$ch_fill = NA
         fit      = lm(ten_co2~ten_time)
         Co2slope = fit$coefficients[2]                                       # ["ten_time"]
        
-        flux    = Co2slope * P * Vtot / (Ru * (Ta + 273.15)) / A_collar                 # output is in umol m-2 s-1.
+        flux    = Co2slope * P * Vtot / (Ru * (Ta + 273.15)) / A_collar                 # output is in umol m-2 s-1. This equation was provided by Terhi Riutta, January 2018.
+       
         
       }else{flux = NA}
       
@@ -132,7 +135,6 @@ Res2 = data.frame(avg_rtot)
     return(Res)
     return(Res2)
 
-    
   }
   
 

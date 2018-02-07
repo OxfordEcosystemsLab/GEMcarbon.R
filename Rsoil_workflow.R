@@ -4,7 +4,7 @@
 library(dplyr)
 library(grDevices)
 require(ggplot2)
-require(gridExtra)
+## require(gridExtra) !! CHECK THIS.
 library(tidyverse)
 library(lubridate)
 require(lubridate)
@@ -29,30 +29,29 @@ setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS/soil_respiration")
 #eltr        = read.table("eltr_rsoil_total_mar17.csv", sep=",", header=T)
 
 rtot        = read.table("tot_soil_resp_20180131.csv", sep=",", header=T)
-rtot_test = rtot %>% select(plot_code, sub_plot, plot_corner_code, collar_number, measurement_code, treatment_code_partitioning, litter_code, replica, year, egm_measurement, recno, day, month, co2ref_ppm_sec, time, atmp_mb) %>%
-                     filter(plot_code == "TAM-05")
 
 #> unique(rtot$plot_code)
-ACJ-01 ESP-01 TRU-04 WAY-01
-KEN-01 KEN-02 
-NXV-01 NXV-02 
-PAN-02 PAN-03 
-SPD-01 SPD-02 
-TAM-05 TAM-06 TAM-09  
-LPG-01 LPG-02        
-ANK-01 ANK-02 ANK-03 
-BOB-01 BOB-03 BOB-02 BOB-04 BOB-05 BOB-06 
-KOG-02 KOG-03 KOG-04 KOG-05 KOG-06
+#ACJ-01 ESP-01 TRU-04 WAY-01
+#KEN-01 KEN-02 
+#NXV-01 NXV-02 
+#PAN-02 PAN-03 
+#SPD-01 SPD-02 
+#TAM-05 TAM-06 TAM-09  
+#LPG-01 LPG-02        
+#ANK-01 ANK-02 ANK-03 
+#BOB-01 BOB-03 BOB-02 BOB-04 BOB-05 BOB-06 
+#KOG-02 KOG-03 KOG-04 KOG-05 KOG-06
 
 temp_vwc_ch = read.table("eltr_rsoil_temp_vwc_ch_mar17.csv", sep=",", header=T)
 
-rpart      = read.table("part_soil_resp_20171205.csv", sep=",", header=T)
-rpart_test = rpart %>% select(plot_code, sub_plot, plot_corner_code, collar_number, measurement_code, treatment_code_partitioning, disturbance_code_CTRL, litter_code, replica, year, egm_measurement, recno, day, month, co2ref_ppm_sec, time, atmp_mb) %>%
+#rpart      = read.table("part_soil_resp_20171205.csv", sep=",", header=T)
+#rpart_test = rpart %>% select(plot_code, sub_plot, plot_corner_code, collar_number, measurement_code, treatment_code_partitioning, disturbance_code_CTRL, litter_code, replica, year, egm_measurement, recno, day, month, co2ref_ppm_sec, time, atmp_mb) %>%
                        filter(plot_code == "TAM-05")
 
 # If we do have air temperature and collar height, merge the two datasets.
-
-#datafile = left_join(rtot, temp_vwc_ch, by = "uid")
+rtot$uid = mutate(rtot, code = paste(plot_code, replica, year, month, day, sep = '_'))
+temp_vwc_ch$uid = mutate(temp_vwc_ch, code = paste(plot_code, replica, year, month, day, sep = '_'))
+datafile = left_join(rtot, temp_vwc_ch, by = "uid")
 
 # run EGM_fluxfunction_20171205.R
 datafile = rtot
