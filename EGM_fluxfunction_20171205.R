@@ -122,13 +122,15 @@ Res$fluxnum[Res$fluxnum <= 0 | Res$fluxnum >= 15] <- NA
     Res$day           = unlist(lapply(temp, `[[`, 5))
     Res$month         = unlist(lapply(temp, `[[`, 6))
     Res$year          = unlist(lapply(temp, `[[`, 7))
+    Res$collection    = as.Date(paste(Res$year, Res$month, Res$day, sep="."), format="%Y.%m.%d") 
     Res$measurement_code            = unlist(lapply(temp, `[[`, 8)) 
     Res$treatment_code_partitioning = unlist(lapply(temp, `[[`, 9))
 
 # Average over the whole plot: one value per plot per month.
 avg_rtot = Res %>% group_by(plot_code, measurement_code, year, month) %>% 
                    dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
-                                    sd = sd(Rflux_MgC_ha_mo, na.rm = T))
+                                    sd = sd(Rflux_MgC_ha_mo, na.rm = T),
+                                    collection_date = max(collection))
 
 Res2 = data.frame(avg_rtot)
 

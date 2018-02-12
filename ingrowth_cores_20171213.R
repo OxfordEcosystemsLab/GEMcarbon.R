@@ -16,9 +16,45 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   library(ggplot2)
   library(scales)
   library(nlme)
-  library(dplyr)
+  library(tidyverse)
   
   coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
+  
+  # Functions
+  
+  calc_roots <- function(core_data, root_type, plotname, mins = 100, logmodel = T) {  
+    # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
+    this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"])
+    coef_func = ifelse(logmodel, coef, coefficients) # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
+    
+    tx = sub$time_step_cum #### TO DO: WHERE SHOULD WE DEFINE THIS? SHOULD IT BE AS sub$time_step_cum
+    
+    if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
+      cumdata      <- tail(core_data[,root_type], n=length(tx)) # cumulative values for that diameter class
+      cum          <- cumsum(cumdata)
+      if(cum[1] == 0) {                       # make sure we find some roots in first sample.  Otherwise, log models blow up.
+        tot_roots = extrapolate_failed_model(cum, tx, this_exponent, mins = mins)
+      } else {
+        if(logmodel) {  
+          P_log <- lm(log(cum) ~ log(tx))
+          tot_roots <- exp(coefficients(P_log)[1]) * (120)^(coefficients(P_log)[2])  # We use the same method as Khoon & Terhi (120 mins and log-curve as default).
+        } else {
+          P <- nls(cum ~ a * tx^b, start=list(a=1, b=1), control = nls.control(maxiter=1000, warnOnly=T))
+          tot_roots <- coef(P)[1] * (100)^(coef(P)[2])  # Chris used 100 mins and power law, but here we use 120 min (Khoon & Terhi).
+        }
+        if(coef_func(P_log)[2] > 1) {         # make sure accumulation of roots is declining with time
+          tot_roots = extrapolate_failed_model(cum, tx, this_exponent, mins = 100)
+        }
+      }
+    } else {
+      tot_roots <- NA 
+    }
+    return(tot_roots)
+  }
+  
+
+  
+  # Data cleaning
   
   if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path + filename
     data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
@@ -27,9 +63,6 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   }
   
   data <- subset(data.ic, plot_code == plotname)
-  
-  # clean NAs
-  rawic1[rawic1 == 'NA'] <- NA
   
   # Remove stock measurement
   
@@ -78,9 +111,12 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
   
   
   # Replace NAs in days by 1
-  data$day[is.na(data$day)] = 1  # TO DO. Replace by the previous collection day?
+  data$day[is.na(data$day)] = 1  # TO DO. Replace by the previous collection day.
   
   data$this_core = (paste(as.character(data$year), as.character(data$month), as.character(data$day), as.character(data$ingrowth_core_num), as.character(data$is_stock), sep="-"))
+  # ADD plot_code
+  
+  ### ALLIE: Are we removing stock twice? 
   
   data = transform(data, persist_id = paste(plotname, ingrowth_core_num, sep="_"))
   if (! remove_stock_meas) {

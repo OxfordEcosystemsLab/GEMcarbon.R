@@ -1,9 +1,12 @@
 # call function
 setwd("~/Github/GEMcarbon.R")
 source("~/Github/GEMcarbon.R/ingrowth_cores_Oct17.R")
+source("~/Github/GEMcarbon.R/functions.r")
+
+setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS")
 
 # read in data
-rawic1 <- read.csv("xxxx Santarem IC data xxx.csv", sep=",", header=T, stringsAsFactors=FALSE) 
+rawic1 <- read.csv("ic_20180129.csv", sep=",", header=T, stringsAsFactors=FALSE) 
 
 
 # rename plots
@@ -12,8 +15,9 @@ rawic1 <- read.csv("xxxx Santarem IC data xxx.csv", sep=",", header=T, stringsAs
 # clean NA
 rawic1[rawic1 == 'NA'] <- NA
 
-datafile = rawic
-plotname = "STN-04"
+datafile = rawic1
+
+plotname = "TAM-05"
 logmodel = T
 fine_root_cor = "Default" 
 tubed = 0.07 

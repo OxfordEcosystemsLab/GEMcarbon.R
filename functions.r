@@ -80,7 +80,7 @@ get_time_diffs <- function(date_vec){
   return(date_diff_vec);
 }
 
-date_vec should be a vector of POSIXct dates
+#date_vec should be a vector of POSIXct dates
 
 # here's an example
 library(lubridate)

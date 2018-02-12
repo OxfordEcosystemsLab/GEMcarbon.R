@@ -28,7 +28,7 @@ source("~/Github/GEMcarbon.R/EGM_fluxfunction_20171205.R")
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS/soil_respiration")
 #eltr        = read.table("eltr_rsoil_total_mar17.csv", sep=",", header=T)
 
-rtot        = read.table("tot_soil_resp_20180131.csv", sep=",", header=T)
+rtot        = read.table("tot_soil_resp_20180207.csv", sep=",", header=T)
 
 #> unique(rtot$plot_code)
 #ACJ-01 ESP-01 TRU-04 WAY-01
@@ -46,7 +46,7 @@ temp_vwc_ch = read.table("eltr_rsoil_temp_vwc_ch_mar17.csv", sep=",", header=T)
 
 #rpart      = read.table("part_soil_resp_20171205.csv", sep=",", header=T)
 #rpart_test = rpart %>% select(plot_code, sub_plot, plot_corner_code, collar_number, measurement_code, treatment_code_partitioning, disturbance_code_CTRL, litter_code, replica, year, egm_measurement, recno, day, month, co2ref_ppm_sec, time, atmp_mb) %>%
-                       filter(plot_code == "TAM-05")
+                       #filter(plot_code == "TAM-05")
 
 # If we do have air temperature and collar height, merge the two datasets.
 rtot$uid = mutate(rtot, code = paste(plot_code, replica, year, month, day, sep = '_'))
@@ -54,7 +54,7 @@ temp_vwc_ch$uid = mutate(temp_vwc_ch, code = paste(plot_code, replica, year, mon
 datafile = left_join(rtot, temp_vwc_ch, by = "uid")
 
 # run EGM_fluxfunction_20171205.R
-datafile = rtot
+datafile = subset(rtot, plot_code="KOG-06")
 datafile = rpart_test 
 
 # If you don't have air temperature, relative humidity, and collar height, you need to add the columns, EGM_fluxfunction_20171205.R replaces NAs with default values
