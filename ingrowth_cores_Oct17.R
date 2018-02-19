@@ -180,7 +180,10 @@ NPProot_ic_oneplot <- function(datafile, plotname, logmodel = T, fine_root_cor =
     data.ic = datafile # data.frame passed in directly
   }
   
-  data <- subset(data.ic, plot_code == plotname)
+  # set column datatypes as defined above
+  data.ic = set_df_coltypes(data.ic, ic_column_types)
+  
+  data <- data.ic # subset(data.ic, plot_code == plotname)
   
   # clean NAs
   rawic1[rawic1 == 'NA'] <- NA

@@ -26,21 +26,7 @@ source("~/Github/GEMcarbon.R/EGM_fluxfunction_20171205.R")
 # load data
 
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS/soil_respiration")
-#eltr        = read.table("eltr_rsoil_total_mar17.csv", sep=",", header=T)
-
 rtot        = read.table("tot_soil_resp_20180207.csv", sep=",", header=T)
-
-#> unique(rtot$plot_code)
-#ACJ-01 ESP-01 TRU-04 WAY-01
-#KEN-01 KEN-02 
-#NXV-01 NXV-02 
-#PAN-02 PAN-03 
-#SPD-01 SPD-02 
-#TAM-05 TAM-06 TAM-09  
-#LPG-01 LPG-02        
-#ANK-01 ANK-02 ANK-03 
-#BOB-01 BOB-03 BOB-02 BOB-04 BOB-05 BOB-06 
-#KOG-02 KOG-03 KOG-04 KOG-05 KOG-06
 
 temp_vwc_ch = read.table("eltr_rsoil_temp_vwc_ch_mar17.csv", sep=",", header=T)
 
@@ -54,8 +40,8 @@ temp_vwc_ch$uid = mutate(temp_vwc_ch, code = paste(plot_code, replica, year, mon
 datafile = left_join(rtot, temp_vwc_ch, by = "uid")
 
 # run EGM_fluxfunction_20171205.R
-datafile = subset(rtot, plot_code="KOG-06")
-datafile = rpart_test 
+datafile = rtot
+#datafile = rpart_test 
 
 # If you don't have air temperature, relative humidity, and collar height, you need to add the columns, EGM_fluxfunction_20171205.R replaces NAs with default values
 datafile$air_temp_c = NA
@@ -75,8 +61,8 @@ Res2 = data.frame(avg_rtot)
 
 # Save output: this is in GEMcarbon.R
 setwd("~/Github/gemcarbon_data/raw_data_ingemdb_forELDS")
-write.csv(Res, file="rsoil_tot_persubplot_20180204.csv")
-write.csv(Res2, file="rsoil_tot_MgChamo_20180204.csv")
+write.csv(Res, file="rsoil_tot_persubplot_20180213.csv")
+write.csv(Res2, file="rsoil_tot_MgChamo_20180213.csv")
 
 Res2$date = strptime(paste(as.character(Res2$year), as.character(Res2$month), as.character("15"), sep="-"), format="%Y-%m-%d")  
 unique(Res2$plot_code)
