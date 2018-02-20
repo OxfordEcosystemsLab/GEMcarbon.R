@@ -372,13 +372,52 @@ data2 = data2 %>% mutate(year = as.numeric(as.character(year)),
   data2$ic_MgCha = (data2$totaic/data2$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
   data2$ic_id = paste(data2$plot_code, data2$ingrowth_core_num, sep="_")
   
-  data3 = data2 %>% arrange(ic_id, collectiondate) %>%                                # Order data by ingrowth core and date.
-                            mutate(collectiondate = as.POSIXct(collectiondate),       # Convert dates to POSIXct
-                                   interval  = c(90, get_time_diffs(collectiondate)), # Get collection interval using get_time_diffs (sourced from functions.r)
-                                   dailyNPProot = ic_MgCha/interval,
-                                   monthlyNPProot = dailyNPProot * 30,
-                                   ) 
+data3 = data2 %>% group_by(ic_id) %>%
+                  arrange(ic_id, collectiondate) %>%                        # Order data by ingrowth core and date.
+                  mutate(collectiondate = as.POSIXct(collectiondate),       # Convert dates to POSIXct
+                  interval  = c(90, get_time_diffs(collectiondate)),        # Get collection interval using get_time_diffs (sourced from functions.r)
+                  dailyNPProot = ic_MgCha/interval,
+                  monthlyNPProot = dailyNPProot * 30) 
 
+#test1 = data2 %>% group_by(ic_id) %>%
+                  #arrange(collectiondate) %>%
+                  #rowwise() %>%
+                  #mutate(collectiondate = as.POSIXct(collectiondate),       
+                         #interval  = ifelse(is.na(lag(collectiondate, order_by = collectiondate))==T, 
+                          #                  90,
+                          #                  get_time_diffs(c(lag(collectiondate), collectiondate)))) 
+
+#data3$collectiondate %>% plot
+
+#uid <- unique(data2$ic_id)
+#aa <- c()
+#bb <- c() 
+#cc <- c() 
+#dd <- c()
+
+#pb = txtProgressBar(max = length(uid), style = 3)
+
+#for (i in 1:length(uid)) {
+#  sub        = subset(data2, subset=(data2$ic_id == uid[i]))
+#  this_core  = sub$this_core
+  
+#  interval       = c(90, get_time_diffs(sub$collectiondate))
+  
+#  bb       = rbind(bb, this_core)
+#  cc       = rbind(cc, interval) 
+  
+#  setTxtProgressBar(pb, i)
+#}
+#close(pb)
+
+#output = data.frame(cbind(as.character(aa), as.numeric(as.character(bb)), as.numeric(as.character(cc), as.numeric(as.character(dd))))
+
+
+# Try to do this with tapply
+#interval2 <- with(data2, tapply(X = collectiondate,   # X is the critical DV
+#                                INDEX = ic_id,        # INDEX is the grouping variable
+#                                FUN =  get_time_diffs # FUN is the aggregation function
+#§))
 
 
 # TO DO:
