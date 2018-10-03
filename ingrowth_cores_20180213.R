@@ -1,11 +1,7 @@
 ## This function calculates fine root productivity
 # Based on Matlab code by C. Doughty (2013)
-# Updated and adapted to GEM plots by C. Girardin (2015)
-
-## option = 1: this means the time steps 10,20,30,40 minutes are chosen
-## option = 2: this means the time steps 5, 10, 15 minutes are chosen
-# ATTENTION!! Make sure that 1st timestep is always followed by timesteps 2,3,4 in that order.
-# Note: options have been obviated in leiu of pasing in timesteps
+# Re-written and adapted to GEM plots by C. Girardin (2015)
+# Edited by A. Shenkin (2017)
 
 # get script location in order to find functions.r
 # from http://stackoverflow.com/questions/1815606/rscript-determine-path-of-the-executing-script
@@ -35,7 +31,7 @@ ic_column_types = c(
   "month" = "integer",
   "day" = "integer",
   "ingrowth_core_num" = "integer",
-  "is_stock" = "logical",
+  "is_stock" = "character", # this use to be "logical", but it created problems. 
   "ingrowth_core_litterfall_g" = "numeric",
   "soil_humidity_pcnt" = "numeric",
   "soil_temperature_c" = "numeric",
@@ -66,25 +62,40 @@ mean_exponents = c("Default" = 0.22)
 
 solve_for_a <- function(cum, tx, b) {
   # Fit the curve through the final
-  #   point (x,y = tx, cum) with a site-mean exponent (b, perhaps per size-class), solving for linear slope (a).  
-  #   For example, cum1 ~ a * tx^b.  Thus, a = cum1/tx^b.
+  # point (x,y = tx, cum) with a site-mean exponent (b, perhaps per size-class), solving for linear slope (a).  
+  # For example, cum1 ~ a * tx^b.  Thus, a = cum1/tx^b.
   a = cum[length(cum)]/tx[length(tx)]^b
 }
 
-extrapolate_failed_model <- function(cum, tx, b, mins = 100) {
+extrapolate_failed_model <- function(cum, tx, b, mins = 120) {
   a = solve_for_a(cum, tx, b)
   cum_tot = a * mins^b
   return(cum_tot)
 }
 
-calc_roots <- function(core_data, root_type, mins = 100, logmodel = T) {          # I removed plotname from the parameters
+# Comment from Terhi. How to estimate max mass when the model does not fit.
+#The way I deal with the in-growth core data, when the saturating model does not converge*:
+#I take the maximum of the cumulative root mass for the core (or the sum of all the four time points, which is of course the same thing). 
+#Then I apply a correction factor to that value. I calculate the max mass for all data, and for those data points where the model converges I calculate the modelled:max ratio. 
+#The modelled value is of course higher than the max, because it has been solved to 120 mins (or whatever the chosen time now is).  
+#I use the average modelled:max ratio as a correction factor for those data that I could not fit the model. 
+#I have used the same correction for all my plots, but in the pan-tropical context it might be better to make the correction site or plot specific.
+
+#*Sometimes the model does converge, but the model is rubbish. This is quite tricky, because it is harder to spot. 
+#I have used an arbitrary threshold of 2. If the modelled:max is >2, I assume the model is rubbish. 
+#I don’t think that there are >50% root mass remaining in the soil after we have finished sorting. I just assume that the model fit is bad in that case. 
+#But that 2 is just really an arbitrary number that I have chosen.
+
+
+
+calc_roots <- function(core_data, root_type, mins = 120, logmodel = T) {          # I removed plotname from the parameters
   
   # subset core data before passing in.  E.g. sub <- subset(data, subset=(data$this_core == uid[i]))
   this_exponent = 0.22                                                             # Use this if we need to have default per plot: this_exponent = ifelse(plotname %in% names(mean_exponents), mean_exponents[plotname], mean_exponents["Default"]) 
                                                                                    
   coef_func = ifelse(logmodel, coef, coefficients)                                 # nls & lm have different methods for extracting coefs.  use this when testing exponent > 1
   
-  tx = sub$time_step_cum                                                           # TO DO: WHERE SHOULD WE DEFINE THIS? SHOULD IT BE AS sub$time_step_cum
+  tx = sub$time_step_cum                                                          
   
   if  (!any(is.na(core_data[,root_type])) & sum(core_data[,root_type]) > 0) {
     cumdata      <- tail(core_data[,root_type], n=length(tx))                      # cumulative values for that diameter class
@@ -100,7 +111,7 @@ calc_roots <- function(core_data, root_type, mins = 100, logmodel = T) {        
         tot_roots <- coef(P)[1] * (100)^(coef(P)[2])                               # Chris used 100 mins and power law.
       }
       if(coef_func(P_log)[2] > 1) {                                                # make sure accumulation of roots is declining with time
-        tot_roots = extrapolate_failed_model(cum, tx, this_exponent, mins = 100)
+        tot_roots = extrapolate_failed_model(cum, tx, this_exponent, mins = 120)
       }
     }
   } else {
@@ -112,61 +123,59 @@ calc_roots <- function(core_data, root_type, mins = 100, logmodel = T) {        
 
 # The following funtion allows you to run the NPProot_ic function on multiple plots.
 
-NPProot_ic_multipleplots <- function(datafile, ..., ret_type = c("concat", "list")) {
+#NPProot_ic_multipleplots <- function(datafile, ..., ret_type = c("concat", "list")) {
   
   #logmodel = T, fine_root_cor = "Default", tubed = 0.07, ret = "monthly.means.ts", ret_type = c("list", "concat")
   
-  ret_type = match.arg(ret_type)  ## ASK ALLI: this doesn't work.
-  if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
-    data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
-  } else {
-    data.ic = datafile # data.frame passed in directly
-  }
+#  ret_type = match.arg(ret_type)  ## ASK ALLI: this doesn't work.
+#  if (class(datafile) != "data.frame") { # if it's not a dataframe, assume it's a path+filename
+#    data.ic <- read.csv(datafile, na.strings = c("NA", "NaN"))
+#  } else {
+#    data.ic = datafile # data.frame passed in directly
+#  }
   
   # set column datatypes as defined above
-  data.ic = set_df_coltypes(data.ic, ic_column_types)
+#  data.ic = set_df_coltypes(data.ic, ic_column_types)
   
-  output = list()
-  first_run = T
-  pb = txtProgressBar(max = length(unique(data.ic$plot_code)), style = 3); i = 0
-  for (thisplot in unique(data.ic$plot_code)) {
+#  output = list()
+#  first_run = T
+#  pb = txtProgressBar(max = length(unique(data.ic$plot_code)), style = 3); i = 0
+#  for (thisplot in unique(data.ic$plot_code)) {
     
-    this_output = NPProot_ic_oneplot(datafile, thisplot, ...)
-    if (class(this_output) == "logical" & is.na(this_output)) {
-      warning(paste("Skipping plot", thisplot, ".  Perhaps only stock measurements?"))
-      next() # likely no rows after removing stock measurements
-    }
-    output[[thisplot]] = this_output
+#    this_output = NPProot_ic_oneplot(datafile, thisplot, ...)
+#    if (class(this_output) == "logical" & is.na(this_output)) {
+#      warning(paste("Skipping plot", thisplot, ".  Perhaps only stock measurements?"))
+#      next() # likely no rows after removing stock measurements
+#    }
+#    output[[thisplot]] = this_output
     
-    if (first_run) {
-      first_run = F
-      three_monthly = output[[thisplot]][["three_monthly"]]
-      three_monthly_pertube = output[[thisplot]][["three_monthly_pertube"]]
-      all_times_and_tubes = output[[thisplot]][["all_times_and_tubes"]]
-    } else {
-      three_monthly = rbind(three_monthly, output[[thisplot]][["three_monthly"]])
-      three_monthly_pertube = rbind(three_monthly_pertube, output[[thisplot]][["three_monthly_pertube"]])
-      all_times_and_tubes = rbind(all_times_and_tubes, output[[thisplot]][["all_times_and_tubes"]])
-    }
-    i = i + 1
-    setTxtProgressBar(pb, i)
-  }
-  close(pb)
+#    if (first_run) {
+#      first_run = F
+#      three_monthly = output[[thisplot]][["three_monthly"]]
+#      three_monthly_pertube = output[[thisplot]][["three_monthly_pertube"]]
+#      all_times_and_tubes = output[[thisplot]][["all_times_and_tubes"]]
+#    } else {
+#      three_monthly = rbind(three_monthly, output[[thisplot]][["three_monthly"]])
+#      three_monthly_pertube = rbind(three_monthly_pertube, output[[thisplot]][["three_monthly_pertube"]])
+#      all_times_and_tubes = rbind(all_times_and_tubes, output[[thisplot]][["all_times_and_tubes"]])
+#    }
+#    i = i + 1
+#    setTxtProgressBar(pb, i)
+# }
+#  close(pb)
   
-  if (ret_type == "list") { # return plot results in different list elements
-    return(output)
-  } else { # return results concatenated across plots
-    return(list("three_monthly" = three_monthly, "three_monthly_pertube" = three_monthly_pertube, "all_times_and_tubes" = all_times_and_tubes))
-  }
-}
+#  if (ret_type == "list") { # return plot results in different list elements
+#    return(output)
+#  } else { # return results concatenated across plots
+#    return(list("three_monthly" = three_monthly, "three_monthly_pertube" = three_monthly_pertube, "all_times_and_tubes" = all_times_and_tubes))
+#  }
+#}
 
-############################################################################### 
 ## Run this first. NPProot_ic: this is the core function for Ingrowth cores. ##
-###############################################################################
 
 logmodel = T
 fine_root_cor = "Default" 
-tubed = 0.07 
+tubed = 0.07 # This is the radius of the collar in meters, so diameter is 14 cm. 
 remove_stock_meas = T 
 ret = "monthly.means.ts"
 ret_type = "list" 
@@ -207,12 +216,14 @@ ret_type = "list"
   
   
   # re-name columns rather than building new ones!
-  icdata$ol_under2 = icdata$ol_under_2mm_g   
+  icdata$ol_under2 = icdata$ol_under_2mm_g  
+  icdata$ol_above2 = icdata$ol_above_2mm_g  
   icdata$ol_2to3   = icdata$ol_2to3_mm_g 
   icdata$ol_3to4   = icdata$ol_3to4_mm_g 
   icdata$ol_4to5   = icdata$ol_4to5_mm_g   
   icdata$ol_above5 = icdata$ol_above_5mm_g 
-  icdata$ml_under2 = icdata$ml_under_2mm_g                                
+  icdata$ml_under2 = icdata$ml_under_2mm_g 
+  icdata$ml_above2 = icdata$ml_above_2mm_g 
   icdata$ml_2to3   = icdata$ml_2to3_mm_g                           
   icdata$ml_3to4   = icdata$ml_3to4_mm_g 	           
   icdata$ml_4to5   = icdata$ml_4to5_mm_g 	                    
@@ -222,11 +233,13 @@ ret_type = "list"
   # Replace NAs by 0
   
   icdata$ol_under2[is.na(icdata$ol_under2)] = 0
+  icdata$ol_above2[is.na(icdata$ol_above2)] = 0
   icdata$ol_2to3[is.na(icdata$ol_2to3)]     = 0
   icdata$ol_3to4[is.na(icdata$ol_3to4)]     = 0
   icdata$ol_4to5[is.na(icdata$ol_4to5)]     = 0
   icdata$ol_above5[is.na(icdata$ol_above5)] = 0
-  icdata$ml_under2[is.na(icdata$ml_under2)] = 0                        
+  icdata$ml_under2[is.na(icdata$ml_under2)] = 0  
+  icdata$ml_above2[is.na(icdata$ml_above2)] = 0
   icdata$ml_2to3[is.na(icdata$ml_2to3)]     = 0                       
   icdata$ml_3to4[is.na(icdata$ml_3to4)]     = 0           
   icdata$ml_4to5[is.na(icdata$ml_4to5)]     = 0                  
@@ -266,12 +279,16 @@ ret_type = "list"
   ii <- c()
   jj <- c()
   kk <- c()
+  ll <- c()
+  mm <- c()
   
   pb = txtProgressBar(max = length(uid), style = 3)
   
   for (i in 1:length(uid)) {
-    sub          <- subset(icdata, subset=(icdata$this_core == uid[i]))
-    id           <- tail(sub$this_core, n=1) 
+    sub = subset(icdata, subset=(icdata$this_core == uid[i]))
+    id  = tail(sub$this_core, n=1) 
+    
+    #!!!!!!!! sub <- order by TIMESTEP
     
     if (nrow(sub) < 2) {
       warning(paste("You don't have enough timesteps in ", uid, "\n"))
@@ -281,48 +298,64 @@ ret_type = "list"
     # TO DO: replace missing days by the previous collection day sub$day[is.na(sub$day)] <- sub$day - 1 
     
     tot_olunder2  = calc_roots(sub, "ol_under2") 
+    tot_olabove2  = calc_roots(sub, "ol_above2")
     tot_ol2to3    = calc_roots(sub, "ol_2to3") 
     tot_ol3to4    = calc_roots(sub, "ol_3to4") 
     tot_ol4to5    = calc_roots(sub, "ol_4to5") 
     tot_olabove5  = calc_roots(sub, "ol_above5") 
     tot_mlunder2  = calc_roots(sub, "ml_under2")
+    tot_mlabove2  = calc_roots(sub, "ml_above2")
     tot_ml2to3    = calc_roots(sub, "ml_2to3") 
     tot_ml3to4    = calc_roots(sub, "ml_3to4") 
     tot_ml4to5    = calc_roots(sub, "ml_4to5")   
     tot_mlabove5  = calc_roots(sub, "ml_above5") 
     tot_total     = calc_roots(sub, "total")
     
-    xx       <- rbind(xx, id)           # was: yy <- rbind(yy, persist_id) 
-    aa       <- rbind(aa, tot_olunder2) 
-    bb       <- rbind(bb, tot_ol2to3)
-    cc       <- rbind(cc, tot_ol3to4)
-    dd       <- rbind(dd, tot_ol4to5)
-    ee       <- rbind(ee, tot_olabove5)
-    ff       <- rbind(ff, tot_mlunder2) 
-    gg       <- rbind(gg, tot_ml2to3)
-    hh       <- rbind(hh, tot_ml3to4)
-    ii       <- rbind(ii, tot_ml4to5)
-    jj       <- rbind(jj, tot_mlabove5)
-    kk       <- rbind(kk, tot_total)
+    xx = rbind(xx, id)          
+    aa = rbind(aa, tot_olunder2) 
+    ll = rbind(ll, tot_olabove2)
+    bb = rbind(bb, tot_ol2to3)
+    cc = rbind(cc, tot_ol3to4)
+    dd = rbind(dd, tot_ol4to5)
+    ee = rbind(ee, tot_olabove5)
+    ff = rbind(ff, tot_mlunder2) 
+    mm = rbind(mm, tot_mlabove2) 
+    gg = rbind(gg, tot_ml2to3)
+    hh = rbind(hh, tot_ml3to4)
+    ii = rbind(ii, tot_ml4to5)
+    jj = rbind(jj, tot_mlabove5)
+    kk = rbind(kk, tot_total)
     setTxtProgressBar(pb, i)
   }
   close(pb)
   
-  data2a <- data.frame(cbind(as.character(xx), as.numeric(as.character(aa)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), 
-                             as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), 
+  data2a <- data.frame(cbind(as.character(xx), as.numeric(as.character(aa)), as.numeric(as.character(ll)), as.numeric(as.character(bb)), as.numeric(as.character(cc)), 
+                             as.numeric(as.character(dd)), as.numeric(as.character(ee)), as.numeric(as.character(ff)), as.numeric(as.character(mm)),
                              as.numeric(as.character(gg)), as.numeric(as.character(hh)), as.numeric(as.character(ii)), 
                              as.numeric(as.character(jj)), as.numeric(as.character(kk))))
-  colnames(data2a) <- c("this_core", "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", 
-                        "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5", "tot_total")
+
+  
+  colnames(data2a) = c("this_core", "tot_olunder2", "tot_olabove2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", 
+                        "tot_mlunder2", "tot_mlabove2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5", "tot_total")
+  
+  # test: are all the plot codes in the new dataframe? 
+  temp  = strsplit(as.character(xx), "[_]")                    
+  xxx   = unlist(lapply(temp, `[[`, 1))
+  unique(xxx)
+  temp  = strsplit(as.character(data2a$this_core), "[_]")                   
+  data2a$plot_code   = unlist(lapply(temp, `[[`, 1))
+  unique(data2a$plot_code)
   
   ## rootztot is the sum of roots in the soil layers.
   data2 = data2a %>% mutate(this_core = as.character(this_core),
                             tot_olunder2 = as.numeric(as.character(tot_olunder2)),
+                            tot_olabove2 = as.numeric(as.character(tot_olabove2)),
                             tot_ol2to3   = as.numeric(as.character(tot_ol2to3)),
                             tot_ol3to4   = as.numeric(as.character(tot_ol3to4)),
                             tot_ol4to5   = as.numeric(as.character(tot_ol4to5)),
                             tot_olabove5 = as.numeric(as.character(tot_olabove5)),
                             tot_mlunder2 = as.numeric(as.character(tot_mlunder2)),
+                            tot_mlabove2 = as.numeric(as.character(tot_mlabove2)),
                             tot_ml2to3   = as.numeric(as.character(tot_ml2to3)),
                             tot_ml3to4   = as.numeric(as.character(tot_ml3to4)),
                             tot_ml4to5   = as.numeric(as.character(tot_ml4to5)),
@@ -332,7 +365,7 @@ ret_type = "list"
                      #%>% mutate(rootztot = rowSums(select_(., "tot_olunder2", "tot_ol2to3", "tot_ol3to4", "tot_ol4to5", "tot_olabove5", "tot_mlunder2", "tot_ml2to3", "tot_ml3to4", "tot_ml4to5", "tot_mlabove5", "tot_total")))
                             
   
-  df <- data.frame(data2$tot_olunder2, data2$tot_ol2to3, data2$tot_ol3to4, data2$tot_ol4to5, data2$tot_olabove5, data2$tot_mlunder2, data2$tot_ml2to3, data2$tot_ml3to4, data2$tot_ml4to5, data2$tot_mlabove5, data2$tot_total)
+  df <- data.frame(data2$tot_olunder2, data2$tot_olabove2, data2$tot_ol2to3, data2$tot_ol3to4, data2$tot_ol4to5, data2$tot_olabove5, data2$tot_mlunder2, data2$tot_mlabove2, data2$tot_ml2to3, data2$tot_ml3to4, data2$tot_ml4to5, data2$tot_mlabove5, data2$tot_total)
   zz <- rowSums(df, na.rm=T)
   data2$rootztot <- zz
   
@@ -372,52 +405,14 @@ data2 = data2 %>% mutate(year = as.numeric(as.character(year)),
   data2$ic_MgCha = (data2$totaic/data2$ciric)*10000/(2.1097*1000*1000)  # Mg roots per ha (10000m2 = 1ha, 1Mg = 1000000g divide by 2 for carbon)
   data2$ic_id = paste(data2$plot_code, data2$ingrowth_core_num, sep="_")
   
-data3 = data2 %>% group_by(ic_id) %>%
+data333 = data2 %>% group_by(ic_id) %>%
                   arrange(ic_id, collectiondate) %>%                        # Order data by ingrowth core and date.
+                  # filter(., ic_id > 1) %>%                 
                   mutate(collectiondate = as.POSIXct(collectiondate),       # Convert dates to POSIXct
                   interval  = c(90, get_time_diffs(collectiondate)),        # Get collection interval using get_time_diffs (sourced from functions.r)
                   dailyNPProot = ic_MgCha/interval,
-                  monthlyNPProot = dailyNPProot * 30) 
-
-#test1 = data2 %>% group_by(ic_id) %>%
-                  #arrange(collectiondate) %>%
-                  #rowwise() %>%
-                  #mutate(collectiondate = as.POSIXct(collectiondate),       
-                         #interval  = ifelse(is.na(lag(collectiondate, order_by = collectiondate))==T, 
-                          #                  90,
-                          #                  get_time_diffs(c(lag(collectiondate), collectiondate)))) 
-
-#data3$collectiondate %>% plot
-
-#uid <- unique(data2$ic_id)
-#aa <- c()
-#bb <- c() 
-#cc <- c() 
-#dd <- c()
-
-#pb = txtProgressBar(max = length(uid), style = 3)
-
-#for (i in 1:length(uid)) {
-#  sub        = subset(data2, subset=(data2$ic_id == uid[i]))
-#  this_core  = sub$this_core
-  
-#  interval       = c(90, get_time_diffs(sub$collectiondate))
-  
-#  bb       = rbind(bb, this_core)
-#  cc       = rbind(cc, interval) 
-  
-#  setTxtProgressBar(pb, i)
-#}
-#close(pb)
-
-#output = data.frame(cbind(as.character(aa), as.numeric(as.character(bb)), as.numeric(as.character(cc), as.numeric(as.character(dd))))
-
-
-# Try to do this with tapply
-#interval2 <- with(data2, tapply(X = collectiondate,   # X is the critical DV
-#                                INDEX = ic_id,        # INDEX is the grouping variable
-#                                FUN =  get_time_diffs # FUN is the aggregation function
-#§))
+                  monthlyNPProot = dailyNPProot * 30) %>%
+                  data.frame(.) 
 
 
 # TO DO:
@@ -434,7 +429,13 @@ data3 = data2 %>% group_by(ic_id) %>%
                            collectiondate = min(collectiondate)) %>%
                            data.frame(.) %>%
                            arrange(year, month)
-
+  
+# plot it
+  data4 %>% group_by(plot_code) %>%
+    ggplot(data=., aes(month, monthlyNPProot)) + geom_point() +
+    ylim(0,2) +
+    facet_wrap(~plot_code)
+  
 
   # remove the first measurement from all tubes if the stock measurement wasn't removed initially
   if (! remove_stock_meas) {

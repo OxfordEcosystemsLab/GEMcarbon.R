@@ -374,6 +374,7 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   discorA = mean(colMeans(DCudA - DCdA, na.rm=T), na.rm=T)
   discorAstd = sqrt(DCudA^2 + DCdAstd^2) # !!!!! GET DCudAstd !!!!!!!!!!!
   
+  # Do this for each set of experiment
   
   if (partitioningoption == 1) {
     ## respiration under three different treatments: control, no litter and double litter.
@@ -395,7 +396,7 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
     for (i in 1:rrxc[1]) {
       for (j in 1:rrxc[2]) {
         rrA[i,j]    = mean(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
-        rrAstd[i,j] = sd(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T)    
+        rrAstd[i,j] = sd(c(rrA1[i,j],rrA2[i,j],rrA3[i,j]),na.rm=T) #this should be rrAste / sqrt(2)   
       }
     } 
     rrA[which(rrA>1)] = NA
@@ -406,13 +407,16 @@ soilrespiration <- function(data.rest,data.resp,data.resc, plotname, ret="monthl
   }
   
   
+  
   ## autotrophic root respiration:
-  rrtotresAc    = totresAc*rrA
+  rrtotresAc    = totresAc*rrA # tot res * fraction of Raut
   rrtotresAcstd = (totresAcstd*rrA)/sqrt(25) # should be more generic - length(subplot)
+  # rrtotresAcstd = sqrt(((totresAcstd/sqrt(25)/totresAc)^2 + (rrAste/rrA)^2)
   
   ## heterotrophic respiration:
   hrtotresAc    = totresAc*(1-rrA)
   hrtotresAcstd = (totresAcstd*(1-rrA))/sqrt(25)
+  # do the same error calc: hrtotresAcstd = sqrt(((totresAcstd/sqrt(25)/totresAc)^2 + (rrAste/rrA)^2)
   
   ### NEW BIT FOR DAN's PAPER ################## I AM HERE##################### 
   

@@ -91,7 +91,7 @@ data$ch_fill = NA
       yy        = rbind(yy, flux)
       zz        = rbind(zz, as.character(codep))
       zzz       = rbind(zzz, as.character(plot))
-      print(yy)
+      print(xx)
     }
 
     rownames(xx)  = NULL
@@ -99,8 +99,8 @@ data$ch_fill = NA
     rownames(zz)  = NULL
     rownames(zzz) = NULL
     
-    Res = data.frame(cbind(xx, yy, zz, zzz))
-    colnames(Res) = c("codew", "Rflux_umolm2sec", "part_code", "plot_code")
+    Res = data.frame(cbind(xx, yy, zzz)) #zz, 
+    colnames(Res) = c("codew", "Rflux_umolm2sec", "part_code", "plot_code") 
     Res$fluxnum = as.numeric(levels(Res$Rflux_umolm2sec))[Res$Rflux_umolm2sec] # Make sure flux is numeric
 
 # Filter outlyers
@@ -125,18 +125,41 @@ Res$fluxnum[Res$fluxnum <= 0 | Res$fluxnum >= 15] <- NA
     Res$collection    = as.Date(paste(Res$year, Res$month, Res$day, sep="."), format="%Y.%m.%d") 
     Res$measurement_code            = unlist(lapply(temp, `[[`, 8)) 
     Res$treatment_code_partitioning = unlist(lapply(temp, `[[`, 9))
+    
+    # convert character to numeric variables !! CHECK THIS: NAs introduced by coercion
+    names <- c(7:12)
+    Res[,names] <- sapply(Res[,names],as.numeric)
 
-# Average over the whole plot: one value per plot per month.
-avg_rtot = Res %>% group_by(plot_code, measurement_code, year, month) %>% 
-                   dplyr::summarize(avg = mean(Rflux_MgC_ha_mo, na.rm = T), 
-                                    sd = sd(Rflux_MgC_ha_mo, na.rm = T),
-                                    collection_date = max(collection))
+    # Res - average per collar (average replicas!)
+    Res1 = Res %>% group_by(plot_code, measurement_code, 
+                            treatment_code_partitioning, #for partitioning
+                            #disturbance_code_control, #for distubance
+                            #litter_code, #for IC
+                            #cwd_num, #for cwd
+                            year, month, sub_plot, collar_number) %>% 
+      dplyr::summarise(collectiondate = min(collection),
+                       N = length(Rflux_MgC_ha_mo[!is.na(Rflux_MgC_ha_mo)]),
+                       collar_fluxnum_umolm2sec = mean(fluxnum, na.rm = T),
+                       collar_Rflux_MgC_ha_mo = mean(Rflux_MgC_ha_mo, na.rm = T)) %>% 
+      arrange(plot_code, year, month, sub_plot, collar_number) %>% data.frame(.)
+    
+# Average over the whole plot: one value per plot per month
+    Res2 = Res1 %>% group_by(plot_code, measurement_code, treatment_code_partitioning, year, month) %>% 
+                   dplyr::summarize(avg = mean(collar_Rflux_MgC_ha_mo, na.rm = T), 
+                                    sd = sd(collar_Rflux_MgC_ha_mo, na.rm = T),
+                                    collection_date = max(collectiondate)) %>% data.frame(.)
 
-Res2 = data.frame(avg_rtot)
 
-    return(Res)
+Res2 %>% group_by(plot_code) %>%
+  ggplot(data=., aes(month, avg, colour=year)) + geom_point() +
+  facet_wrap(~plot_code)
+
+#Res2$date = strptime(paste(as.character(Res2$year), as.character(Res2$month), as.character("15"), sep="-"), format="%Y-%m-%d")  
+
+
+    return(Res1)
     return(Res2)
-
+ 
   }
   
 
