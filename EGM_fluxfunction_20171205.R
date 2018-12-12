@@ -42,6 +42,9 @@ data$ch_fill = NA
     data = data[order(data$codew, data$time),]
 
     # get unique identifyer for each measurement
+    
+    ################ USE THE FLUX PACKAGE: https://cran.r-project.org/web/packages/flux/index.html
+    
     uid = unique(data$codew)
     xx  = c()
     yy  = c()

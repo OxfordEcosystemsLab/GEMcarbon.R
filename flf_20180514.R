@@ -187,7 +187,7 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
       gg            <- c(gg, bother)
       hh            <- c(hh, btotal)
       
-      print(xx)
+      #print(xx)
       
     } else {  
       # print(paste("row number:", i))
@@ -316,23 +316,10 @@ flf <- function(data_flf, ..., ret_type = c("concat", "list")) {
   # month as numeric
   #data5$month = as.numeric(as.character(data5$month))
   
-  "ACJ-01", "ESP-01", "WAY-01", "TRU-04", "SPD-01", "SPD-02", "PAN-02", "PAN-03" 
-  "ALP-11", "ALP-12", "JEN-11", "JEN-12", "KEN-01", "KEN-02", "TAM-05", "TAM-06", "TAM-09"
-  "AGU-01", "REQ-14", "NXV-01", "NXV-02", "BLZ-11", "BLZ-12", "BLZ-21", "BLZ-22", 
-  
-  "STB-08", "STB-12", "STD-05", "STD-10", "STD-11", "STJ-01", "STJ-04", "STJ-05", "STL-09", "STL-10", "STN-02", "STN-03", "STN-04", "STN-06", "STN-09", "STO-03", "STO-06", "STO-07", "STQ-08", "STQ-11", 
-  
-  "ANK-01", "ANK-02", "ANK-03", "BOB-01", "BOB-02", "BOB-03", "BOB-04", "BOB-05", "BOB-06", "KOG-02", "KOG-03", "KOG-04", "KOG-05", "KOG-06" 
-  
-  "LPG-01", "LPG-02", "MNG-03", "MNG-04", "IVI-01", "IVI-02",  
-  
-  "MLA-01", "MLA-02", "DAN-04", "DAN-05", "SAF-01", "SAF-02", "SAF-03", "SAF-04", "SAF-05" 
-  
-  
   # plot it
-  plotit = subset(data5, plot_code %in% c("LPG-01", "LPG-02", "MNG-03", "MNG-04", "IVI-01", "IVI-02"))
+  plotit = subset(data4, plot_code %in% c("DAN-04", "DAN-05", "TAM-05", "ANK-01", "ANK-02", "ANK-03", "BOB-01"))
   plotit %>% group_by(plot_code) %>% arrange(plot_code, month, year) %>% 
-    ggplot(data=., aes(month, leavesflf_MgC_ha_month, colour=year)) + geom_point() +
+    ggplot(data=., aes(month, leavesflf_MgC_ha_month_trap, colour=year)) + geom_point() +
     #ylim(0,1.5) +
     facet_wrap(~plot_code)
   

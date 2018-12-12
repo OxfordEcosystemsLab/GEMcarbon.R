@@ -1,6 +1,8 @@
 # Rsoil workflow
 # This script is the workflow for estimating R soil - total and partitionning- from the data saved from the EGM-4.
 
+# Check out this package: https://cran.r-project.org/web/packages/flux/flux.pdf
+
 library(dplyr)
 library(grDevices)
 require(ggplot2)
